@@ -1,0 +1,160 @@
+const Art = (() => {
+  const districts = [
+    { roof: '#263747', trim: '#597086', glass: '#8ee7ff', name: 'DOWNTOWN' },
+    { roof: '#302a3a', trim: '#6d5873', glass: '#ff9cba', name: 'OLD QUARTER' },
+    { roof: '#303b3b', trim: '#687669', glass: '#efd38a', name: 'INDUSTRIAL DOCKS' },
+  ];
+  const district = b => districts[b.row === 2 ? 2 : b.col >= 2 ? 1 : 0];
+  function fill(ctx, x, y, w, h, color) {
+    ctx.fillStyle = color;
+    ctx.fillRect(x, y, w, h);
+  }
+  function atmosphere(ctx, x, y, radius, color) {
+    const glow = ctx.createRadialGradient(x, y, 0, x, y, radius);
+    glow.addColorStop(0, color);
+    glow.addColorStop(1, 'transparent');
+    fill(ctx, x - radius, y - radius, radius * 2, radius * 2, glow);
+  }
+  function buildCity() {
+    const map = document.createElement('canvas');
+    map.width = 1430;
+    map.height = 1040;
+    const c = map.getContext('2d');
+    fill(c, 0, 0, 1430, 1040, '#0a1823');
+    fill(c, 78, 81, 1268, 878, '#263440');
+    let random = 138419;
+    for (let i = 0; i < 7500; i++) {
+      random = (Math.imul(random, 1664525) + 1013904223) >>> 0;
+      const x = 79 + random % 1264;
+      const y = 82 + (random >>> 11) % 873;
+      fill(c, x, y, 1 + random % 4, 1, random % 2 ? '#ffffff0c' : '#00000019');
+    }
+    for (const y of City.ys) {
+      for (let x = 90; x < 1330; x += 27) fill(c, x, y, 12, 1.5, '#caba8e82');
+      fill(c, 78, y - 39, 1268, 1, '#8a9a9faa');
+      fill(c, 78, y + 38, 1268, 1, '#8a9a9faa');
+    }
+    for (const x of City.xs) {
+      for (let y = 90; y < 940; y += 27) fill(c, x, y, 1.5, 12, '#caba8e82');
+      for (const y of City.ys) {
+        for (let p = -30; p < 32; p += 8) {
+          fill(c, x + p, y - 42, 3, 9, '#acc3c197');
+          fill(c, x + p, y + 33, 3, 9, '#acc3c197');
+        }
+      }
+    }
+    for (const b of City.blocks) {
+      const d = district(b);
+      const w = b.right - b.x, h = b.bottom - b.y;
+      fill(c, b.x, b.y, w, h, '#435362');
+      fill(c, b.x + 5, b.y + 5, w - 10, h - 10, '#293640');
+      for (let slot = 0; slot < 2; slot++) {
+        const x = b.x + 13 + slot * ((w - 20) / 2);
+        const y = b.y + 19 + slot * 12;
+        const bw = (w - 44) / 2;
+        const bh = h - 55 - slot * 11;
+        fill(c, x + 9, y + 11, bw + 4, bh + 5, '#111722');
+        fill(c, x, y, bw, bh + 7, '#111923');
+        fill(c, x, y, bw, bh, d.trim);
+        fill(c, x + 2, y + 2, bw - 4, bh - 4, d.roof);
+        c.strokeStyle = '#131e2a';
+        c.strokeRect(x + 8, y + 8, bw - 16, bh - 16);
+        fill(c, x + bw * .42, y + 22, 19, 37, '#647481');
+        fill(c, x + bw * .42 + 2, y + 24, 15, 33, '#222d38');
+        for (let i = 7; i < bw - 6; i += 11) {
+          if ((i + slot + b.row + b.col) % 4 === 0) continue;
+          fill(c, x + i, y + bh + 1, 6, 3, d.glass);
+          fill(c, x + i, y + bh + 5, 6, 6, d.glass + '33');
+        }
+        if (slot === (b.row + b.col) % 2) {
+          atmosphere(c, x + bw / 2, y + bh + 10, 36, d.glass + '39');
+          c.font = 'bold 9px system-ui';
+          c.fillStyle = d.glass;
+          c.fillText(['NIGHT SHIFT', '24H SERVICE', 'FERRY DEPOT', 'HOTEL IRIS'][(b.row + b.col) % 4], x + 6, y + bh + 20);
+        }
+      }
+      for (const x of [b.x + 3, b.right - 3]) for (const y of [b.y + 3, b.bottom - 3]) {
+        atmosphere(c, x, y, 55, '#ffc37950');
+        fill(c, x - 2, y - 2, 4, 4, '#ffe0a3');
+      }
+    }
+    for (let i = 0; i < 9; i++) {
+      c.strokeStyle = '#54aac022';
+      c.strokeRect(1348 + i * 4, 105 + i * 18, 32, 470 + i * 12);
+    }
+    return map;
+  }
+
+  function car(ctx, c, police, time) {
+    ctx.save();
+    ctx.translate(c.x, c.y);
+    ctx.rotate(c.angle);
+    const beam = ctx.createLinearGradient(17, 0, 112, 0);
+    beam.addColorStop(0, '#d9ecff85');
+    beam.addColorStop(1, '#d9ecff00');
+    ctx.fillStyle = beam;
+    ctx.beginPath();
+    ctx.moveTo(16, -7);
+    ctx.lineTo(112, -36);
+    ctx.lineTo(112, 36);
+    ctx.lineTo(16, 7);
+    ctx.fill();
+    if (police) {
+      const flash = Math.floor(time * 9) % 2;
+      atmosphere(ctx, 0, -10, 57, flash ? '#ff345c70' : '#ff345c24');
+      atmosphere(ctx, 0, 10, 57, flash ? '#337aff24' : '#337aff79');
+    }
+    fill(ctx, -22, -11, 46, 23, '#090e16bb');
+    for (const x of [-14, 10]) for (const y of [-11, 7]) fill(ctx, x, y, 9, 4, '#0b0e16');
+    ctx.fillStyle = police ? '#dde7eb' : '#ff604c';
+    ctx.beginPath();
+    ctx.roundRect(-20, -9, 40, 18, [4, 6, 6, 4]);
+    ctx.fill();
+    fill(ctx, -9, -7, 16, 14, '#33495a');
+    fill(ctx, -5, -5, 9, 10, police ? '#adbbce' : '#9c302c');
+    fill(ctx, 14, -7, 4, 14, police ? '#243448' : '#b52e28');
+    for (const y of [-7, 4]) {
+      fill(ctx, 17, y, 3, 3, '#f2feff');
+      fill(ctx, -20, y, 2, 3, '#ff233c');
+    }
+    if (police) {
+      fill(ctx, -2, -7, 4, 7, '#ff4b68');
+      fill(ctx, -2, 0, 4, 7, '#56a2ff');
+    }
+    ctx.restore();
+  }
+
+  function minimap(ctx, w, h, run, p) {
+    const size = Math.min(182, w * .34);
+    const scale = size / 1268;
+    const x = w - size - 25, y = h - 878 * scale - 27;
+    fill(ctx, x - 10, y - 21, size + 20, 878 * scale + 36, '#0b121bea');
+    ctx.font = 'bold 10px system-ui';
+    ctx.fillStyle = '#b2c8d5';
+    ctx.fillText('PORT MERIDIAN', x, y - 6);
+    ctx.save();
+    ctx.translate(x - 78 * scale, y - 81 * scale);
+    ctx.scale(scale, scale);
+    for (const b of City.blocks) fill(ctx, b.x, b.y, b.right - b.x, b.bottom - b.y, '#405568');
+    const dot = (q, color) => fill(ctx, q.x - 15, q.y - 15, 30, 30, color);
+    dot(run.collected ? Pursuit.exit : Drive.pickup, run.collected ? '#6affc0' : '#ffc978');
+    if (p.intercept) dot(City.nodes[p.intercept.node], '#ff5c76');
+    dot(run.car, '#ffffff');
+    ctx.restore();
+  }
+
+  function weather(ctx, car, time, w, h) {
+    ctx.strokeStyle = '#b5deff27';
+    ctx.lineWidth = .8;
+    ctx.beginPath();
+    for (let i = 0; i < 110; i++) {
+      const x = car.x - w * .8 + ((i * 123.73 + time * 94) % (w * 1.6));
+      const y = car.y - h * .8 + ((i * 61.81 + time * 330) % (h * 1.6));
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + 4, y + 13 + i % 7);
+    }
+    ctx.stroke();
+  }
+
+  return { buildCity, car, minimap, weather };
+})();

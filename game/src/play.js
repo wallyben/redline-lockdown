@@ -1,17 +1,21 @@
 const canvas = document.querySelector('canvas');
 const ctx = canvas.getContext('2d');
+const cityArt = Art.buildCity();
 const brief = document.querySelector('#brief');
 const hud = document.querySelector('#hud');
 const startButton = document.querySelector('#start');
 const keys = new Set();
 let state = Drive.reset();
+let pursuit = Pursuit.reset();
 let mode = 'title';
 let interact = false;
 let previous = performance.now();
 let accumulator = 0;
+let banner = '';
 
 function start() {
   state = Drive.reset();
+  pursuit = Pursuit.reset();
   interact = false;
   mode = 'playing';
   brief.hidden = true;
@@ -21,8 +25,20 @@ function start() {
 
 function pause() {
   mode = 'paused';
+  brief.querySelector('h1').innerHTML = 'REDLINE <span>LOCKDOWN</span>';
   brief.querySelector('p').textContent = 'Paused. Press Escape or Enter to resume.';
   startButton.textContent = 'Resume ↵';
+  brief.hidden = false;
+}
+
+function finish() {
+  mode = 'results';
+  const s = Pursuit.score(state, pursuit);
+  brief.querySelector('h1').innerHTML = 'RUN <span>REPORT</span>';
+  brief.querySelector('p').textContent = pursuit.result + '  /  ' + s.total.toLocaleString() + ' pts\n' +
+    'Recorder +' + s.recorder + '  ·  Extraction +' + s.extraction +
+    '  ·  Pace +' + s.pace + '  ·  Damage −' + s.repairs;
+  startButton.textContent = 'Drive again ↵';
   brief.hidden = false;
 }
 
@@ -70,19 +86,6 @@ function marker(p, name, color) {
   ctx.fillText(name, p.x - 24, p.y - 36);
 }
 
-function car(c, color) {
-  ctx.save();
-  ctx.translate(c.x, c.y);
-  ctx.rotate(c.angle);
-  rect(-19, -9, 38, 18, color);
-  rect(-8, -7, 15, 14, '#172b3a');
-  rect(16, -7, 4, 4, '#e6f7ff');
-  rect(16, 3, 4, 4, '#e6f7ff');
-  rect(-19, -7, 3, 4, '#ff4c4f');
-  rect(-19, 3, 3, 4, '#ff4c4f');
-  ctx.restore();
-}
-
 function render() {
   const w = innerWidth, h = innerHeight;
   const dpr = Math.min(devicePixelRatio, 1.5);
@@ -92,26 +95,61 @@ function render() {
   }
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   rect(0, 0, w, h, '#09111a');
-  const c = state.car;
-  const zoom = Math.max(0.75, Math.min(1.3, h / 665));
+  const title = mode === 'title';
+  const c = title ? { x: 690, y: 400, angle: -.11, vx: 0, vy: 0 } : state.car;
+  const time = title ? performance.now() / 1000 : state.time;
+  const zoom = title ? Math.max(1.7, h / 335) : Math.max(0.75, Math.min(1.3, h / 665));
   ctx.save();
-  ctx.translate(w * .5 - (c.x + c.vx * .32) * zoom, h * .54 - (c.y + c.vy * .32) * zoom);
+  ctx.translate(w * (mode === 'title' ? .72 : .5) - (c.x + c.vx * .32) * zoom, h * .54 - (c.y + c.vy * .32) * zoom);
   ctx.scale(zoom, zoom);
-  rect(78, 81, 1268, 878, '#263545');
-  for (const y of City.ys) for (let x = 90; x < 1330; x += 35) rect(x, y, 16, 2, '#637384');
-  for (const x of City.xs) for (let y = 90; y < 940; y += 35) rect(x, y, 2, 16, '#637384');
-  for (const b of City.blocks) {
-    rect(b.x, b.y, b.right - b.x, b.bottom - b.y, '#4a5666');
-    rect(b.x + 7, b.y + 7, b.right - b.x - 14, b.bottom - b.y - 14, '#192435');
+  ctx.drawImage(cityArt, 0, 0);
+  Art.weather(ctx, c, time, w / zoom, h / zoom);
+  if (!title && !state.collected) marker(Drive.pickup, 'RECORDER', '#f4c468');
+  if (state.collected) {
+    marker(Pursuit.exit, pursuit.lost >= 2.5 ? 'EXTRACT' : 'BREAK CONTACT', '#82ffbf');
+    if (pursuit.intercept) {
+      const target = City.nodes[pursuit.intercept.node];
+      marker(target, pursuit.block ? 'ROADBLOCK' : 'INTERCEPT INBOUND', '#ff657f');
+      if (pursuit.block) {
+        ctx.save();
+        ctx.translate(target.x, target.y);
+        ctx.rotate(pursuit.units[1].angle);
+        for (let x = -38; x <= 37; x += 10) rect(x, -2, 7, 4, '#ffba7d');
+        ctx.restore();
+      }
+    }
+    for (const unit of pursuit.units) Art.car(ctx, unit, true, state.time);
   }
-  if (!state.collected) marker(Drive.pickup, 'RECORDER', '#f4c468');
-  car(c, '#ef5b5e');
+  Art.car(ctx, c, false, time);
   ctx.restore();
+  const destination = state.collected ? Pursuit.exit : Drive.pickup;
   const near = City.distance(c, Drive.pickup) < 45;
-  hud.textContent = (state.collected ? 'Recorder secured' : state.sweep >= 0
-    ? 'Signal sweep  ' + state.sweep.toFixed(2) + ' / 2.40 s · press E between 0.75 and 1.45 s'
-    : near ? 'Stop at the recorder and press E' : 'Find the recorder  →') +
-    '\n' + Math.round(Math.hypot(c.vx, c.vy) * .55) + ' km/h · ' + Math.max(0, 100 - Math.round(c.damage)) + '% integrity';
+  const range = Math.round(City.distance(c, destination));
+  const driveAngle = Math.atan2(destination.y - c.y, destination.x - c.x);
+  const arrow = ['→', '↘', '↓', '↙', '←', '↖', '↑', '↗'][(Math.round(driveAngle / (Math.PI / 4)) + 8) % 8];
+  const shade = ctx.createRadialGradient(w * .56, h * .52, h * .23, w * .56, h * .52, w * .68);
+  shade.addColorStop(0, '#0b142000');
+  shade.addColorStop(1, '#050916a8');
+  rect(0, 0, w, h, shade);
+  if (mode !== 'title') Art.minimap(ctx, w, h, state, pursuit);
+  if (state.sweep >= 0 && !state.collected) {
+    const x = w / 2 - 105;
+    const y = h - 66;
+    rect(x - 12, y - 31, 234, 56, '#0b121be8');
+    rect(x, y, 210, 7, '#374554');
+    rect(x + 65.6, y, 61.3, 7, '#55efaa');
+    rect(x + Math.min(210, state.sweep / 2.4 * 210), y - 4, 3, 15, '#ffffff');
+    ctx.fillStyle = '#f8ead3';
+    ctx.font = 'bold 12px system-ui';
+    ctx.fillText('PRESS E IN THE GREEN BAND', x, y - 12);
+  }
+  const nextBanner = (state.collected ? (pursuit.block ? 'ROADBLOCK ACTIVE' : pursuit.intercept ? 'INTERCEPT INBOUND' : 'RECORDER SECURED') +
+    '\n' + (pursuit.seen ? 'Spotted · take a side street' : pursuit.lost < 2.5 ?
+      'Breaking contact · ' + pursuit.lost.toFixed(1) + ' s' : 'Contact lost · extraction ' + arrow + ' ' + range + ' m') : state.sweep >= 0
+    ? 'Tuning recorder'
+    : near ? 'Stop at the recorder and press E' : 'Recorder ' + arrow + ' ' + range + ' m') +
+    '\n' + Math.ceil(Math.max(0, 180 - state.time)) + ' s · ' + Math.round(Math.hypot(c.vx, c.vy) * .55) + ' km/h · ' + Math.max(0, 100 - Math.round(c.damage)) + '% integrity';
+  if (nextBanner !== banner) { hud.textContent = nextBanner; banner = nextBanner; }
 }
 
 function frame(now) {
@@ -125,6 +163,8 @@ function frame(now) {
         drift: keys.has('Space'), interact,
       });
       interact = false;
+      Pursuit.tick(pursuit, state);
+      if (pursuit.result) finish();
     }
     accumulator -= 1 / 60;
   }
