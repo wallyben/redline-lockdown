@@ -70,7 +70,7 @@ const Art = (() => {
           atmosphere(c, x + bw / 2, y + bh + 10, 36, d.glass + '39');
           c.font = 'bold 9px system-ui';
           c.fillStyle = d.glass;
-          c.fillText(['NIGHT SHIFT', '24H SERVICE', 'FERRY DEPOT', 'HOTEL IRIS'][(b.row + b.col) % 4], x + 6, y + bh + 20);
+          c.fillText(['NIGHT SHIFT', '24H SERVICE', 'FERRY DEPOT', 'MOTOR WORKS'][(b.row + b.col) % 4], x + 6, y + bh + 20);
         }
       }
       for (const x of [b.x + 3, b.right - 3]) for (const y of [b.y + 3, b.bottom - 3]) {
@@ -78,11 +78,95 @@ const Art = (() => {
         fill(c, x - 2, y - 2, 4, 4, '#ffe0a3');
       }
     }
+    landmarks(c);
     for (let i = 0; i < 9; i++) {
       c.strokeStyle = '#54aac022';
       c.strokeRect(1348 + i * 4, 105 + i * 18, 32, 470 + i * 12);
     }
     return map;
+  }
+
+  function landmarks(ctx) {
+    const hotel = City.blocks.find(b => b.row === 0 && b.col === 2);
+    const facade = hotel.bottom - 19;
+    atmosphere(ctx, 837, facade + 15, 105, '#d136ff65');
+    fill(ctx, 759, facade - 96, 168, 99, '#1b1331');
+    fill(ctx, 770, facade - 84, 146, 76, '#432b57');
+    ctx.strokeStyle = '#f78de9';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(773, facade - 80, 139, 67);
+    fill(ctx, 780, facade - 24, 126, 31, '#260e31');
+    ctx.font = '900 16px system-ui';
+    ctx.fillStyle = '#ffb9ed';
+    ctx.fillText('H O T E L  I R I S', 785, facade - 4);
+    fill(ctx, 768, facade + 8, 148, 3, '#f365df');
+
+    const { x, top, bottom, halfWidth, coverTop, coverBottom } = City.alley;
+    fill(ctx, x - 27, coverTop, 54, coverBottom - coverTop, '#0718179f');
+    for (let y = coverTop; y < coverBottom; y += 25) {
+      fill(ctx, x - 21, y, 2, 14, '#64ae91a1');
+      fill(ctx, x + 19, y, 2, 14, '#64ae91a1');
+    }
+    for (const edge of [x - 39, x + halfWidth]) {
+      fill(ctx, edge, top, 11, bottom - top, '#21352e');
+      fill(ctx, edge + 2, top + 1, 3, bottom - top - 2, '#85b591');
+      for (let y = top + 2; y < bottom - 1; y += 13) fill(ctx, edge, y, 11, 3, '#d4b666');
+    }
+    atmosphere(ctx, x, coverTop + 3, 41, '#70ffc067');
+    ctx.font = '800 11px system-ui';
+    ctx.fillStyle = '#9bfccf';
+    ctx.fillText('SERVICE ALLEY ↓', x - 45, coverTop - 12);
+    ctx.font = '700 8px system-ui';
+    ctx.fillText('LOW CLEARANCE', x - 34, coverTop - 2);
+
+    const dock = City.blocks.find(b => b.row === 2 && b.col === 3);
+    for (let i = 0; i < 4; i++) {
+      const y = dock.y + 14 + i * 30;
+      fill(ctx, dock.x + 12, y, 124, 20, '#151d23');
+      fill(ctx, dock.x + 12, y, 118, 16, ['#8d4d37', '#4d7272'][i % 2]);
+      for (let x = dock.x + 16; x < dock.x + 128; x += 7) fill(ctx, x, y + 2, 1, 12, '#091a255d');
+    }
+    for (const x of [1151, 1238]) {
+      atmosphere(ctx, x, 882, 67, '#ffc4604e');
+      fill(ctx, x, 833, 7, 58, '#292223');
+      fill(ctx, x - 32, 832, 39, 5, '#d2aa5c');
+      fill(ctx, x - 34, 836, 2, 28, '#bfa179');
+    }
+    fill(ctx, 1229, 883, 101, 52, '#32766852');
+    for (let x = 1232; x < 1329; x += 12) fill(ctx, x, 884, 6, 3, '#8bdab3');
+    ctx.font = '900 13px system-ui';
+    ctx.fillStyle = '#bbffda';
+    ctx.fillText('DOCK GATE', 1241, 928);
+  }
+
+  function reflections(ctx, unit, time, index) {
+    const phase = Math.sin(time * 16 + index);
+    ctx.save();
+    ctx.translate(unit.x, unit.y);
+    ctx.rotate(unit.angle);
+    ctx.scale(1.9, .74);
+    atmosphere(ctx, -9, -11, 54, phase > 0 ? '#ff335f8f' : '#ff335f24');
+    atmosphere(ctx, 6, 12, 57, phase < 0 ? '#306fff99' : '#306fff25');
+    ctx.restore();
+  }
+
+  function spray(ctx, c, time) {
+    const speed = Math.hypot(c.vx, c.vy);
+    if (speed < 48) return;
+    const dx = c.vx / speed, dy = c.vy / speed;
+    ctx.strokeStyle = speed > 170 ? '#b3e4ef70' : '#b3e4ef44';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let i = 0; i < 26; i++) {
+      const age = (time * 4.7 + i * .137) % 1;
+      const spread = (i % 2 ? -1 : 1) * (7 + age * ((i % 7) + 5));
+      const reach = 15 + age * speed * .19;
+      const x = c.x - dx * reach - dy * spread;
+      const y = c.y - dy * reach + dx * spread;
+      ctx.moveTo(x, y);
+      ctx.lineTo(x - dx * (2 + age * 7), y - dy * (2 + age * 7));
+    }
+    ctx.stroke();
   }
 
   function car(ctx, c, police, time) {
@@ -156,5 +240,5 @@ const Art = (() => {
     ctx.stroke();
   }
 
-  return { buildCity, car, minimap, weather };
+  return { buildCity, car, minimap, weather, reflections, spray };
 })();

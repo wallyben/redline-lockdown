@@ -11,9 +11,12 @@ const City = (() => {
     x: x + widths[col], y: y + 49, right: xs[col + 1] - widths[col + 1],
     bottom: ys[row + 1] - 49, row, col,
   })));
+  const alley = { x: 690, top: 485, bottom: 620, halfWidth: 28, coverTop: 467, coverBottom: 853 };
+  const inCover = ({ x, y }) => Math.abs(x - alley.x) < 43 && y > alley.coverTop && y < alley.coverBottom;
   const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   function wall(x, y, radius = 11) {
     return x < 78 + radius || x > 1346 - radius || y < 81 + radius || y > 959 - radius ||
+      (y + radius > alley.top && y - radius < alley.bottom && Math.abs(x - alley.x) < 43 && Math.abs(x - alley.x) + radius > alley.halfWidth) ||
       blocks.some(b => x + radius > b.x && x - radius < b.right &&
         y + radius > b.y && y - radius < b.bottom);
   }
@@ -37,6 +40,6 @@ const City = (() => {
     }
     return [];
   }
-  return { xs, ys, widths, blocks, nodes, edges, distance, wall, nearest, route };
+  return { xs, ys, widths, blocks, nodes, edges, alley, inCover, distance, wall, nearest, route };
 })();
 if (typeof module !== 'undefined') module.exports = City;

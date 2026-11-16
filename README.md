@@ -4,7 +4,7 @@
 [![rank](https://make.fun/badge/best-game-01/wallyben/redline-lockdown/rank.svg)](https://make.fun/bounty/best-game-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=best-game-01)
 [![reward](https://make.fun/badge/best-game-01/wallyben/redline-lockdown/reward.svg)](https://make.fun/bounty/best-game-01?utm_source=github&utm_medium=readme&utm_campaign=best-game-01)
 
-An offline arcade getaway in rain-soaked Port Meridian. Recover a recorder, watch the interceptor commit to an intersection, then break line of sight and reach the docks. The southbound route from the pickup bypasses the first eastbound blockade.
+An offline arcade getaway in rain-soaked Port Meridian. Recover a recorder, watch the interceptor commit to an intersection, then break line of sight and reach the docks. The boulevard gives you a straight run at speed. The narrow service alley by Hotel Iris breaks sight under cover. Choose North or South patrol to change where the interceptor starts.
 
 Use WASD or arrows to drive, Space for the handbrake, E to scan, Escape to pause and R to restart. Park near the recorder, press E to begin the sweep, then press E again in the green band. Extract after the contact indicator clears.
 

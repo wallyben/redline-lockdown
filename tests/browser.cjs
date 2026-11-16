@@ -3,7 +3,7 @@ const { pathToFileURL } = require('node:url');
 const { resolve } = require('node:path');
 const { chromium } = require(process.env.REDLINE_PLAYWRIGHT || 'playwright-core');
 
-async function play(browser, viewport, capture) {
+async function play(browser, viewport, capture, layout) {
   const page = await browser.newPage({ viewport, offline: true });
   const errors = [], external = [];
   page.on('pageerror', e => errors.push(e.message));
@@ -31,8 +31,29 @@ async function play(browser, viewport, capture) {
     assert.equal(await page.evaluate(() => state.collected), true);
   }
 
+  await page.locator('#patrol').selectOption(String(layout));
+  await page.locator('#patrol').evaluate(select => select.blur());
   await shot('01-title');
   await press('Enter');
+  await pickup();
+  const initialRange = await page.evaluate(() => pursuit.tailRange);
+  assert.equal(await page.evaluate(() => Math.sign(pursuit.units[1].y - 400)), layout ? -1 : 1);
+  assert.equal(await page.evaluate(() => pursuit.intercept.node), 8);
+  await page.keyboard.down('w');
+  await advance(1280);
+  const boulevard = await page.evaluate(() => ({
+    x: state.car.x, block: pursuit.block?.node, tail: pursuit.tailRange,
+  }));
+  assert.ok(boulevard.x > 860, JSON.stringify(boulevard));
+  assert.equal(boulevard.block, 8);
+  await advance(750);
+  const closing = await page.evaluate(() => pursuit.tailRange);
+  assert.ok(closing < initialRange * .6, 'Tail failed to close on boulevard: ' + closing);
+  await shot('02-pursuit');
+  await advance(1150);
+  await page.keyboard.up('w');
+  assert.equal(await page.evaluate(() => pursuit.result), 'Intercepted');
+  await press('r');
   await pickup();
   assert.equal(await page.evaluate(() => pursuit.intercept.node), 8);
   assert.match(await page.locator('#hud').textContent(), /INTERCEPT INBOUND/);
@@ -43,15 +64,15 @@ async function play(browser, viewport, capture) {
   await press('Escape');
 
   const waypoints = [[695, 485, 120], [690, 800, 245], [710, 910, 125], [840, 910, 210], [1290, 910, 325]];
-  let target = 0, blockade = false;
+  let target = 0, blockade = false, brokeSightInAlley = false;
   const held = new Set();
   for (let i = 0; i < 310; i++) {
-    const { car, result, block } = await page.evaluate(() => ({
-      car: state.car, result: pursuit.result, block: pursuit.block,
+    const { car, result, block, covered } = await page.evaluate(() => ({
+      car: state.car, result: pursuit.result, block: pursuit.block, covered: City.inCover(state.car) && !pursuit.seen,
     }));
     if (result) break;
-    if (i === 15) await shot('02-pursuit');
-    if (block && !blockade) {
+    if (covered) brokeSightInAlley = true;
+    if (block && covered && !blockade) {
       blockade = true;
       await shot('03-lockdown');
     }
@@ -74,6 +95,7 @@ async function play(browser, viewport, capture) {
   }
   for (const key of held) await page.keyboard.up(key);
   assert.equal(blockade, true);
+  assert.equal(brokeSightInAlley, true);
   const outcome = await page.evaluate(() => ({ result: pursuit.result, x: state.car.x, y: state.car.y, lost: pursuit.lost }));
   assert.equal(outcome.result, 'Clean getaway', JSON.stringify(outcome));
   assert.match(await page.locator('#brief p').textContent(), /Extraction \+2500/);
@@ -84,13 +106,12 @@ async function play(browser, viewport, capture) {
   await advance(5800);
   await page.keyboard.up('w');
   assert.ok(await page.evaluate(() => state.car.hits > 0));
-  await press('r');
-  await pickup();
-  await advance(4400);
-  assert.equal(await page.evaluate(() => pursuit.result), 'Intercepted');
+
   assert.deepEqual(errors, []);
   assert.deepEqual(external, []);
-  console.log(viewport.width + '×' + viewport.height + ' offline Chrome: recorder, pause, interception, alternate-route victory, replay, crash and capture passed');
+  console.log(viewport.width + '×' + viewport.height + (layout ? ' North' : ' South') +
+    ' patrol: both keyboard runs passed; tail closed from ' + Math.round(initialRange) + ' m to ' + Math.round(closing) +
+    ' m, and getaway cleared with ' + outcome.lost.toFixed(1) + ' s out of sight');
   await page.close();
 }
 
@@ -98,10 +119,9 @@ async function play(browser, viewport, capture) {
   const executablePath = process.env.REDLINE_CHROME || 'C:/Program Files/Google/Chrome/Application/chrome.exe';
   const browser = await chromium.launch({ executablePath });
   try {
-    await play(browser, { width: 1280, height: 720 }, process.argv.includes('--shots'));
-    if (!process.argv.includes('--capture-only')) await play(browser, { width: 1920, height: 1080 }, false);
+    await play(browser, { width: 1280, height: 720 }, process.argv.includes('--shots'), 0);
+    if (!process.argv.includes('--capture-only')) await play(browser, { width: 1920, height: 1080 }, false, 1);
   } finally {
     await browser.close();
   }
 })().catch(error => { console.error(error); process.exitCode = 1; });
-

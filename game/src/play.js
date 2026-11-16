@@ -4,6 +4,9 @@ const cityArt = Art.buildCity();
 const brief = document.querySelector('#brief');
 const hud = document.querySelector('#hud');
 const startButton = document.querySelector('#start');
+const layoutInput = document.querySelector('#patrol');
+const layoutChoice = document.querySelector('#patrol-choice');
+Pursuit.layouts.forEach(({ name }, index) => layoutInput.add(new Option(name, index)));
 const keys = new Set();
 let state = Drive.reset();
 let pursuit = Pursuit.reset();
@@ -12,10 +15,13 @@ let interact = false;
 let previous = performance.now();
 let accumulator = 0;
 let banner = '';
+let camera = null;
 
 function start() {
+  Siren.enable();
+  camera = null;
   state = Drive.reset();
-  pursuit = Pursuit.reset();
+  pursuit = Pursuit.reset(Number(layoutInput.value));
   interact = false;
   mode = 'playing';
   brief.hidden = true;
@@ -25,6 +31,7 @@ function start() {
 
 function pause() {
   mode = 'paused';
+  layoutChoice.hidden = true;
   brief.querySelector('h1').innerHTML = 'REDLINE <span>LOCKDOWN</span>';
   brief.querySelector('p').textContent = 'Paused. Press Escape or Enter to resume.';
   startButton.textContent = 'Resume ↵';
@@ -33,6 +40,7 @@ function pause() {
 
 function finish() {
   mode = 'results';
+  layoutChoice.hidden = false;
   const s = Pursuit.score(state, pursuit);
   brief.querySelector('h1').innerHTML = 'RUN <span>REPORT</span>';
   brief.querySelector('p').textContent = pursuit.result + '  /  ' + s.total.toLocaleString() + ' pts\n' +
@@ -52,6 +60,7 @@ function confirm() {
 
 startButton.onclick = confirm;
 window.addEventListener('keydown', e => {
+  if (e.target === layoutInput) return;
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'Enter'].includes(e.code)) e.preventDefault();
   keys.add(e.code);
   if (e.repeat) return;
@@ -86,6 +95,22 @@ function marker(p, name, color) {
   ctx.fillText(name, p.x - 24, p.y - 36);
 }
 
+function chaseCamera(car, w, h, title) {
+  const base = Math.max(.75, Math.min(1.45, h / 535));
+  if (title) return { x: car.x, y: car.y, zoom: Math.max(1.7, h / 335) };
+  const point = { x: car.x + Math.cos(car.angle) * 250, y: car.y + Math.sin(car.angle) * 250 };
+  const junction = City.nodes[City.nearest(point)];
+  const tail = pursuit.units[0];
+  const subjects = state.collected && pursuit.tailRange < 380 ? [car, junction, tail] : [car, junction];
+  const left = Math.min(...subjects.map(p => p.x)), right = Math.max(...subjects.map(p => p.x));
+  const top = Math.min(...subjects.map(p => p.y)), bottom = Math.max(...subjects.map(p => p.y));
+  const zoom = Math.min(base, w / (right - left + 180), h / (bottom - top + 160));
+  const next = { x: (left + right) / 2, y: (top + bottom) / 2, zoom };
+  if (!camera) camera = next;
+  for (const key of ['x', 'y', 'zoom']) camera[key] += (next[key] - camera[key]) * .11;
+  return camera;
+}
+
 function render() {
   const w = innerWidth, h = innerHeight;
   const dpr = Math.min(devicePixelRatio, 1.5);
@@ -98,18 +123,20 @@ function render() {
   const title = mode === 'title';
   const c = title ? { x: 690, y: 400, angle: -.11, vx: 0, vy: 0 } : state.car;
   const time = title ? performance.now() / 1000 : state.time;
-  const zoom = title ? Math.max(1.7, h / 335) : Math.max(0.75, Math.min(1.3, h / 665));
+  const view = chaseCamera(c, w, h, title);
+  const { zoom } = view;
   ctx.save();
-  ctx.translate(w * (mode === 'title' ? .72 : .5) - (c.x + c.vx * .32) * zoom, h * .54 - (c.y + c.vy * .32) * zoom);
+  ctx.translate(w * (title ? .72 : .5) - view.x * zoom, h * .53 - view.y * zoom);
   ctx.scale(zoom, zoom);
   ctx.drawImage(cityArt, 0, 0);
   Art.weather(ctx, c, time, w / zoom, h / zoom);
   if (!title && !state.collected) marker(Drive.pickup, 'RECORDER', '#f4c468');
   if (state.collected) {
-    marker(Pursuit.exit, pursuit.lost >= 2.5 ? 'EXTRACT' : 'BREAK CONTACT', '#82ffbf');
+    pursuit.units.forEach((unit, i) => Art.reflections(ctx, unit, time, i));
+    marker(Pursuit.exit, pursuit.lost >= Pursuit.clearTime ? 'EXTRACT' : 'BREAK CONTACT', '#82ffbf');
     if (pursuit.intercept) {
       const target = City.nodes[pursuit.intercept.node];
-      marker(target, pursuit.block ? 'ROADBLOCK' : 'INTERCEPT INBOUND', '#ff657f');
+      marker(target, pursuit.block ? 'ROADBLOCK' : 'BLOCKADE INBOUND', '#ff657f');
       if (pursuit.block) {
         ctx.save();
         ctx.translate(target.x, target.y);
@@ -120,6 +147,7 @@ function render() {
     }
     for (const unit of pursuit.units) Art.car(ctx, unit, true, state.time);
   }
+  Art.spray(ctx, c, time);
   Art.car(ctx, c, false, time);
   ctx.restore();
   const destination = state.collected ? Pursuit.exit : Drive.pickup;
@@ -144,8 +172,8 @@ function render() {
     ctx.fillText('PRESS E IN THE GREEN BAND', x, y - 12);
   }
   const nextBanner = (state.collected ? (pursuit.block ? 'ROADBLOCK ACTIVE' : pursuit.intercept ? 'INTERCEPT INBOUND' : 'RECORDER SECURED') +
-    '\n' + (pursuit.seen ? 'Spotted · take a side street' : pursuit.lost < 2.5 ?
-      'Breaking contact · ' + pursuit.lost.toFixed(1) + ' s' : 'Contact lost · extraction ' + arrow + ' ' + range + ' m') : state.sweep >= 0
+    '\n' + (pursuit.seen ? (pursuit.reacquired ? 'Reacquired' : 'Spotted') + ' · tail ' + Math.round(pursuit.tailRange) + ' m' : pursuit.lost < Pursuit.clearTime ?
+      'Patrols searching · clear in ' + (Pursuit.clearTime - pursuit.lost).toFixed(1) + ' s' : 'Contact lost · extraction ' + arrow + ' ' + range + ' m') : state.sweep >= 0
     ? 'Tuning recorder'
     : near ? 'Stop at the recorder and press E' : 'Recorder ' + arrow + ' ' + range + ' m') +
     '\n' + Math.ceil(Math.max(0, 180 - state.time)) + ' s · ' + Math.round(Math.hypot(c.vx, c.vy) * .55) + ' km/h · ' + Math.max(0, 100 - Math.round(c.damage)) + '% integrity';
@@ -168,6 +196,7 @@ function frame(now) {
     }
     accumulator -= 1 / 60;
   }
+  Siren.update(mode === 'playing' ? pursuit.tailRange : Infinity, state.time, City.inCover(state.car));
   render();
   requestAnimationFrame(frame);
 }

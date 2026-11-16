@@ -15,7 +15,7 @@ test('interceptor commits east from a sighting and arrives by road', () => {
   const { run, police } = afterPickup();
   Pursuit.tick(police, run);
   assert.equal(police.intercept.node, 8);
-  assert.deepEqual(police.units[1].path.slice(-1), [8]);
+  assert.deepEqual(police.units[1].path.at(-1).edge, [8, 8]);
   assert.equal(police.block, null);
   for (let i = 0; i < 80; i++) Pursuit.tick(police, run);
   assert.equal(police.block.node, 8);
@@ -47,4 +47,34 @@ test('capture, timeout and wreck are separate end conditions', () => {
   const wreck = Pursuit.reset();
   Pursuit.tick(wreck, run);
   assert.equal(wreck.result, 'Wrecked');
+});
+
+test('a patrol searches from its last sighting and can reacquire the player', () => {
+  const { run, police } = afterPickup();
+  Pursuit.tick(police, run);
+  const last = { ...police.sighting };
+  Object.assign(run.car, { x: 690, y: 520, angle: Math.PI / 2 });
+  for (let i = 0; i < 140; i++) Pursuit.tick(police, run);
+  assert.equal(police.seen, false);
+  assert.deepEqual(police.sighting, last);
+  assert.ok(City.distance(police.units[0], last) < 25);
+  for (let i = 0; i < 550 && !police.reacquired; i++) Pursuit.tick(police, run);
+  assert.equal(police.reacquired, 1);
+  assert.equal(police.lost, 0);
+  assert.equal(police.sighting.y, 520);
+});
+
+test('north and south patrols deploy from distinct roads', () => {
+  const south = Pursuit.reset(0);
+  const north = Pursuit.reset(1);
+  assert.ok(south.units[1].y > City.nodes[8].y);
+  assert.ok(north.units[1].y < City.nodes[8].y);
+  assert.notEqual(south.units[0].x, north.units[0].x);
+});
+
+test('the service passage narrows the turn and obscures sight from the boulevard', () => {
+  assert.equal(City.wall(690, 520), false);
+  assert.equal(City.wall(712, 520), true);
+  assert.equal(Pursuit.canSee({ x: 690, y: 435 }, { x: 690, y: 520 }), false);
+  assert.equal(Pursuit.canSee({ x: 690, y: 500 }, { x: 690, y: 550 }), true);
 });
