@@ -6,7 +6,7 @@ const hud = document.querySelector('#hud');
 const startButton = document.querySelector('#start');
 const layoutInput = document.querySelector('#patrol');
 const layoutChoice = document.querySelector('#patrol-choice');
-Pursuit.layouts.forEach(({ name }, index) => layoutInput.add(new Option(name, index)));
+Contracts.forEach(({ name }, index) => layoutInput.add(new Option(name, index)));
 const keys = new Set();
 let state = Drive.reset();
 let pursuit = Pursuit.reset();
@@ -16,12 +16,23 @@ let previous = performance.now();
 let accumulator = 0;
 let banner = '';
 let camera = null;
+let muted = false, reducedFlash = false;
+document.querySelector('#mute').onclick = e => {
+  muted = !muted;
+  e.target.textContent = muted ? 'Sound off' : 'Sound on';
+};
+document.querySelector('#flash').onclick = e => {
+  reducedFlash = !reducedFlash;
+  e.target.textContent = reducedFlash ? 'Steady lights' : 'Full lights';
+};
 
 function start() {
   Siren.enable();
   camera = null;
   state = Drive.reset();
-  pursuit = Pursuit.reset(Number(layoutInput.value));
+  pursuit = Pursuit.reset(Contracts[Number(layoutInput.value)].layout);
+  state.seed = Contracts[Number(layoutInput.value)].seed;
+  pursuit.pressure = Contracts[Number(layoutInput.value)].pressure;
   interact = false;
   mode = 'playing';
   brief.hidden = true;
@@ -40,13 +51,20 @@ function pause() {
 
 function finish() {
   mode = 'results';
+  hud.hidden = true;
   layoutChoice.hidden = false;
   const s = Pursuit.score(state, pursuit);
+  const record = Records.bank(state, pursuit, Contracts[Number(layoutInput.value)]);
   brief.querySelector('h1').innerHTML = 'RUN <span>REPORT</span>';
   brief.querySelector('p').textContent = pursuit.result + '  /  ' + s.total.toLocaleString() + ' pts\n' +
     'Recorder +' + s.recorder + '  ·  Extraction +' + s.extraction +
-    '  ·  Pace +' + s.pace + '  ·  Damage −' + s.repairs;
-  startButton.textContent = 'Drive again ↵';
+    '  ·  Bonus +' + s.bonus + '  ·  Pace +' + s.pace + '\nCondition +' + s.condition + '  ·  Feint +' + s.feint + '\n' + (record ? 'Local best ' + Records.table(Contracts[Number(layoutInput.value)].id)[0].total + ' · ' + (record.delta === null ? 'First record' : (record.delta >= 0 ? '+' : '') + record.delta + ' vs best') : 'No score banked');
+  const contract = Contracts[Number(layoutInput.value)];
+  const medal = s.total >= contract.gold ? 'GOLD' : s.total >= contract.gold*.85 ? 'SILVER' : s.total ? 'BRONZE' : 'UNBANKED';
+  brief.querySelector('p').textContent += '\n' + medal + ' · ' + Math.abs(s.total-contract.gold) + (s.total >= contract.gold ? ' above Gold' : ' to Gold') +
+    '\n' + state.time.toFixed(1) + ' seconds · ' + Math.max(0,100-state.car.damage).toFixed(0) + '% integrity';
+  startButton.textContent = 'Retry ↵';
+  brief.querySelector('p').textContent += '\nC · contract select';
   brief.hidden = false;
 }
 
@@ -58,6 +76,26 @@ function confirm() {
   } else if (mode !== 'playing') start();
 }
 
+function showContract() {
+  mode = 'title';
+  brief.hidden = false;
+  hud.hidden = true;
+  layoutChoice.hidden = false;
+  const c = Contracts[Number(layoutInput.value)];
+  const best = Records.table(c.id)[0];
+  brief.querySelector('h1').innerHTML = 'REDLINE <span>LOCKDOWN</span>';
+  brief.querySelector('p').textContent = 'Collect the recorder. Bank it or risk a second pickup.\n' +
+    c.goal + '\nGold ' + c.gold + ' · Best ' + (best ? best.total : '—') +
+    '\nEarn Gold on all three contracts · ' +
+    Contracts.filter(c => (Records.table(c.id)[0]?.total || 0) >= c.gold).length + '/3' +
+    (Records.persistent ? '' : '\nRecords available for this session only');
+  const rows=Records.table(c.id);
+  brief.querySelector('p').textContent += rows.length ? '\n\nLOCAL RECORDS · SCORE V2\n' +
+    rows.map(r=>r.total+' pts · '+r.time.toFixed(1)+' s · '+r.integrity.toFixed(0)+'%').join('\n') : '';
+  startButton.textContent = 'Drive ↵';
+}
+layoutInput.onchange = showContract;
+showContract();
 startButton.onclick = confirm;
 window.addEventListener('keydown', e => {
   if (e.target === layoutInput) return;
@@ -65,6 +103,7 @@ window.addEventListener('keydown', e => {
   keys.add(e.code);
   if (e.repeat) return;
   if (e.code === 'Enter') confirm();
+  if (e.code === 'KeyC' && mode !== 'playing') showContract();
   if (e.code === 'KeyR' && mode !== 'title') start();
   if (e.code === 'Escape') {
     if (mode === 'playing') pause();
@@ -108,6 +147,10 @@ function chaseCamera(car, w, h, title) {
   const next = { x: (left + right) / 2, y: (top + bottom) / 2, zoom };
   if (!camera) camera = next;
   for (const key of ['x', 'y', 'zoom']) camera[key] += (next[key] - camera[key]) * .11;
+  const halfW = w / camera.zoom / 2;
+  const halfH = h / camera.zoom / 2;
+  camera.x = Math.max(halfW, Math.min(1430-halfW, camera.x));
+  camera.y = Math.max(halfH, Math.min(1040-halfH, camera.y));
   return camera;
 }
 
@@ -132,7 +175,14 @@ function render() {
   Art.weather(ctx, c, time, w / zoom, h / zoom);
   if (!title && !state.collected) marker(Drive.pickup, 'RECORDER', '#f4c468');
   if (state.collected) {
-    pursuit.units.forEach((unit, i) => Art.reflections(ctx, unit, time, i));
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(78,81,1268,878);
+    for(const b of City.blocks) ctx.rect(b.x,b.y,b.right-b.x,b.bottom-b.y);
+    ctx.clip('evenodd');
+    pursuit.units.forEach((unit, i) => Art.reflections(ctx, unit, reducedFlash ? 0 : time, i));
+    ctx.restore();
+    if (!state.bonus) marker({x:1010,y:650}, 'BONUS +1600 · ALARM', '#ffcf75');
     marker(Pursuit.exit, pursuit.lost >= Pursuit.clearTime ? 'EXTRACT' : 'BREAK CONTACT', '#82ffbf');
     if (pursuit.intercept) {
       const target = City.nodes[pursuit.intercept.node];
@@ -145,7 +195,7 @@ function render() {
         ctx.restore();
       }
     }
-    for (const unit of pursuit.units) Art.car(ctx, unit, true, state.time);
+    for (const unit of pursuit.units) Art.car(ctx, unit, true, reducedFlash ? 0 : state.time);
   }
   Art.spray(ctx, c, time);
   Art.car(ctx, c, false, time);
@@ -160,7 +210,7 @@ function render() {
   shade.addColorStop(1, '#050916a8');
   rect(0, 0, w, h, shade);
   if (mode !== 'title') Art.minimap(ctx, w, h, state, pursuit);
-  if (state.sweep >= 0 && !state.collected) {
+  if (state.sweep >= 0 && !state.bonus) {
     const x = w / 2 - 105;
     const y = h - 66;
     rect(x - 12, y - 31, 234, 56, '#0b121be8');
@@ -176,7 +226,7 @@ function render() {
       'Patrols searching · clear in ' + (Pursuit.clearTime - pursuit.lost).toFixed(1) + ' s' : 'Contact lost · extraction ' + arrow + ' ' + range + ' m') : state.sweep >= 0
     ? 'Tuning recorder'
     : near ? 'Stop at the recorder and press E' : 'Recorder ' + arrow + ' ' + range + ' m') +
-    '\n' + Math.ceil(Math.max(0, 180 - state.time)) + ' s · ' + Math.round(Math.hypot(c.vx, c.vy) * .55) + ' km/h · ' + Math.max(0, 100 - Math.round(c.damage)) + '% integrity';
+    '\n' + (state.collected ? (state.bonus ? 'Bonus cargo secured · bank at docks' : 'Bank at dock gate or risk +1600 at cargo depot') + '\n' : '') + Math.ceil(Math.max(0, 180 - state.time)) + ' s · ' + Math.round(Math.hypot(c.vx, c.vy) * .55) + ' km/h · ' + Math.max(0, 100 - Math.round(c.damage)) + '% integrity';
   if (nextBanner !== banner) { hud.textContent = nextBanner; banner = nextBanner; }
 }
 
@@ -196,7 +246,7 @@ function frame(now) {
     }
     accumulator -= 1 / 60;
   }
-  Siren.update(mode === 'playing' ? pursuit.tailRange : Infinity, state.time, City.inCover(state.car));
+  Siren.update(mode === 'playing' && !muted ? pursuit.tailRange : Infinity, state.time, City.inCover(state.car), (pursuit.units[0].x-state.car.x)/300);
   render();
   requestAnimationFrame(frame);
 }

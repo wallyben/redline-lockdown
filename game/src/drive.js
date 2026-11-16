@@ -2,12 +2,13 @@ const Drive = ((city) => {
   const start = { x: 130, y: 400, angle: 0, vx: 0, vy: 0, damage: 0, hits: 0 };
   const pickup = { x: 690, y: 400 };
   function reset() {
-    return { car: { ...start }, collected: false, time: 0, sweep: -1, impact: 0 };
+    return { car: { ...start }, collected: false, bonus: false, banked: false, time: 0, sweep: -1, impact: 0 };
   }
   function tick(state, input, dt = 1 / 60) {
     const c = state.car;
     state.time += dt;
     state.impact = Math.max(0, state.impact - dt);
+    c.braking = input.gas < 0 || input.drift;
     const speed = Math.hypot(c.vx, c.vy);
     const forward = c.vx * Math.cos(c.angle) + c.vy * Math.sin(c.angle);
     c.angle += input.turn * Math.min(speed / 55, 1) * (input.drift ? 3.4 : 2.65) * dt * (forward < -8 ? -1 : 1);
@@ -23,19 +24,24 @@ const Drive = ((city) => {
     const x = c.x + c.vx * dt;
     const y = c.y + c.vy * dt;
     let hit = false;
-    if (city.wall(x, c.y)) { c.vx *= -0.3; hit = true; } else c.x = x;
-    if (city.wall(c.x, y)) { c.vy *= -0.3; hit = true; } else c.y = y;
-    if (hit && speed > 38 && state.impact === 0) {
-      c.damage += speed / 13;
+    let impactSpeed = 0;
+    if (city.wall(x, c.y)) { impactSpeed = Math.max(impactSpeed, Math.abs(c.vx)); c.vx *= -0.3; hit = true; } else c.x = x;
+    if (city.wall(c.x, y)) { impactSpeed = Math.max(impactSpeed, Math.abs(c.vy)); c.vy *= -0.3; hit = true; } else c.y = y;
+    if (hit && impactSpeed > 38 && state.impact === 0) {
+      c.damage = Math.min(100, c.damage + Math.min(22, (impactSpeed - 30) / 16));
       c.hits++;
-      state.impact = 0.22;
+      state.impact = 0.65;
     }
-    const atPickup = city.distance(c, pickup) < 45 && speed < 36;
-    if (state.collected) return;
+    const target = state.collected ? { x: 1010, y: 650 } : pickup;
+    const atPickup = city.distance(c, target) < 45 && speed < 36;
+    if (state.bonus) return;
     if (!atPickup) state.sweep = -1;
     if (state.sweep >= 0) state.sweep += dt;
     if (input.interact && atPickup) {
-      if (state.sweep >= 0.75 && state.sweep <= 1.45) state.collected = true;
+      if (state.sweep >= 0.75 && state.sweep <= 1.45) {
+        if (state.collected) state.bonus = true; else state.collected = true;
+        state.sweep = -1;
+      }
       else state.sweep = 0;
     }
     if (state.sweep > 2.4) state.sweep = -1;

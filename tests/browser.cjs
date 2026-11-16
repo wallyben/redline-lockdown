@@ -33,7 +33,7 @@ async function play(browser, viewport, capture, layout) {
 
   await page.locator('#patrol').selectOption(String(layout));
   await page.locator('#patrol').evaluate(select => select.blur());
-  await shot('01-title');
+  await shot('02-start');
   await press('Enter');
   await pickup();
   const initialRange = await page.evaluate(() => pursuit.tailRange);
@@ -45,11 +45,12 @@ async function play(browser, viewport, capture, layout) {
     x: state.car.x, block: pursuit.block?.node, tail: pursuit.tailRange,
   }));
   assert.ok(boulevard.x > 860, JSON.stringify(boulevard));
-  assert.equal(boulevard.block, 8);
+
   await advance(750);
+  assert.equal(await page.evaluate(()=>pursuit.block?.node),8);
   const closing = await page.evaluate(() => pursuit.tailRange);
   assert.ok(closing < initialRange * .6, 'Tail failed to close on boulevard: ' + closing);
-  await shot('02-pursuit');
+  await shot('01-chase');
   await advance(1150);
   await page.keyboard.up('w');
   assert.equal(await page.evaluate(() => pursuit.result), 'Intercepted');
@@ -74,7 +75,7 @@ async function play(browser, viewport, capture, layout) {
     if (covered) brokeSightInAlley = true;
     if (block && covered && !blockade) {
       blockade = true;
-      await shot('03-lockdown');
+
     }
     const [x, y, limit] = waypoints[target];
     const distance = Math.hypot(x - car.x, y - car.y);
@@ -100,6 +101,12 @@ async function play(browser, viewport, capture, layout) {
   assert.equal(outcome.result, 'Clean getaway', JSON.stringify(outcome));
   assert.match(await page.locator('#brief p').textContent(), /Extraction \+2500/);
   await shot('04-results');
+  const saved = await page.evaluate(() => Records.table(Contracts[Number(layoutInput.value)].id).length);
+  await page.evaluate(() => finish());
+  assert.equal(await page.evaluate(() => Records.table(Contracts[Number(layoutInput.value)].id).length),saved);
+  await page.reload();
+  await page.locator('#patrol').selectOption(String(layout));
+  assert.equal(await page.evaluate(() => Records.table(Contracts[Number(layoutInput.value)].id).length),saved);
   await press('Enter');
   assert.deepEqual(await page.evaluate(() => [state.car.x, state.car.y, state.collected, pursuit.result]), [130, 400, false, null]);
   await page.keyboard.down('w');

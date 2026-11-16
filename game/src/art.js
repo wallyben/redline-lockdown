@@ -53,7 +53,7 @@ const Art = (() => {
         const y = b.y + 19 + slot * 12;
         const bw = (w - 44) / 2;
         const bh = h - 55 - slot * 11;
-        fill(c, x + 9, y + 11, bw + 4, bh + 5, '#111722');
+        fill(c, x + 9, y + 11, bw + 4, bh + 5, '#0a101acc');
         fill(c, x, y, bw, bh + 7, '#111923');
         fill(c, x, y, bw, bh, d.trim);
         fill(c, x + 2, y + 2, bw - 4, bh - 4, d.roof);
@@ -87,6 +87,15 @@ const Art = (() => {
   }
 
   function landmarks(ctx) {
+    for(let x=1170;x<1340;x+=32) {
+      fill(ctx,x,864,27,16,'#6c5b40');
+      fill(ctx,x+2,866,23,11,'#aa8150');
+      fill(ctx,x,942,27,12,'#3d5c60');
+    }
+    fill(ctx,1161,859,4,95,'#e2c479');
+    ctx.font='bold 9px system-ui';
+    ctx.fillStyle='#ffe0a0';
+    ctx.fillText('COVERED LOADING BAY',1174,857);
     const hotel = City.blocks.find(b => b.row === 0 && b.col === 2);
     const facade = hotel.bottom - 19;
     atmosphere(ctx, 837, facade + 15, 105, '#d136ff65');
@@ -199,7 +208,7 @@ const Art = (() => {
     fill(ctx, 14, -7, 4, 14, police ? '#243448' : '#b52e28');
     for (const y of [-7, 4]) {
       fill(ctx, 17, y, 3, 3, '#f2feff');
-      fill(ctx, -20, y, 2, 3, '#ff233c');
+      fill(ctx, -20, y, c.braking ? 4 : 2, 3, c.braking ? '#ff9385' : '#ff233c');
     }
     if (police) {
       fill(ctx, -2, -7, 4, 7, '#ff4b68');

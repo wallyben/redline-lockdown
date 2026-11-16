@@ -6,12 +6,13 @@ const Pursuit = ((city) => {
   const layouts = [
     { name: 'South patrol', tailX: tailStart.x, interceptor: 13 },
     { name: 'North patrol', tailX: 475, interceptor: 3 },
+    { name: 'Dock patrol', tailX: 430, interceptor: 14 },
   ];
   const reset = (layout = 0) => ({
-    units: [{ ...tailStart, x: layouts[layout].tailX, path: [] }, patrol(layouts[layout].interceptor)],
+    units: [{ ...tailStart, x: layouts[layout].tailX, path: [] }, { ...patrol(layouts[layout].interceptor), angle: layout === 1 ? Math.PI/2 : -Math.PI/2 }],
     sighting: null, seen: false, lost: 0, elapsed: 0, refresh: 0,
     intercept: null, block: null, contact: 0, result: null,
-    reacquired: 0, hadContact: false, tailRange: Infinity, nearestRange: Infinity,
+    bonusAlarm: false, feint: false, reacquired: 0, hadContact: false, tailRange: Infinity, nearestRange: Infinity,
   });
 
   function canSee(unit, car) {
@@ -80,7 +81,15 @@ const Pursuit = ((city) => {
     while (remaining > 0 && unit.path.length) {
       const target = unit.path[0];
       const distance = city.distance(target, unit);
-      if (distance > .01) unit.angle = Math.atan2(target.y - unit.y, target.x - unit.x);
+      if (distance > .01) {
+        const heading = Math.atan2(target.y-unit.y,target.x-unit.x);
+        const error = Math.atan2(Math.sin(heading-unit.angle),Math.cos(heading-unit.angle));
+        if (Math.abs(error) > .15) {
+          unit.angle += Math.sign(error)*Math.min(Math.abs(error),3.2*dt);
+          return;
+        }
+        unit.angle = heading;
+      }
       unit.edge = target.edge;
       if (distance <= remaining) {
         unit.x = target.x;
@@ -117,6 +126,18 @@ const Pursuit = ((city) => {
     }
     if (!run.collected) return;
     p.elapsed += dt;
+    if (run.bonus && !p.bonusAlarm) {
+      p.bonusAlarm = true;
+      p.sighting = { x: 1010, y: 650, dx: 0, dy: 1 };
+      p.lost = 0;
+      p.intercept = null;
+      p.block = null;
+      p.refresh = 0;
+      dispatch(p.units[0], roadPoint(p.sighting));
+      dispatch(p.units[1], junction(13));
+    }
+    if (p.intercept && !p.feint && city.inCover(car) &&
+      p.intercept.node === 8 && car.y > 510) p.feint = true;
     p.refresh -= dt;
     const wasSeen = p.seen;
     p.seen = p.units.some(u => canSee(u, car));
@@ -152,7 +173,7 @@ const Pursuit = ((city) => {
         dispatch(interceptor, searchTarget(p, 1));
       }
     }
-    advance(tail, p.seen ? 220 : 106, dt);
+    advance(tail, p.seen ? (p.bonusAlarm ? 185 : 220) * (p.pressure || 1) : 106, dt);
     advance(interceptor, p.intercept ? 255 : 157, dt);
     if (p.intercept && !p.block && city.distance(interceptor, city.nodes[p.intercept.node]) < .01 && !interceptor.path.length) {
       p.block = p.intercept;
@@ -175,17 +196,20 @@ const Pursuit = ((city) => {
       car.vy *= blockade ? .81 : .91;
     } else p.contact = Math.max(0, p.contact - dt);
     if (p.contact > .87) p.result = 'Intercepted';
-    else if (city.distance(car, exit) < 44 && p.lost >= clearTime) p.result = 'Clean getaway';
+    else if (city.distance(car, exit) < 44 && p.lost >= clearTime) p.result = run.car.damage <= 5 ? 'Clean getaway' : 'Escaped';
   }
 
   function score(run, pursuit) {
-    const extraction = pursuit.result === 'Clean getaway' ? 2500 : 0;
-    const recorder = run.collected ? 1000 : 0;
-    const pace = extraction ? Math.max(0, 1000 - Math.round(run.time * 10)) : 0;
-    const repairs = Math.round(run.car.damage * 12);
-    return { extraction, recorder, pace, repairs, total: Math.max(0, extraction + recorder + pace - repairs) };
+    const success = ['Clean getaway','Escaped'].includes(pursuit.result);
+    const extraction = success ? 2500 : 0;
+    const recorder = success && run.collected ? 1000 : 0;
+    const bonus = success && run.bonus ? 1600 : 0;
+    const pace = success ? Math.max(0, 800 - Math.round(run.time * 8)) : 0;
+    const condition = success ? Math.round(Math.max(0,100-run.car.damage)*5) : 0;
+    const feint = success && pursuit.feint ? 500 : 0;
+    return { extraction, recorder, bonus, pace, condition, feint,
+      total: extraction+recorder+bonus+pace+condition+feint };
   }
-
   return { reset, tick, canSee, predict, score, exit, clearTime, layouts };
 })(typeof module === 'undefined' ? City : require('./city.js'));
 if (typeof module !== 'undefined') module.exports = Pursuit;

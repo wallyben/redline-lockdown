@@ -12,7 +12,7 @@ const City = (() => {
     bottom: ys[row + 1] - 49, row, col,
   })));
   const alley = { x: 690, top: 485, bottom: 620, halfWidth: 28, coverTop: 467, coverBottom: 853 };
-  const inCover = ({ x, y }) => Math.abs(x - alley.x) < 43 && y > alley.coverTop && y < alley.coverBottom;
+  const inCover = ({ x, y }) => (Math.abs(x - alley.x) < 43 && y > alley.coverTop && y < alley.coverBottom) || (x > 1160 && y > 860);
   const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   function wall(x, y, radius = 11) {
     return x < 78 + radius || x > 1346 - radius || y < 81 + radius || y > 959 - radius ||

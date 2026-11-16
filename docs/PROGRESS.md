@@ -11,3 +11,6 @@
 - The tail tracks visible road positions. The interceptor commits to a predicted junction and drives the road network to deploy. The tail searches from the last sighting and can reacquire the player; extraction requires 3.8 seconds without detection.
 - North and South patrols are selectable at the start and on replay. The exposed boulevard and screened service alley lead toward the dock gate.
 - Added the Hotel Iris marquee, alley lane lighting, dock containers and crane silhouettes, moving police reflections, tyre spray, distance-based siren and a chase camera that fits the player, nearby tail and junction.
+
+## Astra score loop
+Three fixed contracts, optional cargo alarm, v2 local records, Gold goals, success-only banking, capped pace and condition rewards, feint bonus, truthful escape labels, normal-impact damage and patrol turn delays are implemented. Sound and flash controls are available. The rollback branch rollback/c6bc057 preserves the previous build. See ASTRA_VERIFICATION.md for measured evidence and unresolved checks.
