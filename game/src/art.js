@@ -78,6 +78,7 @@ const Art = (() => {
         fill(c, x - 2, y - 2, 4, 4, '#ffe0a3');
       }
     }
+    StreetDetail.paint(c);
     landmarks(c);
     for (let i = 0; i < 9; i++) {
       c.strokeStyle = '#54aac022';
@@ -281,6 +282,9 @@ const Art = (() => {
     const dot = (q, color) => fill(ctx, q.x - 15, q.y - 15, 30, 30, color);
     dot(run.collected ? Pursuit.exit : Drive.pickup, run.collected ? '#6affc0' : '#ffc978');
     if (p.intercept) dot(City.nodes[p.intercept.node], '#ff5c76');
+    for(const unit of p.units)dot(unit,'#ff617f');
+    const destination=run.jobs?.stage===0?Jobs.pickup(run.jobs,run.time):run.jobs?.stage===1?Drive.pickup:run.jobs?.stage===2?run.jobs.courier:Pursuit.exit;
+    dot(destination,'#ffdf84');
     dot(run.car, '#ffffff');
     ctx.restore();
   }

@@ -34,6 +34,7 @@ function start() {
   Siren.enable();
   camera = null;
   state = Drive.reset();
+  state.smoke = Smoke.reset();
   state.jobs = Jobs.reset(Contracts[Number(layoutInput.value)].seed);
   pursuit = Pursuit.reset(Contracts[Number(layoutInput.value)].layout);
   state.seed = Contracts[Number(layoutInput.value)].seed;
@@ -48,6 +49,7 @@ function start() {
 
 function pause() {
   mode = 'paused';
+  document.querySelector('#run-cards').innerHTML = '';
   layoutChoice.hidden = true;
   brief.querySelector('h1').innerHTML = 'REDLINE <span>LOCKDOWN</span>';
   brief.querySelector('p').textContent = 'Paused. Press Escape or Enter to resume.';
@@ -56,7 +58,8 @@ function pause() {
 }
 
 function finish() {
-  mode = 'results';
+  mode = 'results'; brief.dataset.mode='results';
+  document.querySelector('#run-cards').innerHTML = '';
   hud.hidden = true;
   intermission.hidden = true;
   layoutChoice.hidden = false;
@@ -72,6 +75,8 @@ function finish() {
     '\n' + state.time.toFixed(1) + ' seconds · ' + Math.max(0,100-state.car.damage).toFixed(0) + '% integrity';
   startButton.textContent = 'Retry ↵';
   brief.querySelector('p').textContent += '\nC · contract select';
+  brief.querySelector('h1').innerHTML = s.total ? 'ESCAPED<span>'+medal+' GETAWAY</span>' : 'BUSTED<span>'+pursuit.result+'</span>';
+  document.querySelector('#run-cards').innerHTML = '<div class=score-hero>'+s.total.toLocaleString()+'<small>POINTS BANKED</small></div>';
   brief.hidden = false;
 }
 
@@ -86,7 +91,7 @@ function confirm() {
 }
 
 function showContract() {
-  mode = 'title';
+  mode = 'title'; brief.dataset.mode='title';
   brief.hidden = false;
   hud.hidden = true;
   intermission.hidden = true;
@@ -94,14 +99,10 @@ function showContract() {
   const c = Contracts[Number(layoutInput.value)];
   const best = Records.table(c.id)[0];
   brief.querySelector('h1').innerHTML = 'REDLINE <span>LOCKDOWN</span>';
-  brief.querySelector('p').textContent = 'Complete three jobs: intercept a rolling cash pickup, drill the Port Meridian vault, then transfer a package from a moving courier. Escape to the docks to bank your haul.\n' +
-    c.goal + '\nGold target ' + c.gold + ' · Personal best ' + (best ? best.total : '—') +
-    '\nEarn Gold on all three contracts · ' +
-    Contracts.filter(c => (Records.table(c.id)[0]?.total || 0) >= c.gold).length + '/3' +
-    '\nPoints: pickup 700 · vault 1,200 · courier 900 · full escape 2,500 · optional cash 1,600 · time up to 800 · integrity up to 500 · feint 500.' +
-    (Records.persistent ? '' : '\nRecords available for this session only');
+  brief.querySelector('p').innerHTML = '<strong>ROB THE BANK. CUT THE GRID. VANISH.</strong><br>Close roads behind you. Smoke the tail. Risk one more job — or escape with what you have.';
+  document.querySelector('#run-cards').innerHTML = `<div class="mission-grid"><div><b>01 / SNATCH</b><span>Hit the rolling pickup</span></div><div><b>02 / CRACK</b><span>Time the vault drill</span></div><div><b>03 / VANISH</b><span>Match the courier, then escape</span></div></div><div class="contract-goal">${c.goal}<br>GOLD ${c.gold.toLocaleString()} · BEST ${best?best.total.toLocaleString():'—'} · ${Contracts.filter(c=>(Records.table(c.id)[0]?.total||0)>=c.gold).length}/3 contracts mastered</div>`;
   const rows=Records.table(c.id);
-  brief.querySelector('p').textContent += rows.length ? '\n\nPERSONAL RECORDS\n' +
+  if(rows.length) brief.querySelector('p').textContent += rows.length ? '\n\nPERSONAL RECORDS\n' +
     rows.map(r=>r.total+' pts · '+r.time.toFixed(1)+' s · '+r.integrity.toFixed(0)+'%').join('\n') : '';
   startButton.textContent = 'Drive ↵';
 }
@@ -154,6 +155,7 @@ window.addEventListener('keydown', e => {
     else if (mode === 'paused') confirm();
   }
   if (e.code === 'KeyE') interact = true;
+  if (e.code === 'KeyQ' && mode === 'playing') Smoke.deploy(state);
 });
 window.addEventListener('keyup', e => keys.delete(e.code));
 window.addEventListener('blur', () => {
@@ -275,6 +277,7 @@ function render() {
   if(!title&&state.jobs?.stage===2)Art.car(ctx,state.jobs.courier,false,time,true);
   Art.spray(ctx, c, time);
   Art.car(ctx, c, false, time);
+  if(!title && state.smoke){Smoke.draw(ctx,state);StreetDetail.motion(ctx,state,pursuit,time);}
   ctx.restore();
   const destination = targetForRun();
   const near = state.jobs?.stage===1 && City.distance(c, Drive.pickup) < 45;
@@ -319,12 +322,14 @@ function frame(now) {
       } else state.gateKeyDown = false;
       interact = false;
       Traffic.tick(state.traffic, state, pursuit);
+      Smoke.tick(state,1/60);
       Pursuit.tick(pursuit, state);
       if (pursuit.result) finish();
     }
     accumulator -= 1 / 60;
   }
   if(mode==='playing'&&state.jobs?.pending&&!state.jobs.choices.length)openIntermission();
+  Siren.engine(mode==='playing'&&!muted, Math.hypot(state.car.vx,state.car.vy), state.impact);
   Siren.update(mode === 'playing' && !muted ? pursuit.tailRange : Infinity, state.time, City.inCover(state.car), (pursuit.units[0].x-state.car.x)/300);
   render();
   requestAnimationFrame(frame);

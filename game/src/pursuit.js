@@ -146,7 +146,7 @@ const Pursuit = ((city) => {
     }
     p.refresh -= dt;
     const wasSeen = p.seen;
-    p.seen = p.units.some(u => canSee(u, car, run.traffic));
+    p.seen = p.units.some(u => canSee(u, car, run.traffic) && !(run.smoke && Smoke.obscures(run.smoke.clouds,u,car)));
     if (p.seen) {
       if (!wasSeen && p.hadContact && p.lost > .25) p.reacquired++;
       if (!wasSeen) p.refresh = 0;
