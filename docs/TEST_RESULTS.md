@@ -7,4 +7,6 @@
 - Four fresh screenshots were captured directly from visible Chrome running the local game. Each is 1280×720 and below 104 KiB; no image was edited.
 - Two Node v24.22.0 exports each produced 15 files with identical paths and SHA-256 hashes. Node printed its module type-detection performance notice on each run; both exports completed successfully. The unchanged kit vendor file SHA-256 is `DC67187521B24025FF952F8C231485A6EB92D6D71D29EDD2A08154FFB4376129`.
 
-The official Make.fun kit check for the final commit and native transcript bundle is recorded here after it completes. The entry is not submitted; signing and platform receipt remain the owner's final step.
+The official current Make.fun kit check passed with 13 checks passed and 0 failed. Six checks were skipped: prerequisites (verified separately), strategy note (not required), committed-secret scan (no dotenv file supplied), signed-transcript comparison (entry not signed), task-term match (the harness names none), and beacon freshness (not used by this GitHub entry). Five checks are deferred to submission: repository public status, account ownership, repository creation time, commit availability, and duplicate-entry snapshot. No result or ranking is available until the server grades a submitted entry.
+
+The kit noted that Gitleaks is not installed, so the local transcript scan used its built-in redaction rules; the site also runs Gitleaks at submission. Local grading is not available for this competition. The entry is not submitted; signing and platform receipt remain the owner's final step.
