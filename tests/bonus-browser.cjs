@@ -3,7 +3,7 @@ const {chromium}=require(process.env.REDLINE_PLAYWRIGHT);
 const {resolve}=require('node:path');
 const {pathToFileURL}=require('node:url');
 (async()=>{
- const browser=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe'});
+ const browser=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:!process.env.REDLINE_HEADFUL});
  try {
  const page=await browser.newPage({viewport:{width:1280,height:720},offline:true});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
@@ -15,9 +15,9 @@ const {pathToFileURL}=require('node:url');
  await page.keyboard.press('Enter');
  const advance=n=>page.clock.runFor(n);
  const scan=async()=>{await page.keyboard.press('e');await advance(950);await page.keyboard.press('e');await advance(40);};
- await page.keyboard.down('w');await advance(2110);await page.keyboard.up('w');
+ await page.keyboard.down('w');await advance(1800);await page.keyboard.up('w');
  await page.keyboard.down('s');await advance(420);await page.keyboard.up('s');await advance(55);await scan();
- const path=[[695,485,120],[690,600,150],[725,650,90],[1010,650,210,1],[1010,735,125],[1010,850,240],[1040,910,110],[1290,910,325]];
+ const path=[[695,485,120],[690,600,150],[725,650,90],[1010,650,210,1],[900,650,135],[735,650,120],[690,650,75],[690,800,100],[710,910,110],[840,910,210],[1290,910,325]];
  let index=0;const held=new Set();
  async function release(){for(const key of held)await page.keyboard.up(key);held.clear();}
  for(let t=0;t<1100;t++){
@@ -42,7 +42,7 @@ const {pathToFileURL}=require('node:url');
   await advance(17);
  }
  await release();
- const result=await page.evaluate(()=>({result:pursuit.result,bonus:state.bonus,score:Pursuit.score(state,pursuit),time:state.time}));
+ const result=await page.evaluate(()=>({result:pursuit.result,bonus:state.bonus,score:Pursuit.score(state,pursuit),time:state.time,car:{x:state.car.x,y:state.car.y},police:pursuit.units.map(u=>({x:u.x,y:u.y})),seen:pursuit.seen,block:pursuit.block}));
  console.log(result);assert.equal(result.bonus,true);if(process.env.REDLINE_FAIL){assert.equal(result.score.total,0);assert.equal(await page.evaluate(()=>Records.table(Contracts[Number(layoutInput.value)].id).length),0);}else assert.ok(['Clean getaway','Escaped'].includes(result.result));
  if(!process.env.REDLINE_FAIL)await page.screenshot({path:'screenshots/04-results.jpg',quality:82});
  assert.deepEqual(errors,[]);

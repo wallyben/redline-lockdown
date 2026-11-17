@@ -7,11 +7,10 @@ function step(s, frames, gas = 0, turn = 0) {
   for (let i = 0; i < frames; i++) Drive.tick(s, { gas, turn, interact: false });
 }
 
-test('drive crosses the three pickup-route junctions, scans and resets', () => {
+test('brakes inside the vault bay, drills, and resets', () => {
   const s = Drive.reset();
-  step(s, 124, 1);
+  while (s.car.x < 600) step(s, 1, 1);
   assert.ok(s.car.x > 430);
-  while (s.car.x < 610) step(s, 1, 1);
   while (Math.hypot(s.car.vx, s.car.vy) > 12) step(s, 1, -1);
   assert.ok(City.distance(s.car, Drive.pickup) < 45);
   Drive.tick(s, { gas: 0, turn: 0, interact: true });

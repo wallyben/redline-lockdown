@@ -1,6 +1,6 @@
 const Drive = ((city) => {
   const start = { x: 130, y: 400, angle: 0, vx: 0, vy: 0, damage: 0, hits: 0 };
-  const pickup = { x: 690, y: 400 };
+  const pickup = { x: 690, y: 400 }; // Port Meridian bank vault
   function reset() {
     return { car: { ...start }, collected: false, bonus: false, banked: false, time: 0, sweep: -1, impact: 0 };
   }
@@ -11,14 +11,16 @@ const Drive = ((city) => {
     c.braking = input.gas < 0 || input.drift;
     const speed = Math.hypot(c.vx, c.vy);
     const forward = c.vx * Math.cos(c.angle) + c.vy * Math.sin(c.angle);
-    c.angle += input.turn * Math.min(speed / 55, 1) * (input.drift ? 3.4 : 2.65) * dt * (forward < -8 ? -1 : 1);
+    const reverse = forward < -8 ? -1 : 1;
+    const steering = Math.min(speed / 42, 1);
+    c.angle += input.turn * steering * (input.drift ? 2.8 : 2.25) * dt * reverse;
     const cos = Math.cos(c.angle);
     const sin = Math.sin(c.angle);
-    const throttle = input.gas > 0 ? 370 : input.gas < 0 ? (forward > 10 ? -670 : -155) : 0;
+    const throttle = input.gas > 0 ? 420 : input.gas < 0 ? (forward > 8 ? -780 : -230) : 0;
     let along = c.vx * cos + c.vy * sin;
     let lateral = -c.vx * sin + c.vy * cos;
-    along = Math.max(-90, Math.min(330, (along + throttle * dt) * Math.exp(-dt * (input.drift ? 2 : 0.85))));
-    lateral *= Math.exp(-dt * (input.drift ? 1.5 : 12));
+    along = Math.max(-90, Math.min(360, (along + throttle * dt) * Math.exp(-dt * (input.drift ? 1.15 : 0.62))));
+    lateral *= Math.exp(-dt * (input.drift ? 2.4 : 7.5));
     c.vx = along * cos - lateral * sin;
     c.vy = along * sin + lateral * cos;
     const x = c.x + c.vx * dt;

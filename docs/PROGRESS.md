@@ -1,16 +1,7 @@
-# Build progress
+# Release status
 
-- Driving checkpoint: cc32464. Browser and fixed-input checks passed before pursuit work began.
-- Mission checkpoint: one recorder objective, road-graph pursuit, physically dispatched roadblock, southbound alternate route, extraction, scoring, results and replay.
-- Assessed with the original native Codex rollout. The official kit accepted explicit selection of its full session log and the run record identifies the original user prompt as a pasted-text attachment.
-- Remaining release work: signed entry under the owner's Make.fun account, remote commit verification and server validation. No submission or judging result exists.
+REDLINE: LOCKDOWN is a complete offline arcade getaway mission. The player drills the Port Meridian bank vault, chooses whether to trigger a second alarm for optional cash, evades a tail and a junction interceptor, breaks sight, and reaches the dock gate to bank the score.
 
-## Pursuit rework
+The boulevard rewards speed and leaves the car exposed. The tight service alley breaks police sight. Patrols use the last visible position to search and can reacquire the player. The title, HUD, controls, contract goals, score breakdown and failure result explain the objective and scoring.
 
-- Fallback retained on branch fallback/6a2f840.
-- The tail tracks visible road positions. The interceptor commits to a predicted junction and drives the road network to deploy. The tail searches from the last sighting and can reacquire the player; extraction requires 3.8 seconds without detection.
-- North and South patrols are selectable at the start and on replay. The exposed boulevard and screened service alley lead toward the dock gate.
-- Added the Hotel Iris marquee, alley lane lighting, dock containers and crane silhouettes, moving police reflections, tyre spray, distance-based siren and a chase camera that fits the player, nearby tail and junction.
-
-## Astra score loop
-Three fixed contracts, optional cargo alarm, v2 local records, Gold goals, success-only banking, capped pace and condition rewards, feint bonus, truthful escape labels, normal-impact damage and patrol turn delays are implemented. Sound and flash controls are available. The rollback branch rollback/c6bc057 preserves the previous build. See ASTRA_VERIFICATION.md for measured evidence and unresolved checks.
+The fallback branch `fallback/6a2f840` and rollback branch `rollback/c6bc057` remain available. The public entry has not been submitted; the owner must complete the signed Make.fun entry step after reviewing the final commit and transcript bundle.

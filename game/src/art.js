@@ -87,6 +87,32 @@ const Art = (() => {
   }
 
   function landmarks(ctx) {
+    const bank = City.blocks.find(b => b.row === 0 && b.col === 1);
+    const bankX = bank.x + 14, bankY = bank.y + 37;
+    atmosphere(ctx, bankX + 69, bankY + 84, 104, '#f4c46850');
+    fill(ctx, bankX, bankY, 138, 91, '#171b22');
+    fill(ctx, bankX + 5, bankY + 5, 128, 80, '#39414a');
+    fill(ctx, bankX + 10, bankY + 10, 118, 56, '#242d35');
+    fill(ctx, bankX + 13, bankY + 62, 112, 19, '#c4a46a');
+    fill(ctx, bankX + 17, bankY + 65, 104, 13, '#342d24');
+    for (let x = bankX + 20; x < bankX + 120; x += 25) {
+      fill(ctx, x, bankY + 25, 7, 38, '#d5c395');
+      fill(ctx, x + 2, bankY + 27, 3, 34, '#59616a');
+    }
+    fill(ctx, bankX + 51, bankY + 31, 34, 31, '#121a21');
+    ctx.beginPath();
+    ctx.arc(bankX + 68, bankY + 46, 11, 0, Math.PI * 2);
+    ctx.fillStyle = '#d7b66e';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(bankX + 68, bankY + 46, 7, 0, Math.PI * 2);
+    ctx.strokeStyle = '#352f26';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.font = '900 8px system-ui';
+    ctx.fillStyle = '#f5dc9b';
+    ctx.fillText('PORT MERIDIAN BANK', bankX + 15, bankY + 76);
+
     for(let x=1170;x<1340;x+=32) {
       fill(ctx,x,864,27,16,'#6c5b40');
       fill(ctx,x+2,866,23,11,'#aa8150');

@@ -4,9 +4,7 @@
 [![rank](https://make.fun/badge/best-game-01/wallyben/redline-lockdown/rank.svg)](https://make.fun/bounty/best-game-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=best-game-01)
 [![reward](https://make.fun/badge/best-game-01/wallyben/redline-lockdown/reward.svg)](https://make.fun/bounty/best-game-01?utm_source=github&utm_medium=readme&utm_campaign=best-game-01)
 
-An offline arcade getaway in rain-soaked Port Meridian. Recover a recorder, watch the interceptor commit to an intersection, then break line of sight and reach the docks. The boulevard gives you a straight run at speed. The narrow service alley by Hotel Iris breaks sight under cover. Choose North or South patrol to change where the interceptor starts.
-
-Use WASD or arrows to drive, Space for the handbrake, E to scan, Escape to pause and R to restart. Park near the recorder, press E to begin the sweep, then press E again in the green band. Extract after the contact indicator clears.
+Rob the Port Meridian bank, evade the patrols, and escape to the docks. Take the boulevard for speed or use the tight service alley to break police sight. The optional cash depot is worth 1,600 points and triggers another alarm.
 
 ## Run it
 
@@ -14,11 +12,12 @@ Use WASD or arrows to drive, Space for the handbrake, E to scan, Escape to pause
 node serve.ts
 ```
 
+W or Up accelerates. A or Left and D or Right steer; S or Down brakes. Space uses the handbrake. Stop in the marked bank bay and press E to start drilling, then press E again while the marker is in the green band to take the vault cash. After the alarm, break sight and keep out of view until the search clears, then reach the green dock gate.
+
+Your score banks only when you escape: vault 1,000, escape 2,500, optional cash 1,600, time up to 800, car condition up to 500, and a successful interceptor feint 500. Capture or wreck scores zero. Each contract shows its Gold target and personal best before you start. Press R to retry, C to choose a contract, and Escape to pause.
+
+The game runs offline and loads no remote assets. You can also open `game/index.html` directly in desktop Chrome.
+
 ---
 
-<sub>Entered on [make.fun](https://make.fun/?utm_source=github&utm_medium=readme&utm_campaign=best-game-01) · AI agents build software for cash rewards</sub>
-
-
-You can also open game/index.html directly in desktop Chrome. The game needs no network or runtime packages.
-
-Run the simulation checks with node --test tests/*.test.cjs. Run the keyboard integration check from the repository root with node tests/browser.cjs and playwright-core installed or REDLINE_PLAYWRIGHT set to its installed path. Set REDLINE_CHROME to use another Chrome installation. Add --shots to capture the four 1280×720 frames.
+<sub>Built for the [make.fun “Make the best game” bounty](https://make.fun/bounty/best-game-01?utm_source=github&utm_medium=readme&utm_campaign=best-game-01) · AI agents build software for cash rewards</sub>

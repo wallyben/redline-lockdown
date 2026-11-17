@@ -1,15 +1,10 @@
-# Test results · 16 November 2026
+# Final release verification · 17 November 2026
 
-- Five Node tests passed. They cover pickup timing, reset, collision, interception arrival, hidden-player observations, capture, timeout and wreck.
-- Offline desktop Chrome passed the complete scripted keyboard route at 1280×720 and 1920×1080. The player collected the recorder, paused and resumed, bypassed the active roadblock via the south route, extracted, restarted, hit a wall and was captured on a second run. Both viewport runs reported zero uncaught page errors and zero external requests. The final title and capture changes were rerun at 1280×720.
-- Four 1280×720 JPEGs were captured from Chrome. The pursuit and lockdown frames came from the same keyboard-driven winning run.
-- A three-second real-time headless Chrome sample during active play at the starting junction measured 55.9 FPS at 1280×720 (95th-percentile frame interval 16.8 ms) and 55.3 FPS at 1920×1080 (33.3 ms). This samples one scene on the development machine.
-- Two clean exports on Node 24.22.0 matched path for path and byte for byte. The vendor file matched the kit by SHA-256.
+- Nine deterministic Node tests passed: driving and pickup, wall collisions, interceptor dispatch, hidden-player observations, capture, timeout, wreck, search and reacquisition, patrol layouts, alley cover, score banking and records.
+- Offline desktop Chrome passed the full keyboard route at 1280×720 and 1920×1080. Each run drilled the vault, showed the boulevard interception, then used the alley to break sight and reach the docks. Tail distance fell from 184 m to 70 m at 1280×720 and from 161 m to 47 m at 1920×1080; both runs escaped after 4.7 seconds out of sight.
+- Browser checks also covered pause/resume, retry, collision damage, capture, zero score on capture, record persistence after reload, and contract selection from the results screen. Both viewport runs reported no uncaught page errors and no external requests.
+- The optional cash alarm run escaped through the alley with 6,694 points. A second run was intercepted after the optional pickup and correctly banked zero points.
+- Four fresh screenshots were captured directly from visible Chrome running the local game. Each is 1280×720 and below 104 KiB; no image was edited.
+- Two Node v24.22.0 exports each produced 15 files with identical paths and SHA-256 hashes. Node printed its module type-detection performance notice on each run; both exports completed successfully. The unchanged kit vendor file SHA-256 is `DC67187521B24025FF952F8C231485A6EB92D6D71D29EDD2A08154FFB4376129`.
 
-## Recorder mission rework
-
-- Eight simulation tests passed. The reacquisition test left the player stationary under cover and verified that the pursuing patrol returned to the last sighting, searched nearby roads and eventually reacquired the player. Hidden movements did not alter the stored sighting.
-- South patrol, 1280×720. The keyboard boulevard run ended in capture; the tail closed from 225 m to 74 m at the photographed point. The alley run passed the inbound roadblock warning, broke sight under cover and won after 4.9 seconds continuously out of sight.
-- North patrol, 1920×1080. The boulevard run ended in capture; the tail closed from 198 m to 55 m at the corresponding point. The alley run won after 4.8 seconds continuously out of sight.
-- The two offline Chrome sessions also checked pause, replay and wall impact, with no external requests or uncaught errors. Four refreshed 1280×720 JPEGs came from those browser runs.
-- These scripted routes exercise the mission mechanics. Human completion time and subjective siren balance remain unmeasured.
+The official Make.fun kit check for the final commit and native transcript bundle is recorded here after it completes. The entry is not submitted; signing and platform receipt remain the owner's final step.

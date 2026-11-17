@@ -18,7 +18,7 @@ async function play(browser, viewport, capture, layout) {
   const press = key => page.keyboard.press(key);
   async function pickup() {
     await page.keyboard.down('w');
-    await advance(2110);
+    await advance(1800);
     await page.keyboard.up('w');
     await page.keyboard.down('s');
     await advance(420);
@@ -99,11 +99,16 @@ async function play(browser, viewport, capture, layout) {
   assert.equal(brokeSightInAlley, true);
   const outcome = await page.evaluate(() => ({ result: pursuit.result, x: state.car.x, y: state.car.y, lost: pursuit.lost }));
   assert.equal(outcome.result, 'Clean getaway', JSON.stringify(outcome));
-  assert.match(await page.locator('#brief p').textContent(), /Extraction \+2500/);
+  assert.match(await page.locator('#brief p').textContent(), /Escape \+2500/);
   await shot('04-results');
   const saved = await page.evaluate(() => Records.table(Contracts[Number(layoutInput.value)].id).length);
   await page.evaluate(() => finish());
   assert.equal(await page.evaluate(() => Records.table(Contracts[Number(layoutInput.value)].id).length),saved);
+  await press('c');
+  assert.equal(await page.evaluate(() => mode), 'title');
+  await page.locator('#patrol').selectOption('1');
+  assert.match(await page.locator('#brief p').textContent(), /Gold target 5200/);
+  await page.locator('#patrol').selectOption(String(layout));
   await page.reload();
   await page.locator('#patrol').selectOption(String(layout));
   assert.equal(await page.evaluate(() => Records.table(Contracts[Number(layoutInput.value)].id).length),saved);
@@ -124,7 +129,7 @@ async function play(browser, viewport, capture, layout) {
 
 (async () => {
   const executablePath = process.env.REDLINE_CHROME || 'C:/Program Files/Google/Chrome/Application/chrome.exe';
-  const browser = await chromium.launch({ executablePath });
+  const browser = await chromium.launch({ executablePath, headless: !process.env.REDLINE_HEADFUL });
   try {
     await play(browser, { width: 1280, height: 720 }, process.argv.includes('--shots'), 0);
     if (!process.argv.includes('--capture-only')) await play(browser, { width: 1920, height: 1080 }, false, 1);
