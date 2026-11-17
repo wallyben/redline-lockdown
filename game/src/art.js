@@ -255,6 +255,17 @@ const Art = (() => {
     ctx.translate(x - 78 * scale, y - 81 * scale);
     ctx.scale(scale, scale);
     for (const b of City.blocks) fill(ctx, b.x, b.y, b.right - b.x, b.bottom - b.y, '#405568');
+    for (const gate of Traffic.gates) {
+      const [a,b]=gate.edge, start=City.nodes[a], end=City.nodes[b];
+      ctx.strokeStyle = run.traffic?.closedEdges?.has(City.edgeKey(a,b)) ? '#ff526d' : '#43f4c2';
+      ctx.lineWidth = 8; ctx.beginPath(); ctx.moveTo(start.x,start.y); ctx.lineTo(end.x,end.y); ctx.stroke();
+    }
+    if (run.traffic?.barrier) {
+      const b=run.traffic.barrier;
+      if(b.orientation==='h')fill(ctx,b.x-4,b.y-b.span,8,b.span*2,'#ff6575');
+      else fill(ctx,b.x-b.span,b.y-4,b.span*2,8,'#ff6575');
+    }
+    for(const gate of Traffic.gates){ fill(ctx,gate.console.x-11,gate.console.y-11,22,22,'#3fffc1'); }
     const dot = (q, color) => fill(ctx, q.x - 15, q.y - 15, 30, 30, color);
     dot(run.collected ? Pursuit.exit : Drive.pickup, run.collected ? '#6affc0' : '#ffc978');
     if (p.intercept) dot(City.nodes[p.intercept.node], '#ff5c76');

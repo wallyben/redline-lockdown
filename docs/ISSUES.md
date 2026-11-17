@@ -1,9 +1,7 @@
-# Current build limits
+# Rescue build issues
 
-Three contracts use fixed patrol layouts on one compact map. Score rules are versioned as v2. Gold targets are tuned to the tested routes. The scripted bank route is roughly ten seconds and the bonus route roughly sixteen seconds; human run duration is unmeasured.
-
-Records survive file reload in the same Chrome context and fall back to session memory when storage is unavailable. A full browser restart test is still outstanding.
-
-The pursuit uses road-graph assignments and observed heading. Its prediction distance is fixed; speed and interception arrival time are not yet part of target selection.
-
-The optional daily contract and ghost replay are deferred. Official judging and signed submission remain pending.
+- [ ] The current run has one bank job and one optional cash pickup; contracts vary patrol starts more than mission structure.
+- [x] Three relay gates now share closed-edge state across collision, connectivity checks and patrol route planning; closing warning, occupancy abort/refund, timed reopening, HUD and minimap are implemented.
+- [ ] Feint scoring is tied to one node and one cover coordinate rather than an observed interceptor miss.
+- [ ] There is no between-job upgrade or early-extraction choice.
+- [ ] The final branch needs a fresh exact-commit competition check and submission-time review; the existing submitted entry remains valid and unchanged.

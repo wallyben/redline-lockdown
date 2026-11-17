@@ -135,6 +135,36 @@ function marker(p, name, color) {
   ctx.fillText(name, p.x - 24, p.y - 36);
 }
 
+function drawTraffic() {
+  for (const gate of Traffic.gates) {
+    const console = gate.console;
+    ctx.fillStyle = state.traffic.selected?.id === gate.id && state.traffic.phase === 'warning' ? '#ffe89c' : '#54ffca';
+    ctx.fillRect(console.x - 9, console.y - 9, 18, 18);
+    ctx.strokeStyle = '#07151c'; ctx.lineWidth = 2; ctx.strokeRect(console.x - 5, console.y - 5, 10, 10);
+    ctx.fillStyle = '#e3fff8'; ctx.font = 'bold 8px system-ui'; ctx.fillText('RELAY', console.x - 15, console.y - 13);
+  }
+  if (state.traffic.barrier) {
+    const b = state.traffic.barrier;
+    ctx.save(); ctx.translate(b.x,b.y);
+    if (b.orientation === 'h') {
+      ctx.fillStyle = '#141a20'; ctx.fillRect(-5,-b.span,10,b.span*2);
+      for(let y=-b.span;y<b.span;y+=12){ctx.fillStyle=Math.floor((y+b.span)/12)%2?'#ffe091':'#ff5267';ctx.fillRect(-6,y,12,7);}
+    } else {
+      ctx.fillStyle = '#141a20'; ctx.fillRect(-b.span,-5,b.span*2,10);
+      for(let x=-b.span;x<b.span;x+=12){ctx.fillStyle=Math.floor((x+b.span)/12)%2?'#ffe091':'#ff5267';ctx.fillRect(x,-6,7,12);}
+    }
+    ctx.restore();
+  }
+  if (state.traffic.phase === 'warning' && state.traffic.barrier === null && state.traffic.selected) {
+    const gate = state.traffic.selected, [a,b] = gate.edge, p=City.nodes[a], q=City.nodes[b];
+    ctx.strokeStyle = '#ff6b62'; ctx.lineWidth = 7; ctx.setLineDash([11,8]);
+    const x=(p.x+q.x)/2,y=(p.y+q.y)/2;
+    ctx.beginPath();
+    if(p.y===q.y){ctx.moveTo(x,y-36);ctx.lineTo(x,y+36);}else{ctx.moveTo(x-36,y);ctx.lineTo(x+36,y);}
+    ctx.stroke(); ctx.setLineDash([]);
+  }
+}
+
 function chaseCamera(car, w, h, title) {
   const base = Math.max(.75, Math.min(1.45, h / 535));
   if (title) return { x: 600, y: car.y, zoom: Math.max(1.5, Math.min(1.8, h / 450)) };
@@ -173,6 +203,7 @@ function render() {
   ctx.translate(w * (title ? .72 : .5) - view.x * zoom, h * .53 - view.y * zoom);
   ctx.scale(zoom, zoom);
   ctx.drawImage(cityArt, 0, 0);
+  if (!title) drawTraffic();
   Art.weather(ctx, c, time, w / zoom, h / zoom);
   if (!title && !state.collected) marker(Drive.pickup, 'BANK VAULT', '#f4c468');
   if (state.collected) {
@@ -222,12 +253,15 @@ function render() {
     ctx.font = 'bold 12px system-ui';
     ctx.fillText('PRESS E IN THE GREEN BAND', x, y - 12);
   }
-  const nextBanner = (state.collected ? (pursuit.block ? 'ROADBLOCK ACTIVE' : pursuit.intercept ? 'INTERCEPT INBOUND' : 'VAULT CASH SECURED') +
+  let nextBanner = (state.collected ? (pursuit.block ? 'ROADBLOCK ACTIVE' : pursuit.intercept ? 'INTERCEPT INBOUND' : 'VAULT CASH SECURED') +
     '\n' + (pursuit.seen ? (pursuit.reacquired ? 'Police reacquired you' : 'Police spotted you') + ' · nearest cruiser ' + Math.round(pursuit.nearestRange) + ' m' : pursuit.lost < Pursuit.clearTime ?
       'Patrols searching · stay hidden ' + (Pursuit.clearTime - pursuit.lost).toFixed(1) + ' s more' : 'Police lost · dock gate ' + arrow + ' ' + range + ' m') : state.sweep >= 0
     ? 'Vault drilling · press E in the green band to take the cash'
     : near ? 'Stop at the bank, press E to start drilling, then press E in the green band' : 'First target ' + arrow + ' ' + range + ' m') +
     '\n' + (state.collected ? (state.bonus ? 'Cash secured · reach the dock gate to score' : 'Reach the dock gate to score or risk +1,600 at the cash depot') + '\n' : '') + Math.ceil(Math.max(0, 180 - state.time)) + ' s · ' + Math.round(Math.hypot(c.vx, c.vy) * .55) + ' km/h · ' + Math.max(0, 100 - Math.round(c.damage)) + '% integrity';
+  const relay = Traffic.near(state);
+  const gateLine = relay ? `\n${state.traffic.message} · ${relay.name} console nearby · Shift to trigger · ${state.traffic.charges} charge${state.traffic.charges===1?'':'s'}` : `\n${state.traffic.message} · ${state.traffic.charges} gate charges`;
+  nextBanner += gateLine;
   if (nextBanner !== banner) { hud.textContent = nextBanner; banner = nextBanner; }
 }
 
@@ -241,7 +275,12 @@ function frame(now) {
         turn: down('KeyD', 'ArrowRight') - down('KeyA', 'ArrowLeft'),
         drift: keys.has('Space'), interact,
       });
+      if (keys.has('ShiftLeft') || keys.has('ShiftRight')) {
+        if (!state.gateKeyDown) Traffic.activate(state.traffic, state, pursuit);
+        state.gateKeyDown = true;
+      } else state.gateKeyDown = false;
       interact = false;
+      Traffic.tick(state.traffic, state, pursuit);
       Pursuit.tick(pursuit, state);
       if (pursuit.result) finish();
     }

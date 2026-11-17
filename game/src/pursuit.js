@@ -15,13 +15,13 @@ const Pursuit = ((city) => {
     bonusAlarm: false, feint: false, reacquired: 0, hadContact: false, tailRange: Infinity, nearestRange: Infinity,
   });
 
-  function canSee(unit, car) {
+  function canSee(unit, car, road = null) {
     const d = city.distance(unit, car);
     if (d > 260 || (d > 54 && city.inCover(unit) !== city.inCover(car))) return false;
     const samples = Math.ceil(d / 11);
     for (let i = 1; i < samples; i++) {
       const f = i / samples;
-      if (city.wall(unit.x + (car.x - unit.x) * f, unit.y + (car.y - unit.y) * f, 1)) return false;
+      if (city.wall(unit.x + (car.x - unit.x) * f, unit.y + (car.y - unit.y) * f, 1, road)) return false;
     }
     return true;
   }
@@ -33,13 +33,13 @@ const Pursuit = ((city) => {
       city.distance(city.nodes[i], point) < city.distance(city.nodes[best], point) ? i : best, origin);
   }
 
-  function roadPoint(point) {
+  function roadPoint(point, road = null) {
     let best = null;
     let distance = Infinity;
     for (let a = 0; a < city.nodes.length; a++) {
       const start = city.nodes[a];
       for (const b of city.edges[a]) {
-        if (b <= a) continue;
+        if (b <= a || !city.edgeOpen(a,b,road)) continue;
         const end = city.nodes[b];
         const dx = end.x - start.x, dy = end.y - start.y;
         const t = Math.max(0, Math.min(1, ((point.x - start.x) * dx + (point.y - start.y) * dy) / (dx * dx + dy * dy)));
@@ -51,15 +51,16 @@ const Pursuit = ((city) => {
     return best;
   }
 
-  function dispatch(unit, target) {
+  function dispatch(unit, target, road = null) {
     const [a, b] = unit.edge;
-    if (target.edge.includes(a) && target.edge.includes(b)) {
+    if (city.edgeOpen(a,b,road) && target.edge.includes(a) && target.edge.includes(b)) {
       unit.path = [target];
       return;
     }
     let bestLength = Infinity;
     for (const from of new Set(unit.edge)) for (const to of new Set(target.edge)) {
-      const nodes = city.route(from, to);
+      const nodes = city.route(from, to, road);
+      if (!nodes.length && from !== to) continue;
       let previous = unit;
       const path = nodes.map((node, i) => ({
         ...city.nodes[node], edge: i ? [nodes[i - 1], node] : unit.edge,
@@ -133,14 +134,12 @@ const Pursuit = ((city) => {
       p.intercept = null;
       p.block = null;
       p.refresh = 0;
-      dispatch(p.units[0], roadPoint(p.sighting));
-      dispatch(p.units[1], junction(13));
+      dispatch(p.units[0], roadPoint(p.sighting, run.traffic), run.traffic);
+      dispatch(p.units[1], junction(13), run.traffic);
     }
-    if (p.intercept && !p.feint && city.inCover(car) &&
-      p.intercept.node === 8 && car.y > 510) p.feint = true;
     p.refresh -= dt;
     const wasSeen = p.seen;
-    p.seen = p.units.some(u => canSee(u, car));
+    p.seen = p.units.some(u => canSee(u, car, run.traffic));
     if (p.seen) {
       if (!wasSeen && p.hadContact && p.lost > .25) p.reacquired++;
       if (!wasSeen) p.refresh = 0;
@@ -154,6 +153,13 @@ const Pursuit = ((city) => {
     }
     p.lost = p.seen ? 0 : p.lost + dt;
     const [tail, interceptor] = p.units;
+    if (run.traffic?.phase === 'closed' && !p.rerouteEdgeKey) {
+      p.rerouteEdgeKey = [...run.traffic.closedEdges][0];
+      if (p.sighting) {
+        dispatch(tail, p.seen ? roadPoint(p.sighting, run.traffic) : searchTarget(p,0), run.traffic);
+        dispatch(interceptor, p.intercept ? junction(p.intercept.node) : searchTarget(p,1), run.traffic);
+      }
+    } else if (run.traffic?.phase !== 'closed') p.rerouteEdgeKey = null;
     if (p.intercept && p.elapsed >= p.intercept.expires) {
       p.intercept = null;
       p.block = null;
@@ -161,16 +167,16 @@ const Pursuit = ((city) => {
     }
     if (p.sighting && p.refresh <= 0) {
       p.refresh = .22;
-      dispatch(tail, p.seen ? roadPoint(p.sighting) : searchTarget(p, 0));
+      dispatch(tail, p.seen ? roadPoint(p.sighting, run.traffic) : searchTarget(p, 0), run.traffic);
       if (!p.intercept && p.seen) {
         const node = predict(p.sighting);
         const from = city.nearest(p.sighting);
         if (node !== from) {
           p.intercept = { node, from, expires: p.elapsed + 9 };
-          dispatch(interceptor, junction(node));
+          dispatch(interceptor, junction(node), run.traffic);
         }
       } else if (!p.intercept && !p.seen) {
-        dispatch(interceptor, searchTarget(p, 1));
+        dispatch(interceptor, searchTarget(p, 1), run.traffic);
       }
     }
     advance(tail, p.seen ? (p.bonusAlarm ? 185 : 220) * (p.pressure || 1) : 106, dt);
@@ -188,7 +194,7 @@ const Pursuit = ((city) => {
       const scale = 30 / blockDistance;
       const x = interceptor.x + (car.x - interceptor.x) * scale;
       const y = interceptor.y + (car.y - interceptor.y) * scale;
-      if (!city.wall(x, y)) Object.assign(car, { x, y });
+      if (!city.wall(x, y, 11, run.traffic)) Object.assign(car, { x, y });
     }
     if (blockade || p.nearestRange < 35) {
       p.contact += dt;
