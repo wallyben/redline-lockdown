@@ -55,10 +55,14 @@ const Pursuit = ((city) => {
   }
 
   function dispatch(unit, target, road = null) {
+    // Keep a useful order instead of rebuilding it at every radio update.
+    const blocked=unit.path.some(q=>q.edge[0]!==q.edge[1]&&!city.edgeOpen(...q.edge,road));
+    if(!blocked && unit.path.length && unit.destination && city.distance(unit.destination,target)<45)return;
+    unit.destination={...target};
     const [a, b] = unit.edge;
     if (city.edgeOpen(a,b,road) && target.edge.includes(a) && target.edge.includes(b)) {
-      unit.path = [target];
-      return;
+      const ahead=(target.x-unit.x)*Math.cos(unit.angle)+(target.y-unit.y)*Math.sin(unit.angle);
+      if(ahead>=-20 || (unit.speed||0)<35){unit.path=[target];return;}
     }
     let bestLength = Infinity;
     const starts=road&&!city.edgeOpen(a,b,road)
@@ -71,7 +75,10 @@ const Pursuit = ((city) => {
       const path = nodes.map((node, i) => ({
         ...city.nodes[node], edge: i ? [nodes[i - 1], node] : city.edgeOpen(a,b,road) ? unit.edge : [node,node],
       }));
-      let length = 0;
+      const first=path.find(q=>city.distance(unit,q)>5)||target;
+      const heading=Math.atan2(first.y-unit.y,first.x-unit.x);
+      const turn=Math.abs(Math.atan2(Math.sin(heading-unit.angle),Math.cos(heading-unit.angle)));
+      let length = (unit.speed||0)>45 && turn>2 ? 480 : turn*30;
       for (const point of [...path, target]) {
         length += city.distance(previous, point);
         previous = point;
@@ -83,31 +90,32 @@ const Pursuit = ((city) => {
     }
   }
 
-  function advance(unit, speed, dt) {
-    let remaining = speed * dt;
-    while (remaining > 0 && unit.path.length) {
-      const target = unit.path[0];
-      const distance = city.distance(target, unit);
-      if (distance > .01) {
-        const heading = Math.atan2(target.y-unit.y,target.x-unit.x);
-        const error = Math.atan2(Math.sin(heading-unit.angle),Math.cos(heading-unit.angle));
-        if (Math.abs(error) > .15) {
-          unit.angle += Math.sign(error)*Math.min(Math.abs(error),3.2*dt);
-          return;
-        }
-        unit.angle = heading;
+  function advance(unit, cruise, dt, road=null) {
+    while(unit.path.length && city.distance(unit,unit.path[0])<4){
+      unit.edge=unit.path.shift().edge;
+    }
+    if(!unit.path.length){unit.speed=0;return;}
+    let target=unit.path[0],distance=city.distance(unit,target);
+    // Round a corner only where the actual vehicle footprint has room.
+    if(distance<20 && unit.path.length>1){
+      const next=unit.path[1],dx=next.x-unit.x,dy=next.y-unit.y,d=Math.hypot(dx,dy);
+      if(Array.from({length:Math.ceil(d/8)},(_,i)=>(i+1)/Math.ceil(d/8)).every(t=>!city.wall(unit.x+dx*t,unit.y+dy*t,11,road))){
+        unit.edge=target.edge;unit.path.shift();target=next;distance=d;
       }
-      unit.edge = target.edge;
-      if (distance <= remaining) {
-        unit.x = target.x;
-        unit.y = target.y;
-        remaining -= distance;
-        unit.path.shift();
-      } else {
-        unit.x += Math.cos(unit.angle) * remaining;
-        unit.y += Math.sin(unit.angle) * remaining;
-        return;
-      }
+    }
+    const heading=Math.atan2(target.y-unit.y,target.x-unit.x);
+    const error=Math.atan2(Math.sin(heading-unit.angle),Math.cos(heading-unit.angle));
+    const bend=Math.abs(error);
+    const desired=Math.min(cruise,unit.path.length===1?Math.sqrt(2*420*distance):cruise)*(bend>1.1?.16:bend>.35?.48:1);
+    unit.speed=Math.max(0,(unit.speed||0)+Math.max(-480*dt,Math.min(210*dt,desired-(unit.speed||0))));
+    unit.angle+=Math.max(-2.9*dt,Math.min(2.9*dt,error));
+    const step=bend>1.5?0:Math.min(unit.speed*dt,distance);
+    const x=unit.x+Math.cos(heading)*step,y=unit.y+Math.sin(heading)*step;
+    if(!city.wall(x,y,11,road)){unit.x=x;unit.y=y;unit.edge=target.edge;}
+    else {
+      const rx=unit.x+Math.cos(heading)*Math.min(40*dt,distance),ry=unit.y+Math.sin(heading)*Math.min(40*dt,distance);
+      if(!city.wall(rx,ry,11,road)){unit.x=rx;unit.y=ry;}
+      unit.speed=0;unit.angle+=Math.max(-1.5*dt,Math.min(1.5*dt,error));
     }
   }
 
@@ -116,12 +124,19 @@ const Pursuit = ((city) => {
   }
 
   function searchTarget(p, offset) {
-    const last = p.sighting;
-    const center = city.nearest(last);
-    if (p.lost < 3.5) return city.inCover(last) ? junction(center) : roadPoint(last);
-    const forward = predict(last);
-    const options = [forward, ...city.edges[center].filter(n => n !== forward), center];
-    return junction(options[(Math.floor((p.lost - 3.5) / 2.8) + offset) % options.length]);
+    const unit=p.units[offset]||p.units[0],last=p.sighting;
+    const center=city.nearest(last),forward=predict(last);
+    const options=[center,forward,...city.edges[center].filter(n=>n!==forward)];
+    if(!unit.search || unit.search.x!==last.x || unit.search.y!==last.y){
+      unit.search={x:last.x,y:last.y,index:offset===0?0:offset,goal:null,wait:0};
+    }
+    const search=unit.search;
+    if(search.goal && city.distance(unit,search.goal)<28 && !unit.path.length){
+      if(!search.wait)search.wait=p.elapsed+.7;
+      if(p.elapsed>=search.wait){search.index++;search.goal=null;search.wait=0;}
+    }
+    if(!search.goal)search.goal=search.index===0?roadPoint(last):junction(options[search.index%options.length]);
+    return search.goal;
   }
 
   function tick(p, run, dt = 1 / 60) {
@@ -180,7 +195,7 @@ const Pursuit = ((city) => {
       p.refresh = 0;
     }
     if (p.sighting && p.refresh <= 0) {
-      p.refresh = .22;
+      p.refresh = .65;
       dispatch(tail, p.seen ? roadPoint(p.sighting, run.traffic) : searchTarget(p, 0), run.traffic);
       if (!p.intercept && p.seen) {
         const node = predict(p.sighting);
@@ -192,19 +207,18 @@ const Pursuit = ((city) => {
       } else if (!p.intercept && !p.seen) {
         dispatch(interceptor, searchTarget(p, 1), run.traffic);
       }
-      if(p.extra&&p.sighting)dispatch(p.extra,p.seen?roadPoint(p.sighting,run.traffic):searchTarget(p,2),run.traffic);
+      if(p.extra&&p.sighting)dispatch(p.extra,p.seen?junction(predict(p.sighting)):searchTarget(p,2),run.traffic);
     }
     const heatScale=1+Math.min(run.jobs?.heat||0,4)*.045;
-    advance(tail, (p.seen ? (p.bonusAlarm ? 185 : 220) * (p.pressure || 1) : 106)*heatScale, dt);
-    advance(interceptor, (p.intercept ? 255 : 157)*heatScale, dt);
-    if(p.extra)advance(p.extra,(p.seen?175:112)*heatScale,dt);
-    if (p.intercept && !p.block && city.distance(interceptor, city.nodes[p.intercept.node]) < .01 && !interceptor.path.length) {
+    advance(tail, (p.seen ? (p.bonusAlarm ? 235 : 220) * (p.pressure || 1) : 106)*heatScale, dt, run.traffic);
+    advance(interceptor, (p.intercept ? 255 : 157)*heatScale, dt, run.traffic);
+    if(p.extra)advance(p.extra,(p.seen?175:112)*heatScale,dt,run.traffic);
+    if (p.intercept && !p.block && city.distance(interceptor, city.nodes[p.intercept.node]) < 8 && !interceptor.path.length) {
       p.block = p.intercept;
       if(p.intercept.diverted&&!p.intercept.rewarded&&city.distance(car,city.nodes[p.intercept.node])>150){
         p.intercept.rewarded=true;p.feint=true;
       }
-      const from = city.nodes[p.block.from];
-      interceptor.angle = Math.atan2(from.y - interceptor.y, from.x - interceptor.x) + Math.PI / 2;
+      interceptor.speed=0;
     }
     p.tailRange = city.distance(tail, car);
     p.nearestRange = Math.min(...p.units.map(unit=>city.distance(unit,car)));

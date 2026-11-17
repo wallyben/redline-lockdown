@@ -75,7 +75,7 @@ const { pathToFileURL } = require('node:url');
     assert.equal(await state(() => state.bonus), true, 'Optional cash interaction failed');
     assert.equal(await state(() => pursuit.bonusAlarm), true, 'Optional cash did not publish its alarm');
     await advance(15000);
-    const result = await state(() => ({ outcome: pursuit.result, score: Pursuit.score(state, pursuit).total, time: state.time }));
+    const result = await state(() => ({ outcome: pursuit.result, score: Pursuit.score(state, pursuit).total, time: state.time,units:pursuit.units,car:state.car }));
     assert.equal(result.outcome, 'Intercepted', 'The optional-alarm capture path did not resolve: ' + JSON.stringify(result));
     assert.equal(result.score, 0);
     assert.equal(await state(() => Records.table(Contracts[0].id).length), 0, 'Captured cash must not bank');

@@ -30,7 +30,7 @@ const Traffic = ((city) => {
     return city.route(city.nearest(run.car), 19, road).length > 0;
   }
   function activate(state, run, pursuit) {
-    const range=58*(run.jobs?.modifiers.relayRange||1);
+    const range=90*(run.jobs?.modifiers.relayRange||1);
     const gate = gates.filter(g => city.distance(run.car, g.console) < range)
       .sort((a,b) => city.distance(run.car,a.console)-city.distance(run.car,b.console))[0];
     if (!gate) { state.message = 'Move beside a relay console to close a gate'; return false; }

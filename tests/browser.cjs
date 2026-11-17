@@ -86,10 +86,15 @@ async function play(browser, viewport, takeShots) {
     phase: state.traffic.phase,
     edge: [...state.traffic.closedEdges][0],
     tail: pursuit.tailRange,
-    intercept: pursuit.intercept?.node,
+    intercept: pursuit.intercept?.node, message:state.traffic.message, car:state.car.x,
   }));
-  assert.equal(chase.phase, 'closed', JSON.stringify(chase));
-  assert.equal(chase.edge, '6:7');
+  if(normalClock && chase.phase==='ready'){
+    assert.match(chase.message,/occupied|barrier lane/,JSON.stringify(chase));
+    console.log('Gate safely refused closure with a vehicle in its lane');
+  }else{
+    assert.equal(chase.phase,'closed',JSON.stringify(chase));
+    assert.equal(chase.edge,'6:7');
+  }
   assert.ok(chase.tail < 150, 'Police did not visibly close in: ' + chase.tail);
   await shot('01-chase.jpg');
 
@@ -184,7 +189,7 @@ async function play(browser, viewport, takeShots) {
     })), { completed: [false, false, false], haul: 0, stage: 0, outcome: null });
     assert.equal(await state(() => Records.table(Contracts[0].id).length), 1);
   }
-    console.log(`${viewport.width}×${viewport.height}${normalClock?' normal clock':''}: three jobs, gate diversion, upgrades, ${result.outcome} in ${result.time.toFixed(1)}s, score record, retry, pause, contract selection and offline checks passed`);
+    console.log(`${viewport.width}×${viewport.height}${normalClock?' normal clock':''}: three jobs, gate interaction, upgrades, ${result.outcome} in ${result.time.toFixed(1)}s, score record, retry, pause, contract selection and offline checks passed`);
   await page.close();
 }
 

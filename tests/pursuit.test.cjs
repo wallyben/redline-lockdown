@@ -17,9 +17,9 @@ test('interceptor commits east from a sighting and arrives by road', () => {
   assert.equal(police.intercept.node, 8);
   assert.deepEqual(police.units[1].path.at(-1).edge, [8, 8]);
   assert.equal(police.block, null);
-  for (let i = 0; i < 80; i++) Pursuit.tick(police, run);
+  for (let i = 0; i < 240 && !police.block; i++) { police.refitGrace=1; Pursuit.tick(police, run); }
   assert.equal(police.block.node, 8);
-  assert.deepEqual([police.units[1].x, police.units[1].y], [1010, 400]);
+  assert.ok(City.distance(police.units[1],City.nodes[8])<8);
 });
 
 test('hidden movement does not change the shared last sighting or order', () => {
@@ -59,7 +59,7 @@ test('a patrol searches from its last sighting and can reacquire the player', ()
   assert.equal(police.seen, false);
   assert.deepEqual(police.sighting, last);
   assert.ok(City.distance(police.units[0], last) < 25);
-  for (let i = 0; i < 550 && !police.reacquired; i++) Pursuit.tick(police, run);
+  for (let i = 0; i < 1600 && !police.reacquired; i++) Pursuit.tick(police, run);
   assert.equal(police.reacquired, 1);
   assert.equal(police.lost, 0);
   assert.equal(police.sighting.y, 520);
@@ -111,4 +111,41 @@ test('dock cargo gives the final extraction a real line-of-sight hiding pocket',
   assert.equal(City.wall(1290,940),false);
   assert.equal(Pursuit.canSee({x:1290,y:910},{x:1290,y:940}),false);
   assert.equal(City.inDockShadow({x:1290,y:940}),true);
+});
+
+test('police accelerate progressively and keep their footprint on streets',()=>{
+  const {run,police}=afterPickup();
+  let previous=police.units.map(u=>({...u}));
+  for(let frame=0;frame<1200;frame++){
+    police.refitGrace=1;
+    if(frame===1)Object.assign(run.car,{x:690,y:520});
+    Pursuit.tick(police,run);
+    police.units.forEach((u,i)=>{
+      assert.equal(City.wall(u.x,u.y,10,run.traffic),false,`unit ${i} off road at ${frame}`);
+      assert.ok(City.distance(u,previous[i])<5.1,'No position jumps');
+      const turn=Math.abs(Math.atan2(Math.sin(u.angle-previous[i].angle),Math.cos(u.angle-previous[i].angle)));
+      assert.ok(turn<=4.4/60+.001,'No instantaneous rotation');
+      assert.ok((u.speed||0)-(previous[i].speed||0)<=210/60+.001,'Bounded acceleration');
+    });
+    previous=police.units.map(u=>({...u}));
+  }
+});
+
+test('search order stays fixed until the officer reaches its destination',()=>{
+  const {run,police}=afterPickup();Pursuit.tick(police,run);
+  Object.assign(run.car,{x:1290,y:940});
+  for(let frame=0;frame<50;frame++)Pursuit.tick(police,run);
+  const tail=police.units[0],goal={...tail.search.goal};
+  for(let frame=0;frame<45;frame++){
+    Pursuit.tick(police,run);
+    assert.deepEqual(tail.search.goal,goal);
+  }
+});
+
+test('a visible relay prompt accepts interaction at the same distance',()=>{
+ const Traffic=require('../game/src/traffic.js');
+ const run={car:{x:620,y:400},jobs:{modifiers:{relayRange:1}}};
+ const state=Traffic.reset();
+ assert.ok(Traffic.near(run));
+ assert.equal(Traffic.activate(state,run,{units:[]}),true);
 });

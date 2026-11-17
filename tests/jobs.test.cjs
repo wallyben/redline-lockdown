@@ -76,7 +76,7 @@ test('upgrade effects change steering, collision damage, relay reach and gate ti
   assert.ok(armoured.car.damage<ordinary);
 
   const run=Drive.reset(),police=require('../game/src/pursuit.js').reset();run.traffic=Traffic.reset();
-  run.car.x=620;run.car.y=400;
+  run.car.x=650;run.car.y=400;
   assert.equal(Traffic.activate(run.traffic,run,police),false);
   run.jobs.modifiers.relayRange=1.3;
   assert.equal(Traffic.activate(run.traffic,run,police),true);
