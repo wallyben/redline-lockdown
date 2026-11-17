@@ -246,8 +246,10 @@ function render() {
   const { zoom } = view;
   ctx.save();
   ctx.translate(w * (title ? .72 : .5) - view.x * zoom, h * .53 - view.y * zoom);
+  if(!title&&!reducedFlash&&state.impact>0)ctx.translate(Math.sin(time*81)*state.impact*5,Math.cos(time*67)*state.impact*4);
   ctx.scale(zoom, zoom);
   ctx.drawImage(cityArt, 0, 0);
+  Cinematic.streets(ctx,time);
   if (!title) drawTraffic();
   Art.weather(ctx, c, time, w / zoom, h / zoom);
   if (!title) marker(targetForRun(), targetLabel(), state.jobs?.stage===2?'#6be7ff':'#f4c468');
@@ -277,6 +279,7 @@ function render() {
   if(!title&&state.jobs?.stage===2)Art.car(ctx,state.jobs.courier,false,time,true);
   Art.spray(ctx, c, time);
   Art.car(ctx, c, false, time);
+  Cinematic.steam(ctx,time);
   if(!title && state.smoke){Smoke.draw(ctx,state);StreetDetail.motion(ctx,state,pursuit,time);}
   ctx.restore();
   const destination = targetForRun();
@@ -288,7 +291,7 @@ function render() {
   shade.addColorStop(0, '#0b142000');
   shade.addColorStop(1, '#050916a8');
   rect(0, 0, w, h, shade);
-  if (mode !== 'title') Art.minimap(ctx, w, h, state, pursuit);
+  if (mode !== 'title') {Cinematic.screen(ctx,w,h,state,pursuit,reducedFlash);Art.minimap(ctx, w, h, state, pursuit);}
   if (state.sweep >= 0 && !state.bonus) {
     const x = w / 2 - 105;
     const y = h - 66;
@@ -323,6 +326,7 @@ function frame(now) {
       interact = false;
       Traffic.tick(state.traffic, state, pursuit);
       Smoke.tick(state,1/60);
+      Cinematic.tick(state);
       Pursuit.tick(pursuit, state);
       if (pursuit.result) finish();
     }

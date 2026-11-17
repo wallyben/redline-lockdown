@@ -22,6 +22,7 @@ async function play(browser, viewport, takeShots) {
   };
   const state = expression => page.evaluate(expression);
 
+  let actionCaptured=false;
   async function driveTo(x, y, speedLimit, maxFrames = 260, stopWithin = 22) {
     const held = new Set();
     for (let frame = 0; frame < maxFrames; frame++) {
@@ -35,6 +36,9 @@ async function play(browser, viewport, takeShots) {
       const desiredAngle = Math.atan2(dy, dx);
       const error = Math.atan2(Math.sin(desiredAngle - car.angle), Math.cos(desiredAngle - car.angle));
       const speed = Math.hypot(car.vx, car.vy);
+      if(takeShots&&!actionCaptured&&car.x>450&&car.x<610&&speed>170&&await state(()=>state.jobs.stage===1)){
+        if(!actionCaptured) await shot('01-chase.jpg');actionCaptured=true;
+      }
       const desiredSpeed = distance < 100 ? Math.min(speedLimit, distance * 2.4) : speedLimit;
       const wanted = new Set();
       if (speed < desiredSpeed - 10) wanted.add('w');
@@ -88,7 +92,7 @@ async function play(browser, viewport, takeShots) {
     tail: pursuit.tailRange,
     intercept: pursuit.intercept?.node, message:state.traffic.message, car:state.car.x,
   }));
-  if(normalClock && chase.phase==='ready'){
+  if(chase.phase==='ready'){
     assert.match(chase.message,/occupied|barrier lane/,JSON.stringify(chase));
     console.log('Gate safely refused closure with a vehicle in its lane');
   }else{
@@ -96,7 +100,7 @@ async function play(browser, viewport, takeShots) {
     assert.equal(chase.edge,'6:7');
   }
   assert.ok(chase.tail < 150, 'Police did not visibly close in: ' + chase.tail);
-  await shot('01-chase.jpg');
+  if(!actionCaptured) await shot('01-chase.jpg');
 
   // Bank drill and second seeded upgrade.
   await driveTo(690, 400, 24, 180, 8);
@@ -119,6 +123,7 @@ async function play(browser, viewport, takeShots) {
   await driveTo(690, 450, 80, 100);
   await driveTo(690, 650, 180, 150);
   await driveTo(1010, 650, 220, 140);
+  if(!actionCaptured) await shot('01-chase.jpg');
   await driveTo(1010, 790, 85, 120);
   await page.keyboard.down('s');
   for (let i = 0; i < 40; i++) {

@@ -56,7 +56,10 @@ const Art = (() => {
         fill(c, x + 9, y + 11, bw + 4, bh + 5, '#0a101acc');
         fill(c, x, y, bw, bh + 7, '#111923');
         fill(c, x, y, bw, bh, d.trim);
-        fill(c, x + 2, y + 2, bw - 4, bh - 4, d.roof);
+        const roof=c.createLinearGradient(x,y,x+bw,y+bh);roof.addColorStop(0,d.trim);roof.addColorStop(.12,d.roof);roof.addColorStop(1,'#111c2a');
+        fill(c, x + 2, y + 2, bw - 4, bh - 4, roof);
+        fill(c,x+bw-5,y+3,3,bh-6,'#a5d2e526');
+        for(let floor=0;floor<3;floor++)for(let pane=6;pane<bw-8;pane+=10){fill(c,x+pane,y+bh+3+floor*3,5,2,d.glass+(floor===0?'70':'38'));}
         c.strokeStyle = '#131e2a';
         c.strokeRect(x + 8, y + 8, bw - 16, bh - 16);
         fill(c, x + bw * .42, y + 22, 19, 37, '#647481');
@@ -235,13 +238,20 @@ const Art = (() => {
       atmosphere(ctx, 0, -10, 57, flash ? '#ff345c70' : '#ff345c24');
       atmosphere(ctx, 0, 10, 57, flash ? '#337aff24' : '#337aff79');
     }
+    if(!police){atmosphere(ctx,-20,0,32,c.braking?'#ff322c8a':'#ff402c30');}
     fill(ctx, -22, -11, 46, 23, '#090e16bb');
     for (const x of [-14, 10]) for (const y of [-11, 7]) fill(ctx, x, y, 9, 4, '#0b0e16');
-    ctx.fillStyle = police ? '#dde7eb' : courier ? '#e2b94f' : '#ff604c';
+    const paint=ctx.createLinearGradient(0,-10,0,10);
+    paint.addColorStop(0,police?'#f7ffff':courier?'#fff1ad':'#ffb899');paint.addColorStop(.25,police?'#bfdae2':courier?'#ebc151':'#ff684e');paint.addColorStop(.7,police?'#718e9e':courier?'#b28827':'#b72236');paint.addColorStop(1,police?'#d6eaf0':courier?'#edc65f':'#f45747');ctx.fillStyle=paint;
     ctx.beginPath();
     ctx.roundRect(-20, -9, 40, 18, [4, 6, 6, 4]);
     ctx.fill();
-    fill(ctx, -9, -7, 16, 14, '#33495a');
+    ctx.strokeStyle=police?'#e7ffff':'#ffb38d';ctx.lineWidth=.7;ctx.stroke();
+    fill(ctx, -9, -7, 16, 14, '#122937');
+    fill(ctx, 3, -6, 4, 12, '#6aadc2');fill(ctx,-9,-5,3,10,'#4f899c');
+    fill(ctx,-18,-8,2,16,'#13212a');
+    if(!police&&!courier){fill(ctx,8,-3,10,2,'#ffb987');fill(ctx,8,1,10,2,'#ffb987');}
+    ctx.fillStyle='#e8fbff66';ctx.fillRect(-13,-8,27,1);
     fill(ctx, -5, -5, 9, 10, police ? '#adbbce' : courier ? '#5c4c24' : '#9c302c');
     fill(ctx, 14, -7, 4, 14, police ? '#243448' : '#b52e28');
     for (const y of [-7, 4]) {
