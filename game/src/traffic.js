@@ -16,7 +16,8 @@ const Traffic = ((city) => {
   }
   function occupied(gate, run, pursuit) {
     const [a, b] = gate.edge;
-    return vehicles(run, pursuit).some(v => segmentDistance(v, city.nodes[a], city.nodes[b]) < 22);
+    const center={x:(city.nodes[a].x+city.nodes[b].x)/2,y:(city.nodes[a].y+city.nodes[b].y)/2};
+    return vehicles(run, pursuit).some(v => city.distance(v,center) < 24);
   }
   function barrierFor(gate) {
     const [a,b] = gate.edge, first = city.nodes[a], last = city.nodes[b];
@@ -29,7 +30,8 @@ const Traffic = ((city) => {
     return city.route(city.nearest(run.car), 19, road).length > 0;
   }
   function activate(state, run, pursuit) {
-    const gate = gates.filter(g => city.distance(run.car, g.console) < 58)
+    const range=58*(run.jobs?.modifiers.relayRange||1);
+    const gate = gates.filter(g => city.distance(run.car, g.console) < range)
       .sort((a,b) => city.distance(run.car,a.console)-city.distance(run.car,b.console))[0];
     if (!gate) { state.message = 'Move beside a relay console to close a gate'; return false; }
     if (state.phase !== 'ready' || state.cooldown > 0 || state.charges <= 0) {
@@ -57,8 +59,8 @@ const Traffic = ((city) => {
         } else {
           state.closedEdges = new Set([city.edgeKey(...gate.edge)]);
           state.barrier = barrierFor(gate);
-          state.phase='closed'; state.timer=5;
-          state.cooldown=8;
+          state.phase='closed'; state.timer=run.jobs?.modifiers.gateDuration||5;
+          state.cooldown=run.jobs?.modifiers.cooldown||8;
           state.message=`${gate.name} sealed · ${state.timer.toFixed(1)}s`;
         }
       }
@@ -71,8 +73,9 @@ const Traffic = ((city) => {
     }
   }
   function near(run) {
+    const range=90*(run.jobs?.modifiers.relayRange||1);
     return gates.map(g=>({ ...g, distance:city.distance(run.car,g.console) }))
-      .filter(g=>g.distance<90).sort((a,b)=>a.distance-b.distance)[0] || null;
+      .filter(g=>g.distance<range).sort((a,b)=>a.distance-b.distance)[0] || null;
   }
   return { gates, reset, activate, tick, near, occupied, segmentDistance };
 })(typeof module === 'undefined' ? City : require('./city.js'));

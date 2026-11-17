@@ -2,3 +2,4 @@
 .actions{display:flex;flex-wrap:wrap;align-items:center;gap:16px}.actions label{color:#b7c7d7;font-size:12px}.actions select{margin-left:5px;background:#182536;color:#ecf4f6;border:1px solid #607083;border-radius:0;padding:8px;font:inherit}
 #settings{position:absolute;right:20px;top:20px;display:flex;gap:8px}#settings button{font-size:12px;background:#152334;color:#d6e4ed;padding:8px}
 section{max-height:94vh;overflow:auto}
+.upgrade-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0}.upgrade-choices button{background:#172838;color:#f0f6f8;text-align:left;padding:12px;font-size:13px}.upgrade-choices button.selected{outline:3px solid #57efbb}.upgrade-choices strong,.upgrade-choices span{display:block}.upgrade-choices span{font-weight:500;color:#b9cbd5;margin-top:6px;font-size:11px}#continue-job:disabled{opacity:.45;cursor:not-allowed}

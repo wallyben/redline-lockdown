@@ -9,6 +9,8 @@ function step(s, frames, gas = 0, turn = 0) {
 
 test('brakes inside the vault bay, drills, and resets', () => {
   const s = Drive.reset();
+  s.jobs.stage=1;
+  s.collected=true;
   while (s.car.x < 600) step(s, 1, 1);
   assert.ok(s.car.x > 430);
   while (Math.hypot(s.car.vx, s.car.vy) > 12) step(s, 1, -1);
@@ -16,7 +18,7 @@ test('brakes inside the vault bay, drills, and resets', () => {
   Drive.tick(s, { gas: 0, turn: 0, interact: true });
   step(s, 58);
   Drive.tick(s, { gas: 0, turn: 0, interact: true });
-  assert.equal(s.collected, true);
+  assert.equal(s.jobs.completed[1], true);
   assert.deepEqual(Drive.reset().car, { x: 130, y: 400, angle: 0, vx: 0, vy: 0, damage: 0, hits: 0 });
   assert.equal(Drive.reset().collected, false);
 });

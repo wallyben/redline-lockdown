@@ -1,129 +1,186 @@
 const assert = require('node:assert/strict');
+const { mkdirSync } = require('node:fs');
 const { pathToFileURL } = require('node:url');
 const { resolve } = require('node:path');
 const { chromium } = require(process.env.REDLINE_PLAYWRIGHT || 'playwright-core');
 
-async function play(browser, viewport, capture, layout) {
+const capture = process.argv.includes('--shots');
+const normalClock = process.argv.includes('--normal');
+if (capture) mkdirSync(resolve('screenshots'), { recursive: true });
+
+async function play(browser, viewport, takeShots) {
   const page = await browser.newPage({ viewport, offline: true });
   const errors = [], external = [];
-  page.on('pageerror', e => errors.push(e.message));
-  page.on('request', r => { if (!r.url().startsWith('file:')) external.push(r.url()); });
-  await page.clock.install();
+  page.on('pageerror', error => errors.push(error.message));
+  page.on('request', request => { if (!request.url().startsWith('file:')) external.push(request.url()); });
+  if (!normalClock) await page.clock.install();
   await page.goto(pathToFileURL(resolve('game/index.html')).href);
-  await page.clock.pauseAt(new Date(Date.now() + 1000));
+  if (!normalClock) await page.clock.pauseAt(new Date(Date.now() + 1000));
+  const advance = milliseconds => normalClock ? page.waitForTimeout(milliseconds) : page.clock.runFor(milliseconds);
   const shot = async name => {
-    if (capture) await page.screenshot({ path: 'screenshots/' + name + '.jpg', quality: 82, timeout: 15000 });
+    if (takeShots) await page.screenshot({ path: resolve('screenshots', name), type: 'jpeg', quality: 84 });
   };
-  const advance = ms => page.clock.runFor(ms);
-  const press = key => page.keyboard.press(key);
-  async function pickup() {
-    await page.keyboard.down('w');
-    await advance(1800);
-    await page.keyboard.up('w');
-    await page.keyboard.down('s');
-    await advance(420);
-    await page.keyboard.up('s');
-    await advance(55);
-    await press('e');
-    await advance(950);
-    await press('e');
-    await advance(40);
-    assert.equal(await page.evaluate(() => state.collected), true);
+  const state = expression => page.evaluate(expression);
+
+  async function driveTo(x, y, speedLimit, maxFrames = 260, stopWithin = 22) {
+    const held = new Set();
+    for (let frame = 0; frame < maxFrames; frame++) {
+      const { car, result } = await state(() => ({ car: state.car, result: pursuit.result }));
+      if (result) break;
+      const dx = x - car.x, dy = y - car.y, distance = Math.hypot(dx, dy);
+      if (distance < stopWithin) {
+        for (const key of held) await page.keyboard.up(key);
+        return;
+      }
+      const desiredAngle = Math.atan2(dy, dx);
+      const error = Math.atan2(Math.sin(desiredAngle - car.angle), Math.cos(desiredAngle - car.angle));
+      const speed = Math.hypot(car.vx, car.vy);
+      const desiredSpeed = distance < 100 ? Math.min(speedLimit, distance * 2.4) : speedLimit;
+      const wanted = new Set();
+      if (speed < desiredSpeed - 10) wanted.add('w');
+      if (speed > desiredSpeed + 10) wanted.add('s');
+      if (error > .09) wanted.add('d');
+      if (error < -.09) wanted.add('a');
+      for (const key of held) if (!wanted.has(key)) { await page.keyboard.up(key); held.delete(key); }
+      for (const key of wanted) if (!held.has(key)) { await page.keyboard.down(key); held.add(key); }
+      await advance(34);
+    }
+    for (const key of held) await page.keyboard.up(key);
   }
 
-  await page.locator('#patrol').selectOption(String(layout));
-  await page.locator('#patrol').evaluate(select => select.blur());
-  await shot('02-start');
-  await press('Enter');
-  await pickup();
-  const initialRange = await page.evaluate(() => pursuit.tailRange);
-  assert.equal(await page.evaluate(() => Math.sign(pursuit.units[1].y - 400)), layout ? -1 : 1);
-  assert.equal(await page.evaluate(() => pursuit.intercept.node), 8);
-  await page.keyboard.down('w');
-  await advance(1280);
-  const boulevard = await page.evaluate(() => ({
-    x: state.car.x, block: pursuit.block?.node, tail: pursuit.tailRange,
-  }));
-  assert.ok(boulevard.x > 860, JSON.stringify(boulevard));
+  async function chooseUpgrade() {
+    await page.locator('#upgrade-choices button').first().click();
+    await page.locator('#continue-job').click();
+  }
 
-  await advance(750);
-  assert.equal(await page.evaluate(()=>pursuit.block?.node),8);
-  const closing = await page.evaluate(() => pursuit.tailRange);
-  assert.ok(closing < initialRange * .6, 'Tail failed to close on boulevard: ' + closing);
-  await shot('01-chase');
-  await advance(1150);
-  await page.keyboard.up('w');
-  assert.equal(await page.evaluate(() => pursuit.result), 'Intercepted');
-  await press('r');
-  await pickup();
-  assert.equal(await page.evaluate(() => pursuit.intercept.node), 8);
-  assert.match(await page.locator('#hud').textContent(), /INTERCEPT INBOUND/);
-  await press('Escape');
-  const pausedAt = await page.evaluate(() => state.time);
-  await advance(240);
-  assert.equal(await page.evaluate(() => state.time), pausedAt);
-  await press('Escape');
-
-  const waypoints = [[695, 485, 120], [690, 800, 245], [710, 910, 125], [840, 910, 210], [1290, 910, 325]];
-  let target = 0, blockade = false, brokeSightInAlley = false;
-  const held = new Set();
-  for (let i = 0; i < 310; i++) {
-    const { car, result, block, covered } = await page.evaluate(() => ({
-      car: state.car, result: pursuit.result, block: pursuit.block, covered: City.inCover(state.car) && !pursuit.seen,
-    }));
-    if (result) break;
-    if (covered) brokeSightInAlley = true;
-    if (block && covered && !blockade) {
-      blockade = true;
-
+  async function brakeToStop() {
+    for (let frame = 0; frame < 70; frame++) {
+      if (await state(() => Math.hypot(state.car.vx, state.car.vy) < 12)) break;
+      await page.keyboard.down('s');
+      await advance(34);
     }
-    const [x, y, limit] = waypoints[target];
-    const distance = Math.hypot(x - car.x, y - car.y);
-    if (distance < 38 && target < waypoints.length - 1) target++;
-    const delta = Math.atan2(y - car.y, x - car.x) - car.angle;
-    const error = Math.atan2(Math.sin(delta), Math.cos(delta));
-    const speed = Math.hypot(car.vx, car.vy);
-    const desire = target === 4 && distance < 100 ? Math.max(0, distance * 3 - 45) :
-      Math.abs(error) > .5 ? Math.min(95, limit) : limit;
-    const wanted = new Set();
-    if (speed < desire - 7) wanted.add('w');
-    if (speed > desire + 7) wanted.add('s');
-    if (error > .08) wanted.add('d');
-    if (error < -.08) wanted.add('a');
-    for (const key of held) if (!wanted.has(key)) { await page.keyboard.up(key); held.delete(key); }
-    for (const key of wanted) if (!held.has(key)) { await page.keyboard.down(key); held.add(key); }
+    await page.keyboard.up('s');
+    await advance(100);
+  }
+
+  await page.locator('#patrol').selectOption('0');
+  await shot('02-start.jpg');
+  await page.keyboard.press('Enter');
+
+  // Rolling pickup and visible pursuit.
+  await page.keyboard.down('w');
+  await advance(1100);
+  await page.keyboard.up('w');
+  assert.equal(await state(() => state.jobs.completed[0]), true);
+  assert.equal(await state(() => state.jobs.pending), true);
+  assert.equal(await page.locator('#upgrade-choices button').count(), 3);
+  await chooseUpgrade();
+
+  // Close the boulevard gate after passing its barrier; patrols must route around it.
+  await driveTo(610, 400, 310, 180);
+  await page.keyboard.down('Shift');
+  await advance(34);
+  await page.keyboard.up('Shift');
+  await advance(900);
+  const chase = await state(() => ({
+    phase: state.traffic.phase,
+    edge: [...state.traffic.closedEdges][0],
+    tail: pursuit.tailRange,
+    intercept: pursuit.intercept?.node,
+  }));
+  assert.equal(chase.phase, 'closed', JSON.stringify(chase));
+  assert.equal(chase.edge, '6:7');
+  assert.ok(chase.tail < 150, 'Police did not visibly close in: ' + chase.tail);
+  await shot('01-chase.jpg');
+
+  // Bank drill and second seeded upgrade.
+  await driveTo(690, 400, 24, 180, 8);
+  await brakeToStop();
+  const bankApproach = await state(() => ({
+    distance: Math.hypot(state.car.x - 690, state.car.y - 400),
+    speed: Math.hypot(state.car.vx, state.car.vy),
+  }));
+  assert.ok(bankApproach.distance < 45 && bankApproach.speed < 36, 'Could not stop in bank bay: ' + JSON.stringify(bankApproach));
+  await page.keyboard.press('e');
+  await advance(950);
+  await page.keyboard.press('e');
+  await advance(80);
+  assert.equal(await state(() => state.jobs.completed[1]), true, 'Vault interaction failed: ' + JSON.stringify(await state(() => ({ car: state.car, sweep: state.sweep, jobs: state.jobs.stage }))));
+  assert.equal(await page.locator('#upgrade-choices button').count(), 3);
+  await shot('03-risk.jpg');
+  await chooseUpgrade();
+
+  // Alley, moving courier and controlled transfer.
+  await driveTo(690, 450, 80, 100);
+  await driveTo(690, 650, 180, 150);
+  await driveTo(1010, 650, 220, 140);
+  await driveTo(1010, 790, 85, 120);
+  await page.keyboard.down('s');
+  for (let i = 0; i < 40; i++) {
+    if (await state(() => Math.hypot(state.car.vx, state.car.vy) < 18)) break;
     await advance(34);
   }
-  for (const key of held) await page.keyboard.up(key);
-  assert.equal(blockade, true);
-  assert.equal(brokeSightInAlley, true);
-  const outcome = await page.evaluate(() => ({ result: pursuit.result, x: state.car.x, y: state.car.y, lost: pursuit.lost }));
-  assert.equal(outcome.result, 'Clean getaway', JSON.stringify(outcome));
-  assert.match(await page.locator('#brief p').textContent(), /Escape \+2500/);
-  await shot('04-results');
-  const saved = await page.evaluate(() => Records.table(Contracts[Number(layoutInput.value)].id).length);
-  await page.evaluate(() => finish());
-  assert.equal(await page.evaluate(() => Records.table(Contracts[Number(layoutInput.value)].id).length),saved);
-  await press('c');
-  assert.equal(await page.evaluate(() => mode), 'title');
-  await page.locator('#patrol').selectOption('1');
-  assert.match(await page.locator('#brief p').textContent(), /Gold target 5200/);
-  await page.locator('#patrol').selectOption(String(layout));
-  await page.reload();
-  await page.locator('#patrol').selectOption(String(layout));
-  assert.equal(await page.evaluate(() => Records.table(Contracts[Number(layoutInput.value)].id).length),saved);
-  await press('Enter');
-  assert.deepEqual(await page.evaluate(() => [state.car.x, state.car.y, state.collected, pursuit.result]), [130, 400, false, null]);
-  await page.keyboard.down('w');
-  await advance(5800);
-  await page.keyboard.up('w');
-  assert.ok(await page.evaluate(() => state.car.hits > 0));
+  await page.keyboard.up('s');
+  await page.keyboard.down('e');
+  await advance(1500);
+  await page.keyboard.up('e');
+  await advance(34);
+  assert.equal(await state(() => state.jobs.completed[2]), true, 'Courier transfer did not complete');
+  assert.equal(await state(() => state.jobs.stage), 3);
 
+  // Leave through the dock lane and hide under the loading canopy until all units search past.
+  await driveTo(1010, 910, 160, 140);
+  await driveTo(1010, 940, 90, 70);
+  await driveTo(1290, 940, 180, 180, 8);
+  await page.keyboard.down('Space');
+  await advance(900);
+  await page.keyboard.up('Space');
+  await advance(10000);
+  const result = await state(() => ({
+    outcome: pursuit.result,
+    lost: pursuit.lost,
+    score: Pursuit.score(state, pursuit).total,
+    done: state.jobs.completed,
+    damage: state.car.damage,
+    time: state.time, car: state.car, exitDistance: City.distance(state.car, Pursuit.exit),
+  }));
+  assert.deepEqual(result.done, [true, true, true]);
+  assert.equal(result.outcome, 'Escaped', JSON.stringify(result));
+  assert.ok(result.score > 0);
+  assert.ok(result.lost >= await state(() => Pursuit.clearDuration(state)));
   assert.deepEqual(errors, []);
   assert.deepEqual(external, []);
-  console.log(viewport.width + '×' + viewport.height + (layout ? ' North' : ' South') +
-    ' patrol: both keyboard runs passed; tail closed from ' + Math.round(initialRange) + ' m to ' + Math.round(closing) +
-    ' m, and getaway cleared with ' + outcome.lost.toFixed(1) + ' s out of sight');
+  assert.equal(await state(() => Records.table(Contracts[0].id).length), 1);
+  await shot('04-results.jpg');
+
+  // A real keyboard retry must start a fresh run; the saved record remains.
+  await page.keyboard.press('r');
+  assert.equal(await state(() => state.jobs.completed.some(Boolean)), false);
+  assert.equal(await state(() => state.jobs.haul), 0);
+  assert.equal(await state(() => Records.table(Contracts[0].id).length), 1);
+  await page.keyboard.press('Escape');
+  const paused = await state(() => state.time);
+  await advance(240);
+  assert.equal(await state(() => state.time), paused);
+  await page.keyboard.press('Escape');
+  await page.keyboard.press('Escape');
+  await page.keyboard.press('c');
+  await page.locator('#patrol').selectOption('1');
+  assert.equal(await page.locator('#patrol').inputValue(), '1');
+  await page.reload();
+  assert.equal(await state(() => Records.table(Contracts[0].id).length), 1);
+  // Repeated restarts must not stack inputs, retain mission flags or lose the record.
+  for (let restart = 0; restart < 10; restart++) {
+    await page.keyboard.press('r');
+    assert.deepEqual(await state(() => ({
+      completed: state.jobs.completed,
+      haul: state.jobs.haul,
+      stage: state.jobs.stage,
+      outcome: pursuit.result,
+    })), { completed: [false, false, false], haul: 0, stage: 0, outcome: null });
+    assert.equal(await state(() => Records.table(Contracts[0].id).length), 1);
+  }
+    console.log(`${viewport.width}×${viewport.height}${normalClock?' normal clock':''}: three jobs, gate diversion, upgrades, ${result.outcome} in ${result.time.toFixed(1)}s, score record, retry, pause, contract selection and offline checks passed`);
   await page.close();
 }
 
@@ -131,8 +188,8 @@ async function play(browser, viewport, capture, layout) {
   const executablePath = process.env.REDLINE_CHROME || 'C:/Program Files/Google/Chrome/Application/chrome.exe';
   const browser = await chromium.launch({ executablePath, headless: !process.env.REDLINE_HEADFUL });
   try {
-    await play(browser, { width: 1280, height: 720 }, process.argv.includes('--shots'), 0);
-    if (!process.argv.includes('--capture-only')) await play(browser, { width: 1920, height: 1080 }, false, 1);
+    await play(browser, { width: 1280, height: 720 }, capture);
+    if (!normalClock) await play(browser, { width: 1920, height: 1080 }, false);
   } finally {
     await browser.close();
   }

@@ -137,7 +137,7 @@ const Art = (() => {
     fill(ctx, 768, facade + 8, 148, 3, '#f365df');
 
     const { x, top, bottom, halfWidth, coverTop, coverBottom } = City.alley;
-    fill(ctx, x - 27, coverTop, 54, coverBottom - coverTop, '#0718179f');
+    fill(ctx, x - halfWidth, coverTop, halfWidth*2, coverBottom - coverTop, '#0718179f');
     for (let y = coverTop; y < coverBottom; y += 25) {
       fill(ctx, x - 21, y, 2, 14, '#64ae91a1');
       fill(ctx, x + 19, y, 2, 14, '#64ae91a1');
@@ -168,6 +168,13 @@ const Art = (() => {
       fill(ctx, x - 34, 836, 2, 28, '#bfa179');
     }
     fill(ctx, 1229, 883, 101, 52, '#32766852');
+    fill(ctx,1264,900,14,30,'#344853');
+    fill(ctx,1265,902,12,26,'#607783');
+    for(let y=905;y<929;y+=8)fill(ctx,1265,y,12,2,'#a8c2c7');
+    fill(ctx,1263,899,16,3,'#1a252b');
+    fill(ctx,1236,925,86,6,'#172b34');
+    fill(ctx,1240,926,78,2,'#a1c4c6');
+    for(let x=1242;x<1318;x+=14)fill(ctx,x,923,4,10,'#e3bb6d');
     for (let x = 1232; x < 1329; x += 12) fill(ctx, x, 884, 6, 3, '#8bdab3');
     ctx.font = '900 13px system-ui';
     ctx.fillStyle = '#bbffda';
@@ -204,7 +211,7 @@ const Art = (() => {
     ctx.stroke();
   }
 
-  function car(ctx, c, police, time) {
+  function car(ctx, c, police, time, courier = false) {
     ctx.save();
     ctx.translate(c.x, c.y);
     ctx.rotate(c.angle);
@@ -225,12 +232,12 @@ const Art = (() => {
     }
     fill(ctx, -22, -11, 46, 23, '#090e16bb');
     for (const x of [-14, 10]) for (const y of [-11, 7]) fill(ctx, x, y, 9, 4, '#0b0e16');
-    ctx.fillStyle = police ? '#dde7eb' : '#ff604c';
+    ctx.fillStyle = police ? '#dde7eb' : courier ? '#e2b94f' : '#ff604c';
     ctx.beginPath();
     ctx.roundRect(-20, -9, 40, 18, [4, 6, 6, 4]);
     ctx.fill();
     fill(ctx, -9, -7, 16, 14, '#33495a');
-    fill(ctx, -5, -5, 9, 10, police ? '#adbbce' : '#9c302c');
+    fill(ctx, -5, -5, 9, 10, police ? '#adbbce' : courier ? '#5c4c24' : '#9c302c');
     fill(ctx, 14, -7, 4, 14, police ? '#243448' : '#b52e28');
     for (const y of [-7, 4]) {
       fill(ctx, 17, y, 3, 3, '#f2feff');
@@ -240,6 +247,7 @@ const Art = (() => {
       fill(ctx, -2, -7, 4, 7, '#ff4b68');
       fill(ctx, -2, 0, 4, 7, '#56a2ff');
     }
+    if(courier){fill(ctx,-3,-15,8,5,'#fff1b0');fill(ctx,-5,10,11,3,'#ffdb69');}
     ctx.restore();
   }
 
