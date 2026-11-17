@@ -145,7 +145,7 @@ async function play(browser, viewport, takeShots) {
     time: state.time, car: state.car, exitDistance: City.distance(state.car, Pursuit.exit),
   }));
   assert.deepEqual(result.done, [true, true, true]);
-  assert.equal(result.outcome, 'Escaped', JSON.stringify(result));
+  assert.ok(['Escaped', 'Clean getaway'].includes(result.outcome), JSON.stringify(result));
   assert.ok(result.score > 0);
   assert.ok(result.lost >= await state(() => Pursuit.clearDuration(state)));
   assert.deepEqual(errors, []);

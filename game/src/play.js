@@ -111,7 +111,7 @@ startButton.onclick = confirm;
 
 function openIntermission() {
   mode='intermission'; hud.hidden=true; brief.hidden=true; intermission.hidden=false;
-  Jobs.offer(state.jobs); state.selectedUpgrade=null;
+  Jobs.offer(state.jobs); state.selectedUpgrade=null; continueJob.disabled=true;
   document.querySelector('#job-summary').textContent = `${state.jobs.pendingTitle}. Current haul at risk: $${Math.round(state.jobs.haul*state.jobs.multiplier).toLocaleString()}. Hull ${Math.max(0,100-state.car.damage).toFixed(0)}%. Heat ${state.jobs.heat}/4; continuing adds 0.25× and more heat brings more patrols.`;
   upgradeChoices.replaceChildren();
   state.jobs.choices.forEach((upgrade,index)=>{
@@ -209,7 +209,7 @@ function drawTraffic() {
 }
 
 function chaseCamera(car, w, h, title) {
-  const base = Math.max(.75, Math.min(1.45, h / 535));
+  const base = Math.max(.75, Math.min(1.8, h / 440));
   if (title) return { x: 600, y: car.y, zoom: Math.max(1.5, Math.min(1.8, h / 450)) };
   const point = { x: car.x + Math.cos(car.angle) * 250, y: car.y + Math.sin(car.angle) * 250 };
   const junction = City.nodes[City.nearest(point)];
@@ -297,17 +297,8 @@ function render() {
     ctx.font = 'bold 12px system-ui';
     ctx.fillText('PRESS E IN THE GREEN BAND', x, y - 12);
   }
-  let objective = state.jobs ? ['Drive through the moving cash target at speed. Shift beside a relay to close its road.','Stop in the bank bay; tap E, then tap E in the green band to drill.','Follow the moving courier. Hold E within 65 m below 41 km/h for the transfer.','Reach the docks, tuck under the loading canopy and stay hidden to bank your haul.'][state.jobs.stage] : (state.collected?'Reach the docks':'Reach the bank');
-  let nextBanner = (state.collected ? (pursuit.block ? 'ROADBLOCK ACTIVE' : pursuit.intercept ? 'INTERCEPT INBOUND' : 'POLICE PURSUIT') +
-    '\n' + (pursuit.seen ? (pursuit.reacquired ? 'Police reacquired you' : 'Police spotted you') + ' · nearest cruiser ' + Math.round(pursuit.nearestRange) + ' m' : pursuit.lost < Pursuit.clearTime ?
-      'Patrols searching · stay hidden ' + Math.max(0,Pursuit.clearDuration(state) - pursuit.lost).toFixed(1) + ' s more' : 'Police lost · dock gate ' + arrow + ' ' + range + ' m') : state.sweep >= 0
-    ? 'Vault drilling · press E in the green band to take the cash'
-    : near ? 'Stop at the bank · tap E to start drilling, then tap E in the green band' : targetLabel() + ' ' + arrow + ' ' + range + ' m') +
-    '\n' + objective + (state.jobs?.stage===2 ? ` · transfer ${Math.min(100,Math.round(state.jobs.transfer/.7*100))}%` : '') + `\nHeat ${state.jobs?.heat||0}/4 · ` + (pursuit.contact>.1?`capture ${Math.min(100,Math.round(pursuit.contact/.87*100))}% · `:'') + 'Haul at risk $' + Math.round((state.jobs?.haul||0)*(state.jobs?.multiplier||1)).toLocaleString() + ` · multiplier ${state.jobs?.multiplier?.toFixed(2)||'1.00'}× · ` + Math.ceil(Math.max(0, 180 - state.time)) + ' s · ' + Math.round(Math.hypot(c.vx, c.vy) * .55) + ' km/h · ' + Math.max(0, 100 - Math.round(c.damage)) + '% integrity';
-  const relay = Traffic.near(state);
-  const gateLine = relay ? `\n${state.traffic.message} · ${relay.name} console nearby · Shift to trigger · ${state.traffic.charges} charge${state.traffic.charges===1?'':'s'}` : `\n${state.traffic.message} · ${state.traffic.charges} gate charges`;
-  nextBanner += gateLine;
-  if (nextBanner !== banner) { hud.textContent = nextBanner; banner = nextBanner; }
+  ChaseHUD.update(hud, state, pursuit, arrow, range);
+
 }
 
 function frame(now) {

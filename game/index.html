@@ -14,6 +14,7 @@
 <script defer src="src/siren.js"></script>
 <script defer src="src/contracts.js"></script>
 <script defer src="src/records.js"></script>
+<script defer src="src/hud.js"></script>
 <script defer src="src/play.js"></script>
 </head>
 <body>
@@ -24,7 +25,7 @@
 <div class="actions"><button id="start">Drive ↵</button><label id="patrol-choice">Contract <select id="patrol"></select></label></div>
 <small>W / ↑ accelerate · A / ← and D / → steer · S / ↓ brake · Space handbrake · E interact · Shift near a relay closes its gate · Esc pause · R retry · C contracts</small>
 </section>
-<section id="intermission" hidden><h1>JOB <span>COMPLETE</span></h1><p id="job-summary"></p><div id="upgrade-choices" class="upgrade-choices"></div><p>Pick one upgrade to continue, or take your secured haul to the docks now. Continuing gives you a brief head start while patrols reposition.</p><div class="actions"><button id="continue-job" disabled>Continue job</button><button id="cash-out">Extract with haul</button></div></section>
+<section id="intermission" hidden><h1>JOB <span>COMPLETE</span></h1><p id="job-summary"></p><div id="upgrade-choices" class="upgrade-choices"></div><p>Pick one upgrade to continue, or take your haul at risk to the docks now. Continuing gives you a brief head start while patrols reposition.</p><div class="actions"><button id="continue-job" disabled>Continue job</button><button id="cash-out">Extract with haul</button></div></section>
 <div id="hud" hidden></div>
 <div id="settings"><button id="mute">Sound on</button><button id="flash">Full lights</button></div></body>
 </html>

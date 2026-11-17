@@ -130,6 +130,10 @@ const Art = (() => {
     ctx.strokeStyle = '#f78de9';
     ctx.lineWidth = 2;
     ctx.strokeRect(773, facade - 80, 139, 67);
+    // Lit hotel windows make the landmark read as a facade at speed.
+    for(let row=0;row<3;row++)for(let col=0;col<8;col++) {
+      fill(ctx,782+col*15,facade-72+row*14,7,8,(row+col)%3?'#ffbded':'#775382');
+    }
     fill(ctx, 780, facade - 24, 126, 31, '#260e31');
     ctx.font = '900 16px system-ui';
     ctx.fillStyle = '#ffb9ed';
@@ -152,7 +156,7 @@ const Art = (() => {
     ctx.fillStyle = '#9bfccf';
     ctx.fillText('SERVICE ALLEY ↓', x - 45, coverTop - 12);
     ctx.font = '700 8px system-ui';
-    ctx.fillText('LOW CLEARANCE', x - 34, coverTop - 2);
+    ctx.fillText('BREAK LINE OF SIGHT', x - 43, coverTop - 2);
 
     const dock = City.blocks.find(b => b.row === 2 && b.col === 3);
     for (let i = 0; i < 4; i++) {
