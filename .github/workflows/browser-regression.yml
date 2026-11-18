@@ -4,6 +4,9 @@ on:
     branches:
       - improvement/lockdown-96-chat
   workflow_dispatch:
+concurrency:
+  group: redline-browser-upgrade
+  cancel-in-progress: true
 jobs:
   browser:
     runs-on: ubuntu-latest
