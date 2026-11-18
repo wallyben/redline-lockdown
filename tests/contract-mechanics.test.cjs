@@ -26,7 +26,7 @@ test('three courier circuits are geographically different, legal city routes',()
 });
 test('Grid requires an executed relay closure before bank may be drilled',()=>{
   const run=setup('switch',1702,1);
-  Object.assign(run.car,{x:690,y:400});
+  Object.assign(run.car,{x:430,y:400});
   assert.equal(Rules.required(run,1).ready,false);
   Drive.tick(run,{...control,interact:true});
   for(let i=0;i<60;i++)Drive.tick(run,control);
