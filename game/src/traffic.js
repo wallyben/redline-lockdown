@@ -5,7 +5,7 @@ const Traffic = ((city) => {
     { id: 'dock-cut', name: 'Dock Approach', edge: [13, 18], console: { x: 971, y: 780 } },
   ];
   const reset = () => ({ closedEdges: new Set(), barrier: null, selected: null,
-    phase: 'ready', timer: 0, cooldown: 0, charges: 3, message: 'Relay gates ready' });
+    phase: 'ready', timer: 0, cooldown: 0, charges: 3, successfulClosures: 0, message: 'Relay gates ready' });
   function segmentDistance(point, a, b) {
     const dx = b.x - a.x, dy = b.y - a.y;
     const t = Math.max(0, Math.min(1, ((point.x-a.x)*dx + (point.y-a.y)*dy)/(dx*dx+dy*dy)));
@@ -59,7 +59,7 @@ const Traffic = ((city) => {
         } else {
           state.closedEdges = new Set([city.edgeKey(...gate.edge)]);
           state.barrier = barrierFor(gate);
-          state.phase='closed'; state.timer=run.jobs?.modifiers.gateDuration||5;
+          state.phase='closed'; state.successfulClosures++; state.timer=run.jobs?.modifiers.gateDuration||5;
           state.cooldown=run.jobs?.modifiers.cooldown||8;
           state.message=`${gate.name} sealed · ${state.timer.toFixed(1)}s`;
         }
