@@ -36,7 +36,13 @@ async function play(browser, viewport, takeShots) {
       const desiredAngle = Math.atan2(dy, dx);
       const error = Math.atan2(Math.sin(desiredAngle - car.angle), Math.cos(desiredAngle - car.angle));
       const speed = Math.hypot(car.vx, car.vy);
-      // Capture the actual tactical encounter after the gate activates, not a pre-alert drive.
+      // Capture a genuine fast chase during the bank approach; the late
+      // relay-frame camera can appear stationary despite the tactical depth.
+      if(takeShots && !actionCaptured && car.x>445 && car.x<600 && speed>170 &&
+         await state(()=>state.jobs.stage===1 && pursuit.hadContact)){
+        await shot('01-chase.jpg');
+        actionCaptured=true;
+      }
       const desiredSpeed = distance < 100 ? Math.min(speedLimit, distance * 2.4) : speedLimit;
       const wanted = new Set();
       if (speed < desiredSpeed - 10) wanted.add('w');
