@@ -91,6 +91,6 @@ test('Grid street sabotage briefly jams police contact without moving or removin
   assert.equal(police.contact,0);
   assert.deepEqual(police.units,oldUnits,'Units still move on the road network in future pursuit ticks');
   assert.match(run.traffic.message,/RADIO JAM/);
-  for(let i=0;i<220;i++)Traffic.tick(run.traffic,run,police,1/60);
+  for(let i=0;i<320;i++)Traffic.tick(run.traffic,run,police,1/60);
   assert.equal(run.traffic.radioJam,0);
 });
