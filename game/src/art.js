@@ -241,8 +241,13 @@ const Art = (() => {
     if(!police){atmosphere(ctx,-20,0,32,c.braking?'#ff322c8a':'#ff402c30');}
     fill(ctx, -22, -11, 46, 23, '#090e16bb');
     for (const x of [-14, 10]) for (const y of [-11, 7]) fill(ctx, x, y, 9, 4, '#0b0e16');
+    // Functional silhouettes: tail white, interceptor violet, reinforcement amber.
+    const role=c.role||'tail';
+    const emergency=police && role==='interceptor' ? ['#f9deff','#a78fe8','#5f5ba5','#c2abff'] :
+      police && role==='reinforcement' ? ['#fff0c4','#d8b66b','#896c3e','#ffe1a6'] :
+      ['#f7ffff','#bfdae2','#718e9e','#d6eaf0'];
     const paint=ctx.createLinearGradient(0,-10,0,10);
-    paint.addColorStop(0,police?'#f7ffff':courier?'#fff1ad':'#ffb899');paint.addColorStop(.25,police?'#bfdae2':courier?'#ebc151':'#ff684e');paint.addColorStop(.7,police?'#718e9e':courier?'#b28827':'#b72236');paint.addColorStop(1,police?'#d6eaf0':courier?'#edc65f':'#f45747');ctx.fillStyle=paint;
+    paint.addColorStop(0,police?emergency[0]:courier?'#fff1ad':'#ffb899');paint.addColorStop(.25,police?emergency[1]:courier?'#ebc151':'#ff684e');paint.addColorStop(.7,police?emergency[2]:courier?'#b28827':'#b72236');paint.addColorStop(1,police?emergency[3]:courier?'#edc65f':'#f45747');ctx.fillStyle=paint;
     ctx.beginPath();
     ctx.roundRect(-20, -9, 40, 18, [4, 6, 6, 4]);
     ctx.fill();
@@ -261,6 +266,8 @@ const Art = (() => {
     if (police) {
       fill(ctx, -2, -7, 4, 7, '#ff4b68');
       fill(ctx, -2, 0, 4, 7, '#56a2ff');
+      if (role === 'interceptor') { fill(ctx,-16,-8,6,16,'#7a5ec2'); fill(ctx,9,-8,5,16,'#7a5ec2'); }
+      if (role === 'reinforcement') { fill(ctx,-18,-9,6,18,'#e4b45c'); fill(ctx,11,-9,6,18,'#e4b45c'); }
     }
     if(courier){fill(ctx,-3,-15,8,5,'#fff1b0');fill(ctx,-5,10,11,3,'#ffdb69');}
     ctx.restore();
@@ -292,7 +299,7 @@ const Art = (() => {
     const dot = (q, color) => fill(ctx, q.x - 15, q.y - 15, 30, 30, color);
     dot(run.collected ? Pursuit.exit : Drive.pickup, run.collected ? '#6affc0' : '#ffc978');
     if (p.intercept) dot(City.nodes[p.intercept.node], '#ff5c76');
-    for(const unit of p.units)dot(unit,'#ff617f');
+    for(const unit of p.units)dot(unit,unit.role==='interceptor'?'#b995ff':unit.role==='reinforcement'?'#ffd083':'#ff617f');
     const destination=run.jobs?.stage===0?Jobs.pickup(run.jobs,run.time):run.jobs?.stage===1?Drive.pickup:run.jobs?.stage===2?run.jobs.courier:Pursuit.exit;
     dot(destination,'#ffdf84');
     dot(run.car, '#ffffff');
