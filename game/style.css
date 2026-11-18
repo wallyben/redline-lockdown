@@ -39,6 +39,10 @@ section{max-height:94vh;overflow:auto}
 .redline-status strong{color:#ffe5a3}
 #settings button:hover,.actions button:hover{filter:brightness(1.12)}
 @media(prefers-reduced-motion:reduce){.contract-card{transition:none}}
+.coach{padding:8px 14px;border-top:1px solid #3d6968;background:#0b2931;color:#e4fff7;font-weight:750;font-size:11px;line-height:1.35}
+.coach b{display:inline-block;background:#5df4d2;color:#082126;padding:3px 6px;margin-right:7px;letter-spacing:.04em;font-size:10px}
+.coach span{display:inline;color:#d3f1ea}
+@media(max-width:850px){.coach{font-size:10px;padding:7px 10px}.coach b{font-size:9px}}
 /* Results should emphasize the banked score, not duplicate title-screen controls. */
 #brief[data-mode="results"] > small {display:none}
 #brief[data-mode="results"] .actions {margin-top:18px}
