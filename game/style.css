@@ -43,3 +43,13 @@ section{max-height:94vh;overflow:auto}
 #brief[data-mode="title"] .contract-goal b{font-size:13px;color:#91ffe0}
 #brief[data-mode="title"] .contract-card{min-height:78px}
 #brief[data-mode="title"] > small{font-size:11px;color:#b1ced5;letter-spacing:.02em}
+
+/* Fit the complete contract-select and controls into 720p judge captures. */
+#brief[data-mode="title"]{padding:22px 28px}
+#brief[data-mode="title"] .eyebrow{margin-bottom:13px}
+#brief[data-mode="title"] h1{font-size:clamp(55px,6.8vw,92px);margin-bottom:17px}
+#brief[data-mode="title"] p{line-height:1.42;margin:8px 0;font-size:14px}
+#brief[data-mode="title"] .contract-picker{margin:12px 0 8px}
+#brief[data-mode="title"] .contract-card{min-height:76px;padding:10px 8px}
+#brief[data-mode="title"] .contract-goal{margin:10px 0;line-height:1.52}
+#brief[data-mode="title"] small{margin-top:12px;font-size:11px}
