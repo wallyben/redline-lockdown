@@ -179,10 +179,12 @@ async function play(browser,idx,name){
       await page.keyboard.press('q');
       // Cut across the harbor before spending the earned one-shot Omega spoof.
       await driveTo(690,910,220,230);
-      await driveTo(430,910,220,200);
       const decoyReady=await read(()=>pursuit.decoyCharges>0&&!!pursuit.sighting);
       assert.equal(decoyReady,true,'Full-run Payday must earn an Omega spoof');
       await page.keyboard.press('f');
+      // Spoof BEFORE the west junction: the commander must have time to leave
+      // its physical intercept position; the player cannot pass through it.
+      await driveTo(430,910,220,200);
       await driveTo(130,910,170,240,15);
       await brake();
     }
