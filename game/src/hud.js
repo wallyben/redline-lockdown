@@ -1,8 +1,13 @@
 const ChaseHUD = (() => {
-  let previous = '';
+  let previous = '', lastPaint=-Infinity, lastRun=null, lastStage=-1;
   function update(element, state, pursuit, arrow, range) {
     const jobs = state.jobs, car = state.car;
     const stage = jobs?.stage || 0;
+    // Canvas runs at 60 fps, but recreating a complex DOM HUD every frame
+    // costs layout time. Refresh at ~10 Hz; force an update on reset/stage change.
+    const t = Number.isFinite(state.time) ? state.time : 0;
+    if (jobs === lastRun && stage === lastStage && t >= lastPaint && t-lastPaint < .1) return;
+    lastRun = jobs; lastStage = stage; lastPaint = t;
     const objectives = ['Hit the rolling pickup','Stop at the bank · E to drill','Match the courier · hold E','Extract before the lockdown tightens'];
     const prerequisite=ContractRules.required(state,stage);
     const objective = !prerequisite.ready ? prerequisite.task :
@@ -29,7 +34,8 @@ const ChaseHUD = (() => {
     const mastery=state.lockdown?.active && !pursuit.showdown?.countered ?
       'COUNTER OMEGA: RELAY OR RADIO DECOY · +750 PTS' : ContractRules.nextAction(state,pursuit);
     const decoy=`F · ${state.lockdown?.active?'OMEGA SPOOF':'RADIO DECOY'} ${pursuit.decoyCharges}/2 ${pursuit.decoyCooldown>0?'· '+pursuit.decoyCooldown.toFixed(0)+'s':'· READY'}`;
-    const html = `<div class="chase-threat">${threat}<span>${detail}</span></div><div class="chase-objective"><small>${stage===3?'LOCKDOWN / EXTRACTION':'JOB '+(stage+1)+' / 3'}</small>${objective}<span>${arrow} ${range} m${stage===2?' · '+Math.round(jobs.transfer/.7*100)+'% transferred':''}</span></div><div class="chase-stats"><span>AT RISK<strong>${Math.round((jobs?.haul||0)*(jobs?.multiplier||1)).toLocaleString()} pts</strong></span><span>HEAT<strong>${Math.min(4,Math.ceil(jobs?.heat||0))}/4</strong></span><span>CAR<strong>${Math.max(0,100-Math.round(car.damage))}%</strong></span><span>TIME<strong>${Math.ceil(Math.max(0,180-state.time))}s</strong></span></div><div class="chase-route">${route}<span class="mastery-note">${mastery}</span></div><div class="ability-bar"><b>Q · SMOKE ${state.smoke?.charges??2}/${state.smoke?.maxCharges??2}</b><span>${decoy}</span></div><div class="redline-status">B · OVERDRIVE <strong>${state.momentum?.active>0?"ACTIVE":state.momentum?.charge>=.7&&state.momentum?.cooldown<=0?"READY":Math.round((state.momentum?.charge||0)*100)+"%"}</strong> · ${state.momentum?.nearMisses||0} NEAR MISSES · EARN CHARGE IN PURSUIT</div><div class="win-rule">${state.lockdown?.event||'BREAK SIGHT · BANK SCORE AT EXTRACTION · CAPTURE LOSES IT'}</div>`;
+    const coaching = Tutorial.hint(state,pursuit);
+    const html = `<div class="chase-threat">${threat}<span>${detail}</span></div><div class="chase-objective"><small>${stage===3?'LOCKDOWN / EXTRACTION':'JOB '+(stage+1)+' / 3'}</small>${objective}<span>${arrow} ${range} m${stage===2?' · '+Math.round(jobs.transfer/.7*100)+'% transferred':''}</span></div><div class="chase-stats"><span>AT RISK<strong>${Math.round((jobs?.haul||0)*(jobs?.multiplier||1)).toLocaleString()} pts</strong></span><span>HEAT<strong>${Math.min(4,Math.ceil(jobs?.heat||0))}/4</strong></span><span>CAR<strong>${Math.max(0,100-Math.round(car.damage))}%</strong></span><span>TIME<strong>${Math.ceil(Math.max(0,180-state.time))}s</strong></span></div><div class="chase-route">${route}<span class="mastery-note">${mastery}</span></div><div class="ability-bar"><b>Q · SMOKE ${state.smoke?.charges??2}/${state.smoke?.maxCharges??2}</b><span>${decoy}</span></div><div class="redline-status">B · OVERDRIVE <strong>${state.momentum?.active>0?"ACTIVE":state.momentum?.charge>=.7&&state.momentum?.cooldown<=0?"READY":Math.round((state.momentum?.charge||0)*100)+"%"}</strong> · ${state.momentum?.nearMisses||0} NEAR MISSES · EARN CHARGE IN PURSUIT</div><div class="coach"><b>${coaching.key}</b><span>${coaching.text}</span></div><div class="win-rule">${state.lockdown?.event||'BREAK SIGHT · BANK SCORE AT EXTRACTION · CAPTURE LOSES IT'}</div>`;
     if (html !== previous) { element.innerHTML = html; previous = html; }
   }
   return { update };

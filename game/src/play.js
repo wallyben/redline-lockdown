@@ -72,6 +72,8 @@ function pause() {
 function finish() {
   mode = 'results';
   brief.dataset.mode = 'results';
+  // Keep the genuine getaway car visible beside the earned score at West Quay.
+  brief.dataset.exit = state.lockdown?.choice === 1 ? 'west' : 'east';
   document.querySelector('#run-cards').innerHTML = '';
   hud.hidden = true;
   intermission.hidden = true;
@@ -205,6 +207,8 @@ function targetLabel(){
 }
 window.addEventListener('keydown', e => {
   if (e.target === layoutInput) return;
+  // Native buttons own Enter/Space; do not also trigger a global start/retry.
+  if ((e.code === 'Enter' || e.code === 'Space') && e.target?.closest?.('button')) return;
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'Enter', 'Tab'].includes(e.code)) e.preventDefault();
   keys.add(e.code);
   if (e.repeat) return;
