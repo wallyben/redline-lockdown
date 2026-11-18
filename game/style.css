@@ -2,3 +2,59 @@
 .actions{display:flex;flex-wrap:wrap;align-items:center;gap:16px}.actions label{color:#b7c7d7;font-size:12px}.actions select{margin-left:5px;background:#182536;color:#ecf4f6;border:1px solid #607083;border-radius:0;padding:8px;font:inherit}
 #settings{position:absolute;right:20px;top:20px;display:flex;gap:8px}#settings button{font-size:12px;background:#152334;color:#d6e4ed;padding:8px}
 section{max-height:94vh;overflow:auto}
+.upgrade-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0}.upgrade-choices button{background:#172838;color:#f0f6f8;text-align:left;padding:12px;font-size:13px}.upgrade-choices button.selected{outline:3px solid #57efbb}.upgrade-choices strong,.upgrade-choices span{display:block}.upgrade-choices span{font-weight:500;color:#b9cbd5;margin-top:6px;font-size:11px}#continue-job:disabled{opacity:.45;cursor:not-allowed}
+
+#hud{padding:0;width:410px;max-width:48vw;white-space:normal;border-left:4px solid #ff595b;box-shadow:0 10px 35px #0008}.chase-threat{padding:12px 16px;background:#451c29;font-size:19px;letter-spacing:.04em}.chase-threat span,.chase-objective span{display:block;font-size:13px;font-weight:500;letter-spacing:0;color:#d8e2ea}.chase-objective{padding:12px 16px;font-size:20px;line-height:1.3}.chase-objective small{margin:0 0 4px;color:#ffd179;font-size:11px;letter-spacing:.12em}.chase-stats{display:flex;justify-content:space-between;padding:10px 16px;background:#182735;font-size:10px;color:#afbfce}.chase-stats strong{display:block;font-size:19px;color:#fff}.chase-route{padding:9px 16px;color:#6ff5d0;font-size:12px}
+
+.eyebrow{color:#74f4d2;letter-spacing:.22em;font-size:11px;font-weight:800;margin-bottom:24px}.mission-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:20px 0}.mission-grid>div{padding:12px;background:#1c303b;border-top:2px solid #6be7c5}.mission-grid b{display:block;color:#ffcf83;font-size:12px}.mission-grid span{display:block;font-size:12px;margin-top:8px;color:#c2d2db}.contract-goal{font-size:12px;color:#cfdfdf;margin:18px 0;line-height:1.7}.score-hero{font-size:58px;font-weight:900;color:#78f5cc;line-height:1.1;margin:16px 0}.score-hero small{margin:0;font-size:11px;letter-spacing:.2em}.ability-bar{display:flex;justify-content:space-between;padding:11px 16px;background:#233f46;color:#a7ffe5;font-size:12px}.ability-bar span{font-size:11px}.win-rule{font-size:9px;letter-spacing:.04em;padding:8px 16px;color:#d5c597}section{box-shadow:0 24px 100px #000b;border:1px solid #53747c;border-left:4px solid #ff595b;background:linear-gradient(130deg,#0c1724f5,#10212af0)}
+
+#brief[data-mode=results] h1{font-size:76px;margin-bottom:16px}#brief[data-mode=results] p{font-size:12px;line-height:1.6}#brief[data-mode=results] .eyebrow{margin-bottom:18px}#brief[data-mode=results] .score-hero{font-size:48px;margin:12px 0}#brief[data-mode=results] small{margin-top:12px}
+
+#hud{width:350px}.chase-threat{padding:9px 14px;font-size:17px}.chase-objective{padding:9px 14px;font-size:18px}.chase-stats{padding:8px 14px}.chase-route{padding:7px 14px}.ability-bar{padding:8px 14px}.win-rule{padding:7px 14px;font-size:8px}
+
+
+/* Reward screen: four-line readable summary instead of dense debug copy. */
+#brief[data-mode="results"] {max-width:min(560px,88vw);background:#0a1420f5}
+#brief[data-mode="results"] h1 {margin-bottom:22px}
+#brief[data-mode="results"] p {font-size:14px;line-height:1.8;color:#c9dfeb;letter-spacing:.018em}
+#brief[data-mode="results"] .score-hero {font-size:72px;margin:18px 0 16px;text-shadow:0 0 24px #45eec939}
+#brief[data-mode="results"] .score-hero small {font-size:12px;color:#a4ffe2}
+
+
+/* Distinct, selectable mission identities on title and clearer tactical feedback. */
+.contract-picker{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:19px 0 12px}
+.contract-card{background:#182b38;color:#e8f9ff;border:1px solid #4c6b76;padding:13px 9px;text-align:left;min-height:93px;line-height:1.2;transition:border-color .1s,background .1s;cursor:pointer}
+.contract-card.selected{border:2px solid #7affe0;background:#224351;box-shadow:inset 0 0 12px #20e6d31d}
+.contract-card b{font-size:12px;display:block;color:#aaffdd;letter-spacing:.035em}
+.contract-card span{display:block;font-size:11px;color:#c5d4df;margin-top:10px;font-weight:500}
+.contract-card:hover{background:#2b4655}
+.mastery-note{display:block;color:#e8cf89;margin-top:5px;font-size:11px}
+#brief[data-mode="title"] .contract-goal{font-size:12px;line-height:1.5;padding:12px;background:#142a37;border-left:2px solid #7bfbd5;margin:12px 0 17px}
+#brief[data-mode="title"] .contract-goal b{font-size:10px;color:#76efce;letter-spacing:.13em}
+#brief[data-mode="title"] small{font-size:10px;line-height:1.5}
+@media(max-width:710px){.contract-picker{grid-template-columns:1fr}.contract-card{min-height:50px}.contract-card span{margin-top:3px}}
+
+/* Readable skill meter and restrained interactive/accessibility polish. */
+.redline-status{padding:7px 14px;font-size:10px;font-weight:800;letter-spacing:.045em;background:#122c35;color:#a9f7ef;border-top:1px solid #335963}
+.redline-status strong{color:#ffe5a3}
+#settings button:hover,.actions button:hover{filter:brightness(1.12)}
+@media(prefers-reduced-motion:reduce){.contract-card{transition:none}}
+/* Results should emphasize the banked score, not duplicate title-screen controls. */
+#brief[data-mode="results"] > small {display:none}
+#brief[data-mode="results"] .actions {margin-top:18px}
+
+/* Judge-readable title: three action beats, not a miniature instruction manual. */
+#brief[data-mode="title"] .contract-goal{font-size:14px;line-height:1.55}
+#brief[data-mode="title"] .contract-goal b{font-size:13px;color:#91ffe0}
+#brief[data-mode="title"] .contract-card{min-height:78px}
+#brief[data-mode="title"] > small{font-size:11px;color:#b1ced5;letter-spacing:.02em}
+
+/* Fit the complete contract-select and controls into 720p judge captures. */
+#brief[data-mode="title"]{padding:22px 28px}
+#brief[data-mode="title"] .eyebrow{margin-bottom:13px}
+#brief[data-mode="title"] h1{font-size:clamp(55px,6.8vw,92px);margin-bottom:17px}
+#brief[data-mode="title"] p{line-height:1.42;margin:8px 0;font-size:14px}
+#brief[data-mode="title"] .contract-picker{margin:12px 0 8px}
+#brief[data-mode="title"] .contract-card{min-height:76px;padding:10px 8px}
+#brief[data-mode="title"] .contract-goal{margin:10px 0;line-height:1.52}
+#brief[data-mode="title"] small{margin-top:12px;font-size:11px}

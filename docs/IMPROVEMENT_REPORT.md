@@ -1,0 +1,49 @@
+# Cut the Grid candidate
+
+Preserved submitted baseline: 98f4972b483a35562af0b81f0e652b9b2d30ab18. Work is on improvement/readable-pursuit; competition-rescue and rollback/c6bc057 remain intact.
+
+## Comparison and design
+
+On 17 November, the public leaderboard's leading entry was KINGFISHER at 94.56%. Its public cover showed a named seventh-stage fire, several abilities, upgrades, visible win/loss rules and detailed terrain. Its private code and full play experience were not inspected. These are visual observations, not an explanation from the judge of REDLINE's score.
+
+REDLINE's response is its own street-control identity: close roads, deploy limited smoke, evade the projected interception, then decide whether to risk another job. No competitor assets or code were copied.
+
+## Implemented
+
+- Two tactical smoke charges with a seven-second cooldown. Clouds persist at their deployment location for 4.5 seconds, obstruct distant police sight and preserve close-range capture. Police continue using last-known-position search.
+- Visible interceptor road-path and junction commitment cues; police and current objective on the minimap.
+- Original procedural roof machinery, pavement gardens and road lettering, plus illuminated hotel facade and impact sparks.
+- Engine audio responds to speed and impact, alongside existing spatial sirens.
+- Three mission cards and contract mastery on the title screen; clearer escape/failure identity and large banked score on results.
+- Ability availability, objective, heat, condition, capture risk and win/loss consequences in the HUD.
+- Preserved bank drill, moving pickup and courier, optional alarm, upgrades, route relays, extraction and records.
+
+## Validation
+
+23 existing simulation tests passed. Two new smoke tests passed for sight obstruction, close contact, position, lifetime, cooldown and finite inventory. Offline Chrome at 1280x720 and 1920x1080 passed the mission, vault, upgrades, route diversion, escape, retry, pause, contract selection, records, smoke input and cooldown. Optional alarm and capture passed at 1280x720. Normal-speed visible Chrome runs passed; final screenshots are real Chrome captures, not composites or fabricated scenes.
+
+During development, a duplicate declaration and mixed text encodings caused a failed startup; these were fixed and browser checks repeated. Result-panel sizing was corrected after visual review.
+
+## Limits
+
+The local official check is not a game-quality grade. No new entry was submitted, and no new win rate exists. A competition win is unproven. The original grid-based city layout and driving simulation remain; this candidate expands tactical play, presentation and feedback rather than replacing the entire game. The top game's apparent breadth still exceeds this three-job mission. Private competitor gameplay and judge reasons remain unavailable.
+
+Final kit report and native transcript bundle are kept in the setup directory, outside the public repository. Server-only checks remain pending until a separately authorized submission.
+## Police driving revision
+
+The police now retain useful routes instead of replacing them every 0.22 seconds. Radio replanning runs at 0.65 seconds and ignores small destination changes while a route remains useful. Closed roads still force immediate replanning. Route selection penalizes high-speed reversals.
+
+Cruisers accelerate and brake progressively, slow for turns and stopping points, and rotate at a bounded rate. They round a corner only after checking the complete shortcut against the vehicle footprint. Roadblock arrival no longer snaps the car sideways. This remains an arcade road-following model, not full tyre physics.
+
+Searches keep their destination until arrival, pause briefly to inspect it and then move to the next connected street. Hidden player movement never changes the last reported position. The tail pursues the sighting, the interceptor keeps a junction commitment, and reinforcement aims ahead rather than duplicating the tail's target. The optional cash alarm no longer accidentally reduces pursuit speed.
+
+Validation: 27 simulation tests pass, including progressive acceleration, bounded rotation, no position jumps, street containment, persistent search orders, line of sight, reacquisition, capture, road closures and smoke. Both offline Chrome sizes passed the full escape sequence. Optional-alarm capture passed at 20.1 seconds. Tests now allow physical acceleration time for interceptor arrival and systematic search time for reacquisition; success conditions remain mandatory. A corner-clipping defect and overly aggressive initial acceleration were found during testing and corrected.
+
+Final regression count: 28 passing tests. Relay activation and its visible prompt now share the same range; the upgrade test checks the new base boundary and its extended range. Normal-speed tests accept and explicitly report a safety refusal only when a vehicle occupies the gate lane; deterministic runs still require a successful closure. The simulation remains road-guided rather than a full vehicle dynamics model.
+## Cinematic graphics revision
+
+Added original offline Canvas effects: pooled neon reflections broken across wet roads, animated rain ripples and steam, persistent fading skid trails, metallic car shading and glass highlights, brake-light bloom, layered roof shading and facade lights, high-speed edge streaks, bounded impact shake and damage vignette, speedometer, and short mission/smoke event banners. The HUD is narrower to expose more of the city. Steady lights also disables speed streaks and impact shake. All trails are bounded to 420 segments and seven seconds; effects use simulation time and pause with play.
+
+The cover is a real normal-speed Chrome capture during a 174 km/h pass, with a nearby cruiser, bank and hotel visible. No image compositing or gameplay-state manipulation was used. The review contact sheet only resizes those real captures.
+
+Validation: both offline Chrome sizes passed full gameplay; visible normal-speed Chrome passed and produced the final screenshots. All 28 simulation tests passed. A short 180-frame 1920x1080 Chrome sample recorded median frame interval 16.7 ms and p95 17 ms, with no page errors; this is a local sample, not a performance guarantee for other hardware. The Steady lights toggle was checked. Canvas keeps rendering offline; Playwright/Chrome automate capture, and Pillow produces the review sheet. No new external art, runtime packages or licenses were introduced.

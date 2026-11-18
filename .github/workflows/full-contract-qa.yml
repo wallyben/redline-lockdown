@@ -1,0 +1,28 @@
+name: REDLINE all-contract full QA
+on:
+  push:
+    branches:
+      - improvement/gridfall-final
+  workflow_dispatch:
+concurrency:
+  group: redline-gridfall-full-qa
+  cancel-in-progress: true
+jobs:
+  contracts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Prepare native Chrome
+        run: |
+          npm install --no-save playwright
+          command -v google-chrome || command -v google-chrome-stable
+      - name: Test complete Grid and Payday heists with genuine keyboard input
+        shell: bash
+        run: |
+          export REDLINE_PLAYWRIGHT=playwright
+          export REDLINE_CHROME="$(command -v google-chrome || command -v google-chrome-stable)"
+          node tests/contracts-browser.cjs

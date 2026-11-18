@@ -12,7 +12,7 @@ const Records = (() => {
   const table = contract => rows.filter(r => r.contract === contract).sort((a,b) =>
     b.total-a.total || a.time-b.time || b.integrity-a.integrity).slice(0,5);
   function bank(run, pursuit, contract) {
-    if (run.banked || !['Clean getaway','Escaped'].includes(pursuit.result)) return null;
+    if (run.banked || !['Clean getaway','Escaped','Partial cashout'].includes(pursuit.result)) return null;
     run.banked = true;
     const score = Pursuit.score(run,pursuit);
     const old = table(contract.id)[0];
