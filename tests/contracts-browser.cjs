@@ -40,6 +40,32 @@ async function play(browser,idx,name){
     for(const key of held)await page.keyboard.up(key);
     return false;
   }
+  async function interceptMovingCourier(maxFrames=300){
+    const held=new Set();
+    for(let frame=0;frame<maxFrames;frame++){
+      const data=await read(()=>({
+        car:state.car,courier:state.jobs.courier,
+        completed:state.jobs.completed[2],result:pursuit.result,transfer:state.jobs.transfer
+      }));
+      if(data.completed||data.result)break;
+      const dx=data.courier.x-data.car.x,dy=data.courier.y-data.car.y;
+      const distance=Math.hypot(dx,dy),speed=Math.hypot(data.car.vx,data.car.vy);
+      const desiredSpeed=distance<65?25:distance<125?60:125;
+      const error=Math.atan2(Math.sin(Math.atan2(dy,dx)-data.car.angle),Math.cos(Math.atan2(dy,dx)-data.car.angle));
+      const wanted=new Set();
+      if(speed<desiredSpeed-10)wanted.add('w');
+      if(speed>desiredSpeed+10)wanted.add('s');
+      if(error>.09 && distance>13)wanted.add('d');
+      if(error<-.09 && distance>13)wanted.add('a');
+      if(distance<64&&speed<72)wanted.add('e');
+      for(const key of held)if(!wanted.has(key)){await page.keyboard.up(key);held.delete(key);}
+      for(const key of wanted)if(!held.has(key)){await page.keyboard.down(key);held.add(key);}
+      await advance(34);
+    }
+    for(const key of held)await page.keyboard.up(key);
+    return read(()=>state.jobs.completed[2]);
+  }
+
   async function brake(){
     await page.keyboard.down('s');
     for(let i=0;i<75;i++){
@@ -115,9 +141,9 @@ async function play(browser,idx,name){
       await driveTo(1010,910,95,200,12);
     }
 
-    await brake();
-    await page.keyboard.down('e');await advance(1600);await page.keyboard.up('e');
+    const transferred=await interceptMovingCourier(350);
     let handoff=await report('AFTER COURIER');
+    assert.equal(transferred,true,'Live courier matching failed despite active pursuit');
     assert.equal(handoff.jobDone[2],true,'Distinct courier transfer did not complete');
     assert.equal(handoff.stage,3);
     assert.equal(await read(()=>state.lockdown.active),true);
