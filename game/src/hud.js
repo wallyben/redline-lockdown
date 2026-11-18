@@ -18,7 +18,7 @@ const ChaseHUD = (() => {
       `${Math.round(pursuit.nearestRange)} m to nearest police`:
       `Hide for ${Math.max(0,Pursuit.clearDuration(state)-pursuit.lost).toFixed(1)}s`;
     const relay=Traffic.near(state);
-    const route=state.traffic.gridfallFlash>state.time?'GRIDFALL OVERRIDE / TWO ROADS CUT · +900':
+    const route=state.traffic.gridfallFlash>state.time?'GRIDFALL / TWO ROADS CUT · +900 ON ESCAPE':
       pursuit.routeBreak && pursuit.elapsed<pursuit.routeBreak.until ?
       (pursuit.routeBreak.real?'ROUTE SEVERED / POLICE DIVERTED':'STREET SEALED / POLICE RE-CALCULATING') :
       state.traffic.radioJam>0?`GRID RADIO BLACKOUT · ${state.traffic.radioJam.toFixed(1)}s / POLICE REROUTED`:

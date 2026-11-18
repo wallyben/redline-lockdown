@@ -67,9 +67,9 @@ const Showdown = (() => {
     const headline=gridfall?'GRIDFALL / CITY NETWORK OVERRIDE':
       cut?(diverted?'POLICE INTERCEPT BROKEN':'RELAY ACTIVATED / ROAD SEALED'):
       s.countered?'UNIT OMEGA / SIGNAL DISRUPTED':'FINAL LOCKDOWN / UNIT OMEGA';
-    const detail=gridfall?'TWO JUNCTIONS SEALED · POLICE RE-ROUTED · +900':
+    const detail=gridfall?'TWO JUNCTIONS SEALED · +900 IF YOU ESCAPE':
       cut?(diverted?'RED ROUTE BLOCKED · GREEN ROUTE CONFIRMED':'STREET CLOSED · DISPATCH RECALCULATING'):
-      s.countered?'COMMANDER OUTSMARTED · +750 BANKED':'LAST INTERCEPT · F RADIO SPOOF OR SHIFT RELAY';
+      s.countered?'COMMANDER OUTSMARTED · +750 IF YOU ESCAPE':'LAST INTERCEPT · F RADIO SPOOF OR SHIFT RELAY';
     ctx.save();
     ctx.fillStyle='#081725f5';ctx.fillRect(x,y,width,62);
     ctx.strokeStyle=cut?(diverted?'#66ffcb':'#ffbd77'):s.countered?'#6affc5':'#ff936f';

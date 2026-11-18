@@ -68,3 +68,25 @@ test('GRIDFALL score is earned only on a completed full escape',()=>{
   run.jobs.earlyCashout=true;
   assert.equal(Pursuit.score(run,p).gridfallBonus,0);
 });
+
+// Civilian cars and the live moving courier must never be impaled by a relay barrier.
+test('a second barrier waits for civilians, then aborts safely if occupied',()=>{
+  const {run,p}=setup();
+  const blocker={x:560,y:400};
+  run.civilians=[blocker];
+  Traffic.activate(run.traffic,run,p);advance(run,p,55);
+  assert.equal(run.traffic.cascade.phase,'warning');
+  advance(run,p,185);
+  assert.equal(run.traffic.cascade.phase,'aborted');
+  assert.equal(run.traffic.gridfallCompleted,0);
+  assert.equal(City.wall(blocker.x,blocker.y,11,run.traffic),false);
+});
+test('a live courier blocks primary closure while its transfer crosses the lane',()=>{
+  const {run,p}=setup(2);
+  run.jobs.courier={x:560,y:650};
+  assert.equal(Traffic.activate(run.traffic,run,p),true);
+  advance(run,p,225);
+  assert.equal(run.traffic.phase,'ready');
+  assert.equal(run.traffic.charges,3);
+  assert.equal(run.traffic.barrier,null);
+});

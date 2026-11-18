@@ -92,7 +92,7 @@ function finish() {
   brief.querySelector('p').textContent =
     completed + '/3 JOBS CLEARED  ·  ' + state.time.toFixed(1) + 's  ·  ' + intact + '% CAR\n' +
     'HAUL +' + score.recorder.toLocaleString() + '  ·  EXTRACTION +' + score.extraction.toLocaleString() + '\n' +
-    'MASTERY +' + score.styleBonus.toLocaleString() + '  ·  OMEGA +' + score.commanderBonus.toLocaleString() + '\n' +
+    'GRIDFALL +' + score.gridfallBonus.toLocaleString() + '  ·  OMEGA +' + score.commanderBonus.toLocaleString() + '\n' +
     (best ? 'PERSONAL BEST ' + best.total.toLocaleString() + '  ·  ' + (record?.delta == null ? 'FIRST RECORD' : (record.delta >= 0 ? '+' : '') + record.delta + ' VS BEST') : 'NO SCORE BANKED') + '\n' +
     (won ? 'TAKE THE MONEY. OUTRUN THE LOCKDOWN.' : 'CAPTURE OR WRECK LOSES EVERYTHING.');
   document.querySelector('#run-cards').innerHTML =

@@ -214,7 +214,8 @@ const Pursuit = ((city) => {
       if(p.sighting)dispatch(p.extra,searchTarget(p,2),run.traffic);
     }
     if (run.traffic?.phase === 'closed' && !p.rerouteEdgeKey) {
-      p.rerouteEdgeKey = [...run.traffic.closedEdges][0];
+      const latest=run.traffic.latestGate||run.traffic.selected;
+      p.rerouteEdgeKey = latest?city.edgeKey(...latest.edge):[...run.traffic.closedEdges][0];
       const old=[tail,interceptor,p.lockdownUnit].filter(Boolean).map(u=>({unit:u,path:[{x:u.x,y:u.y},...u.path.map(q=>({x:q.x,y:q.y,edge:q.edge}))]}));
       const diverted=p.intercept&&interceptor.path.some(point=>point.edge?.length===2&&
         city.edgeKey(...point.edge)===p.rerouteEdgeKey);
@@ -226,7 +227,7 @@ const Pursuit = ((city) => {
         const changed=old.find(o=>o.unit.path.some(q=>q.edge?.length===2 &&
           !city.edgeOpen(...q.edge,run.traffic)) && o.unit.path.length>1);
         p.routeBreak={old:changed?.path||[],next:changed?[{x:changed.unit.x,y:changed.unit.y},...changed.unit.path]:[],
-          at:run.traffic.selected?.console||run.car,real:!!changed,until:p.elapsed+5};
+          at:latest?.console||run.car,real:!!changed,until:p.elapsed+5};
         if(changed)p.feint=true;
       }
     } else if (run.traffic?.phase !== 'closed') p.rerouteEdgeKey = null;

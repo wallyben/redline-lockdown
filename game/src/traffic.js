@@ -13,12 +13,13 @@ const Traffic = ((city) => {
     return Math.hypot(point.x-(a.x+t*dx), point.y-(a.y+t*dy));
   }
   function vehicles(run, pursuit) {
-    return [run.car, ...(pursuit?.units || [])];
+    return [run.car,...(run.civilians||[]),...(pursuit?.units||[]),
+      ...(run.jobs?.stage===2&&run.jobs.courier?[run.jobs.courier]:[])];
   }
   function occupied(gate, run, pursuit) {
     const [a, b] = gate.edge;
     const center={x:(city.nodes[a].x+city.nodes[b].x)/2,y:(city.nodes[a].y+city.nodes[b].y)/2};
-    return vehicles(run, pursuit).some(v => city.distance(v,center) < 24);
+    return vehicles(run, pursuit).some(v => city.distance(v,center) < 34);
   }
   function barrierFor(gate) {
     const [a,b] = gate.edge, first = city.nodes[a], last = city.nodes[b];
