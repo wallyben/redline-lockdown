@@ -131,7 +131,7 @@ function showContract() {
   const c = Contracts[Number(layoutInput.value)];
   const best = Records.table(c.id)[0];
   brief.querySelector('h1').innerHTML = 'REDLINE <span>LOCKDOWN</span>';
-  brief.querySelector('p').innerHTML = '<strong>GRIDFALL: HIJACK THE CITY. BREAK THE PURSUIT.</strong><br>Chain two real road closures. Earn OVERDRIVE from police near misses. Outthink UNIT OMEGA.';
+  brief.querySelector('p').innerHTML = '<strong>GRIDFALL: THE CITY IS YOUR WEAPON.</strong><br>Take the haul. Earn tactical charge from close police passes. TAB + 1/2/3 remotely seals a street, or B spends the same charge to OUTRUN them.';
   const cards=Contracts.map((contract,index) =>
     `<button type="button" class="contract-card ${index===Number(layoutInput.value)?'selected':''}" data-contract="${index}">
       <b>0${index+1} / ${contract.name}</b><span>${contract.beats.map(beat=>beat[0]).join(' · ')}</span>
@@ -236,10 +236,25 @@ window.addEventListener('keydown', e => {
   if (e.code === 'KeyQ' && mode === 'playing') Smoke.deploy(state);
   if (e.code === 'KeyF' && mode === 'playing') Pursuit.deployDecoy(pursuit,state);
   if (e.code === 'KeyB' && mode === 'playing' && Momentum.activate(state) && !muted) Siren.cue();
+  if (mode === 'playing' && keys.has('Tab') && ['Digit1','Digit2','Digit3'].includes(e.code)) {
+    const gate=Traffic.gates[Number(e.code.slice(-1))-1];
+    if (Traffic.override(state.traffic,state,pursuit,gate.id) && !muted)Siren.signal('relay');
+    return; // While the map is held, the digits target relays, not exit choices.
+  }
   if (mode === 'playing' && state.lockdown?.active && e.code==='Digit1') Lockdown.select(state,0);
   if (mode === 'playing' && state.lockdown?.active && e.code==='Digit2') Lockdown.select(state,1);
 });
 window.addEventListener('keyup', e => keys.delete(e.code));
+// The tactical map is a genuine command interface, not a decorative screenshot.
+// Clicking a projected node uses exactly the same live safety and charge checks.
+canvas.addEventListener('pointerdown', e => {
+  if (mode!=='playing' || !keys.has('Tab')) return;
+  const b=canvas.getBoundingClientRect();
+  const x=(e.clientX-b.left)*innerWidth/b.width;
+  const y=(e.clientY-b.top)*innerHeight/b.height;
+  const gate=TacticalMap.hitRelay(innerWidth,innerHeight,x,y);
+  if(gate && Traffic.override(state.traffic,state,pursuit,gate.id) && !muted)Siren.signal('relay');
+});
 window.addEventListener('blur', () => {
   keys.clear();
   if (mode === 'playing') pause();
