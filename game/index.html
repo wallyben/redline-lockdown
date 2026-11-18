@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="style.css">
 <script defer src="src/city.js"></script>
 <script defer src="src/traffic.js"></script>
+<script defer src="src/civilian-traffic.js"></script>
 <script defer src="src/jobs.js"></script>
 <script defer src="src/drive.js"></script>
 <script defer src="src/pursuit.js"></script>
@@ -16,6 +17,9 @@
 <script defer src="src/art.js"></script>
 <script defer src="src/siren.js"></script>
 <script defer src="src/contracts.js"></script>
+<script defer src="src/lockdown.js"></script>
+<script defer src="src/contract-rules.js"></script>
+<script defer src="src/tactical-map.js"></script>
 <script defer src="src/records.js"></script>
 <script defer src="src/hud.js"></script>
 <script defer src="src/play.js"></script>
@@ -26,7 +30,7 @@
 <div class="eyebrow">PORT MERIDIAN · MIDNIGHT RUN</div><h1>REDLINE <span>LOCKDOWN</span></h1>
 <p>Rob the Port Meridian bank, evade police, then reach the docks.</p>
 <div id="run-cards"></div><div class="actions"><button id="start">Drive ↵</button><label id="patrol-choice">Contract <select id="patrol"></select></label></div>
-<small>W / ↑ accelerate · A / ← and D / → steer · S / ↓ brake · Space handbrake · Q smoke · E interact · Shift near a relay closes its gate · Esc pause · R retry · C contracts</small>
+<small>W / ↑ accelerate · A / ← and D / → steer · S / ↓ brake · Space handbrake · Q smoke · E interact · Shift: close relay · Tab: live tactical map · F: decoy · 1/2: choose exit · Esc pause · R retry · C contracts</small>
 </section>
 <section id="intermission" hidden><h1>JOB <span>COMPLETE</span></h1><p id="job-summary"></p><div id="upgrade-choices" class="upgrade-choices"></div><p>Pick one upgrade to continue, or take your haul at risk to the docks now. Continuing gives you a brief head start while patrols reposition.</p><div class="actions"><button id="continue-job" disabled>Continue job</button><button id="cash-out">Extract with haul</button></div></section>
 <div id="hud" hidden></div>

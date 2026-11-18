@@ -35,10 +35,21 @@ function start() {
   camera = null;
   state = Drive.reset();
   state.smoke = Smoke.reset();
+  state.lockdown = Lockdown.reset();
+  state.ghostAlley = false;
   state.jobs = Jobs.reset(Contracts[Number(layoutInput.value)].seed);
+  state.civilians = CivilianTraffic.reset(Contracts[Number(layoutInput.value)].seed);
+  // Contract identities alter resources and initial threat, not only the briefing.
+  const contractId = Contracts[Number(layoutInput.value)].id;
+  state.contractId = contractId;
+  if (contractId === "iris") state.smoke.charges = 3;
+  if (contractId === "switch") state.traffic.charges = 5;
+  if (contractId === "cash-depot") state.jobs.heat = 1;
+  state.smoke.maxCharges = state.smoke.charges;
   pursuit = Pursuit.reset(Contracts[Number(layoutInput.value)].layout);
   state.seed = Contracts[Number(layoutInput.value)].seed;
   pursuit.pressure = Contracts[Number(layoutInput.value)].pressure;
+  if(contractId==='cash-depot')pursuit.refitGrace=2.4; // High-heat raid starts with a short lead, not an immediate capture.
   interact = false;
   mode = 'playing';
   brief.hidden = true;
@@ -58,25 +69,36 @@ function pause() {
 }
 
 function finish() {
-  mode = 'results'; brief.dataset.mode='results';
+  mode = 'results';
+  brief.dataset.mode = 'results';
   document.querySelector('#run-cards').innerHTML = '';
   hud.hidden = true;
   intermission.hidden = true;
   layoutChoice.hidden = false;
-  const s = Pursuit.score(state, pursuit);
-  const record = Records.bank(state, pursuit, Contracts[Number(layoutInput.value)]);
-  brief.querySelector('h1').innerHTML = 'RUN <span>REPORT</span>';
-  brief.querySelector('p').textContent = pursuit.result + '  /  ' + s.total.toLocaleString() + ' pts\n' +
-    'Job haul +' + s.recorder + '  ·  Escape +' + s.extraction +
-    '  ·  Optional cash +' + s.bonus + '  ·  Time +' + s.pace + '\nCar condition +' + s.condition + '  ·  Interceptor feint +' + s.feint + '\n' + (record ? 'Personal best ' + Records.table(Contracts[Number(layoutInput.value)].id)[0].total + ' · ' + (record.delta === null ? 'First record' : (record.delta >= 0 ? '+' : '') + record.delta + ' vs best') : 'No score banked');
+
   const contract = Contracts[Number(layoutInput.value)];
-  const medal = s.total >= contract.gold ? 'GOLD' : s.total >= contract.gold*.85 ? 'SILVER' : s.total ? 'BRONZE' : 'NO SCORE BANKED';
-  brief.querySelector('p').textContent += '\nPoints bank only on escape. Capture or wreck: 0 points.\n' + (state.jobs.completed.map((done,i)=>done?'JOB '+(i+1)+' ✓':null).filter(Boolean).join(' · ')||'No job completed') + '\n' + (s.total > 0 && state.car.damage <= 5 ? 'CLEAN ESCAPE · ' : s.total > 0 ? 'ESCAPED · ' : '') + medal + (s.total ? ' · ' + Math.abs(s.total-contract.gold) + (s.total >= contract.gold ? ' above Gold target' : ' to Gold target') : '') +
-    '\n' + state.time.toFixed(1) + ' seconds · ' + Math.max(0,100-state.car.damage).toFixed(0) + '% integrity';
+  const score = Pursuit.score(state, pursuit);
+  const record = Records.bank(state, pursuit, contract);
+  const best = Records.table(contract.id)[0];
+  const completed = state.jobs.completed.filter(Boolean).length;
+  const intact = Math.max(0, Math.round(100 - state.car.damage));
+  const won = score.total > 0;
+  const medal = !won ? 'NO SCORE' : score.total >= contract.gold ? 'GOLD' :
+    score.total >= contract.gold * .85 ? 'SILVER' : 'BRONZE';
+
+  brief.querySelector('h1').innerHTML = won ?
+    'ESCAPED<span>' + medal + ' GETAWAY</span>' :
+    'BUSTED<span>' + pursuit.result + '</span>';
+  brief.querySelector('p').textContent =
+    completed + '/3 JOBS CLEARED  ·  ' + state.time.toFixed(1) + 's  ·  ' + intact + '% CAR\n' +
+    'HAUL +' + score.recorder.toLocaleString() + '  ·  EXTRACTION +' + score.extraction.toLocaleString() + '\n' +
+    'MASTERY +' + score.styleBonus.toLocaleString() + '  ·  ROUTE +' + score.routeBonus.toLocaleString() + '\n' +
+    (best ? 'PERSONAL BEST ' + best.total.toLocaleString() + '  ·  ' + (record?.delta == null ? 'FIRST RECORD' : (record.delta >= 0 ? '+' : '') + record.delta + ' VS BEST') : 'NO SCORE BANKED') + '\n' +
+    (won ? 'TAKE THE MONEY. OUTRUN THE LOCKDOWN.' : 'CAPTURE OR WRECK LOSES EVERYTHING.');
+  document.querySelector('#run-cards').innerHTML =
+    '<div class="score-hero">' + score.total.toLocaleString() +
+    '<small>' + (won ? 'POINTS BANKED' : 'POINTS LOST') + '</small></div>';
   startButton.textContent = 'Retry ↵';
-  brief.querySelector('p').textContent += '\nC · contract select';
-  brief.querySelector('h1').innerHTML = s.total ? 'ESCAPED<span>'+medal+' GETAWAY</span>' : 'BUSTED<span>'+pursuit.result+'</span>';
-  document.querySelector('#run-cards').innerHTML = '<div class=score-hero>'+s.total.toLocaleString()+'<small>POINTS BANKED</small></div>';
   brief.hidden = false;
 }
 
@@ -100,7 +122,18 @@ function showContract() {
   const best = Records.table(c.id)[0];
   brief.querySelector('h1').innerHTML = 'REDLINE <span>LOCKDOWN</span>';
   brief.querySelector('p').innerHTML = '<strong>ROB THE BANK. CUT THE GRID. VANISH.</strong><br>Close roads behind you. Smoke the tail. Risk one more job — or escape with what you have.';
-  document.querySelector('#run-cards').innerHTML = `<div class="mission-grid"><div><b>01 / SNATCH</b><span>Hit the rolling pickup</span></div><div><b>02 / CRACK</b><span>Time the vault drill</span></div><div><b>03 / VANISH</b><span>Match the courier, then escape</span></div></div><div class="contract-goal">${c.goal}<br>GOLD ${c.gold.toLocaleString()} · BEST ${best?best.total.toLocaleString():'—'} · ${Contracts.filter(c=>(Records.table(c.id)[0]?.total||0)>=c.gold).length}/3 contracts mastered</div>`;
+  const cards=Contracts.map((contract,index) =>
+    `<button type="button" class="contract-card ${index===Number(layoutInput.value)?'selected':''}" data-contract="${index}">
+      <b>0${index+1} / ${contract.name}</b><span>${contract.beats.map(beat=>beat[0]).join(' · ')}</span>
+    </button>`).join('');
+  document.querySelector('#run-cards').innerHTML =
+    `<div class="contract-picker">${cards}</div><div class="contract-goal"><b>MISSION OBJECTIVES</b><br>
+     ${c.beats.map((beat,i)=>`0${i+1} / ${beat[1]}`).join(' · ')}<br>
+     ${c.goal}<br>GOLD ${c.gold.toLocaleString()} · PERSONAL BEST ${best?best.total.toLocaleString():'—'} ·
+     ${Contracts.filter(item=>(Records.table(item.id)[0]?.total||0)>=item.gold).length}/3 MASTERED</div>`;
+  for(const card of document.querySelectorAll('#run-cards [data-contract]'))
+    card.onclick=()=>{layoutInput.value=card.dataset.contract;showContract();};
+
   const rows=Records.table(c.id);
   if(rows.length) brief.querySelector('p').textContent += rows.length ? '\n\nPERSONAL RECORDS\n' +
     rows.map(r=>r.total+' pts · '+r.time.toFixed(1)+' s · '+r.integrity.toFixed(0)+'%').join('\n') : '';
@@ -132,17 +165,42 @@ function pickUpgrade(index){const button=upgradeChoices.children[index];if(butto
 function targetForRun(){
   if(!state.jobs)return state.collected?Pursuit.exit:Drive.pickup;
   if(state.jobs.stage===0)return Jobs.pickup(state.jobs,state.time);
-  if(state.jobs.stage===1)return Drive.pickup;
-  if(state.jobs.stage===2)return {x:state.jobs.courier.x,y:state.jobs.courier.y};
-  return Pursuit.exit;
+  if(state.jobs.stage===1){
+    if(state.contractId==='switch' && !ContractRules.required(state,1).ready){
+      return Traffic.gates.reduce((best,g)=>City.distance(g.console,state.car)<City.distance(best.console,state.car)?g:best,Traffic.gates[0]).console;
+    }
+    return Drive.vaultFor(state);
+  }
+  if(state.jobs.stage===2){
+    if(!ContractRules.required(state,2).ready){
+      if(state.contractId==='iris')return {x:690,y:595};
+      if(state.contractId==='cash-depot')return {x:1010,y:650};
+    }
+    return {x:state.jobs.courier.x,y:state.jobs.courier.y};
+  }
+  if(state.jobs.stage===3 && !ContractRules.escapeReady(state,pursuit)) {
+    if(state.contractId==='iris')return {x:690,y:595};
+    if(state.contractId==='switch') {
+      if(!(state.traffic.successfulClosures>0))return Traffic.gates.reduce((best,g)=>City.distance(g.console,state.car)<City.distance(best.console,state.car)?g:best,Traffic.gates[0]).console;
+      if(!pursuit.hadIntercept)return City.nodes[City.nearest(pursuit.units[1])];
+    }
+    if(state.contractId==='cash-depot'&&!state.bonus)return {x:1010,y:650};
+  }
+  return state.lockdown?.active ? Lockdown.target(state) : Pursuit.exit;
 }
 function targetLabel(){
   if(!state.jobs)return state.collected?'DOCK EXIT':'BANK VAULT';
-  return ['ROLLING PICKUP','PORT MERIDIAN VAULT','COURIER TRANSFER','DOCK EXTRACTION'][state.jobs.stage];
+  if(state.jobs.stage===3 && state.lockdown?.active) return Lockdown.exits[state.lockdown.choice].name;
+  if(!ContractRules.required(state,state.jobs.stage).ready){
+    if(state.jobs.stage===1 && state.contractId==='switch')return 'RELAY SABOTAGE · SHIFT TO SEAL';
+    if(state.jobs.stage===2 && state.contractId==='cash-depot')return 'HIGH-VALUE DEPOT CASH';
+    if(state.jobs.stage===2 && state.contractId==='iris')return 'GHOST · SMOKE & COVER';
+  }
+  return ['ROLLING PICKUP',state.contractId==='switch'?'SIGNAL CACHE RAID':state.contractId==='cash-depot'?'ARMORED LOCKBOX':'PORT MERIDIAN VAULT','COURIER TRANSFER','DOCK EXTRACTION'][state.jobs.stage];
 }
 window.addEventListener('keydown', e => {
   if (e.target === layoutInput) return;
-  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'Enter'].includes(e.code)) e.preventDefault();
+  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'Enter', 'Tab'].includes(e.code)) e.preventDefault();
   keys.add(e.code);
   if (e.repeat) return;
   if (e.code === 'Enter') confirm();
@@ -156,6 +214,9 @@ window.addEventListener('keydown', e => {
   }
   if (e.code === 'KeyE') interact = true;
   if (e.code === 'KeyQ' && mode === 'playing') Smoke.deploy(state);
+  if (e.code === 'KeyF' && mode === 'playing') Pursuit.deployDecoy(pursuit,state);
+  if (mode === 'playing' && state.lockdown?.active && e.code==='Digit1') Lockdown.select(state,0);
+  if (mode === 'playing' && state.lockdown?.active && e.code==='Digit2') Lockdown.select(state,1);
 });
 window.addEventListener('keyup', e => keys.delete(e.code));
 window.addEventListener('blur', () => {
@@ -169,11 +230,11 @@ function rect(x, y, w, h, fill) {
   ctx.fillRect(x, y, w, h);
 }
 
-function marker(p, name, color) {
+function marker(p, name, color, radius=26) {
   ctx.strokeStyle = color;
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.arc(p.x, p.y, 26 + 3 * Math.sin(state.time * 5), 0, 2 * Math.PI);
+  ctx.arc(p.x, p.y, radius + 3 * Math.sin(state.time * 5), 0, 2 * Math.PI);
   ctx.stroke();
   ctx.fillStyle = color;
   ctx.font = 'bold 12px system-ui';
@@ -250,9 +311,10 @@ function render() {
   ctx.scale(zoom, zoom);
   ctx.drawImage(cityArt, 0, 0);
   Cinematic.streets(ctx,time);
+  if (!title) CivilianTraffic.draw(ctx, state.civilians);
   if (!title) drawTraffic();
   Art.weather(ctx, c, time, w / zoom, h / zoom);
-  if (!title) marker(targetForRun(), targetLabel(), state.jobs?.stage===2?'#6be7ff':'#f4c468');
+  if (!title && state.jobs?.stage !== 3) marker(targetForRun(), targetLabel(), state.jobs?.stage===2?'#6be7ff':'#f4c468');
   if (state.collected) {
     ctx.save();
     ctx.beginPath();
@@ -262,8 +324,8 @@ function render() {
     pursuit.units.forEach((unit, i) => Art.reflections(ctx, unit, reducedFlash ? 0 : time, i));
     ctx.restore();
     if (!state.bonus && state.jobs?.stage<3) marker({x:1010,y:650}, 'OPTIONAL CASH · EXTRA ALARM', '#ffcf75');
-    if(state.jobs?.stage===3)marker(Pursuit.exit, pursuit.lost >= Pursuit.clearDuration(state) ? 'BANK SCORE' : 'BREAK CONTACT', '#82ffbf');
-    if (pursuit.intercept) {
+    if(mode!=='results'&&state.jobs?.stage===3)marker(targetForRun(), !ContractRules.escapeReady(state,pursuit)?'COMPLETE CONTRACT TASK':pursuit.lost >= Pursuit.clearDuration(state) ? 'BANK SCORE' : 'BREAK CONTACT', '#82ffbf',state.lockdown?.choice===0?56:44);
+    if (pursuit.intercept && mode!=='results') {
       const target = City.nodes[pursuit.intercept.node];
       marker(target, pursuit.block ? 'ROADBLOCK' : 'BLOCKADE INBOUND', '#ff657f');
       if (pursuit.block) {
@@ -283,7 +345,7 @@ function render() {
   if(!title && state.smoke){Smoke.draw(ctx,state);StreetDetail.motion(ctx,state,pursuit,time);}
   ctx.restore();
   const destination = targetForRun();
-  const near = state.jobs?.stage===1 && City.distance(c, Drive.pickup) < 45;
+  const near = state.jobs?.stage===1 && City.distance(c, Drive.vaultFor(state)) < 45;
   const range = Math.round(City.distance(c, destination));
   const driveAngle = Math.atan2(destination.y - c.y, destination.x - c.x);
   const arrow = ['→', '↘', '↓', '↙', '←', '↖', '↑', '↗'][(Math.round(driveAngle / (Math.PI / 4)) + 8) % 8];
@@ -291,7 +353,7 @@ function render() {
   shade.addColorStop(0, '#0b142000');
   shade.addColorStop(1, '#050916a8');
   rect(0, 0, w, h, shade);
-  if (mode !== 'title') {Cinematic.screen(ctx,w,h,state,pursuit,reducedFlash);Art.minimap(ctx, w, h, state, pursuit);}
+  if (mode === 'playing' || mode === 'paused' || mode === 'intermission') {Cinematic.screen(ctx,w,h,state,pursuit,reducedFlash);Art.minimap(ctx, w, h, state, pursuit);}
   if (state.sweep >= 0 && !state.bonus) {
     const x = w / 2 - 105;
     const y = h - 66;
@@ -304,6 +366,7 @@ function render() {
     ctx.fillText('PRESS E IN THE GREEN BAND', x, y - 12);
   }
   ChaseHUD.update(hud, state, pursuit, arrow, range);
+  if(mode==='playing' && keys.has('Tab'))TacticalMap.draw(ctx,w,h,state,pursuit);
 
 }
 
@@ -319,13 +382,16 @@ function frame(now) {
         drift: keys.has('Space'), interact, interactHeld: keys.has('KeyE'),
       });
       if(previousJobStage===2&&state.jobs.stage===3){pursuit.contact=0;pursuit.refitGrace=3.5;}
+      if(City.inCover(state.car) && state.car.y < 850)state.ghostAlley=true;
       if (keys.has('ShiftLeft') || keys.has('ShiftRight')) {
         if (!state.gateKeyDown) Traffic.activate(state.traffic, state, pursuit);
         state.gateKeyDown = true;
       } else state.gateKeyDown = false;
       interact = false;
       Traffic.tick(state.traffic, state, pursuit);
+      CivilianTraffic.tick(state.civilians, state, 1/60);
       Smoke.tick(state,1/60);
+      Lockdown.tick(state,pursuit,1/60);
       Cinematic.tick(state);
       Pursuit.tick(pursuit, state);
       if (pursuit.result) finish();

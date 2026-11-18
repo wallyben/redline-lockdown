@@ -11,3 +11,29 @@ section{max-height:94vh;overflow:auto}
 #brief[data-mode=results] h1{font-size:76px;margin-bottom:16px}#brief[data-mode=results] p{font-size:12px;line-height:1.6}#brief[data-mode=results] .eyebrow{margin-bottom:18px}#brief[data-mode=results] .score-hero{font-size:48px;margin:12px 0}#brief[data-mode=results] small{margin-top:12px}
 
 #hud{width:350px}.chase-threat{padding:9px 14px;font-size:17px}.chase-objective{padding:9px 14px;font-size:18px}.chase-stats{padding:8px 14px}.chase-route{padding:7px 14px}.ability-bar{padding:8px 14px}.win-rule{padding:7px 14px;font-size:8px}
+
+
+/* Reward screen: four-line readable summary instead of dense debug copy. */
+#brief[data-mode="results"] {max-width:min(560px,88vw);background:#0a1420f5}
+#brief[data-mode="results"] h1 {margin-bottom:22px}
+#brief[data-mode="results"] p {font-size:14px;line-height:1.8;color:#c9dfeb;letter-spacing:.018em}
+#brief[data-mode="results"] .score-hero {font-size:72px;margin:18px 0 16px;text-shadow:0 0 24px #45eec939}
+#brief[data-mode="results"] .score-hero small {font-size:12px;color:#a4ffe2}
+
+
+/* Distinct, selectable mission identities on title and clearer tactical feedback. */
+.contract-picker{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:19px 0 12px}
+.contract-card{background:#182b38;color:#e8f9ff;border:1px solid #4c6b76;padding:13px 9px;text-align:left;min-height:93px;line-height:1.2;transition:border-color .1s,background .1s;cursor:pointer}
+.contract-card.selected{border:2px solid #7affe0;background:#224351;box-shadow:inset 0 0 12px #20e6d31d}
+.contract-card b{font-size:12px;display:block;color:#aaffdd;letter-spacing:.035em}
+.contract-card span{display:block;font-size:11px;color:#c5d4df;margin-top:10px;font-weight:500}
+.contract-card:hover{background:#2b4655}
+.mastery-note{display:block;color:#e8cf89;margin-top:5px;font-size:11px}
+#brief[data-mode="title"] .contract-goal{font-size:12px;line-height:1.5;padding:12px;background:#142a37;border-left:2px solid #7bfbd5;margin:12px 0 17px}
+#brief[data-mode="title"] .contract-goal b{font-size:10px;color:#76efce;letter-spacing:.13em}
+#brief[data-mode="title"] small{font-size:10px;line-height:1.5}
+@media(max-width:710px){.contract-picker{grid-template-columns:1fr}.contract-card{min-height:50px}.contract-card span{margin-top:3px}}
+
+/* Results should emphasize the banked score, not duplicate title-screen controls. */
+#brief[data-mode="results"] > small {display:none}
+#brief[data-mode="results"] .actions {margin-top:18px}
