@@ -149,12 +149,16 @@ async function play(browser,idx,name){
     assert.equal(await read(()=>ContractRules.escapeReady(state,pursuit)),true,'Contract mastery requirements not met');
 
     if(idx===1){
+      // Sabotage creates a western escape corridor. Drive the ACTUAL alternate
+      // exit rather than passing straight through the occupied dock blockade.
+      await page.keyboard.press('2');
+      assert.equal(await read(()=>state.lockdown.choice),1,'Grid selected the West Quay route');
+      await driveTo(690,910,120,150);
       await page.keyboard.press('q');
-      await driveTo(1010,650,170,250);
-      await driveTo(1010,910,165,210);
-      await driveTo(1010,940,85,90);
-      await driveTo(1290,940,175,220,8);
-      await page.keyboard.down('Space');await advance(850);await page.keyboard.up('Space');
+      if(await read(()=>pursuit.decoyCharges>0&&!!pursuit.sighting))await page.keyboard.press('f');
+      await driveTo(430,910,220,230);
+      await driveTo(130,910,165,250,15);
+      await brake();
     }else{
       assert.equal(await read(()=>state.lockdown.choice),1,'Payday must force West Quay');
       const decoyReady=await read(()=>pursuit.decoyCharges>0&&!!pursuit.sighting);
