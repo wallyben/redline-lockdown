@@ -2,7 +2,7 @@ name: REDLINE browser playthrough
 on:
   push:
     branches:
-      - improvement/redline-showdown
+      - improvement/gridfall-final
   workflow_dispatch:
 concurrency:
   group: redline-browser-upgrade
@@ -51,5 +51,5 @@ jobs:
           git add screenshots/01-chase.jpg screenshots/02-start.jpg screenshots/03-risk.jpg screenshots/04-results.jpg
           if ! git diff --cached --quiet; then
             git commit -m "Capture current verified REDLINE gameplay [skip ci]"
-            git push origin HEAD:improvement/redline-showdown
+            git push origin HEAD:improvement/gridfall-final
           fi
