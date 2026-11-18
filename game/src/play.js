@@ -42,6 +42,7 @@ function start() {
   if (contractId === "iris") state.smoke.charges = 3;
   if (contractId === "switch") state.traffic.charges = 5;
   if (contractId === "cash-depot") state.jobs.heat = 1;
+  state.smoke.maxCharges = state.smoke.charges;
   pursuit = Pursuit.reset(Contracts[Number(layoutInput.value)].layout);
   state.seed = Contracts[Number(layoutInput.value)].seed;
   pursuit.pressure = Contracts[Number(layoutInput.value)].pressure;
