@@ -34,6 +34,11 @@ section{max-height:94vh;overflow:auto}
 #brief[data-mode="title"] small{font-size:10px;line-height:1.5}
 @media(max-width:710px){.contract-picker{grid-template-columns:1fr}.contract-card{min-height:50px}.contract-card span{margin-top:3px}}
 
+/* Readable skill meter and restrained interactive/accessibility polish. */
+.redline-status{padding:7px 14px;font-size:10px;font-weight:800;letter-spacing:.045em;background:#122c35;color:#a9f7ef;border-top:1px solid #335963}
+.redline-status strong{color:#ffe5a3}
+#settings button:hover,.actions button:hover{filter:brightness(1.12)}
+@media(prefers-reduced-motion:reduce){.contract-card{transition:none}}
 /* Results should emphasize the banked score, not duplicate title-screen controls. */
 #brief[data-mode="results"] > small {display:none}
 #brief[data-mode="results"] .actions {margin-top:18px}
