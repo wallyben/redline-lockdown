@@ -119,6 +119,8 @@ async function play(browser,idx,name){
       let status=await report('AFTER GRID RELAY');
       assert.ok(status.closures>=1,'Grid relay never sealed: '+JSON.stringify(status));
       if(capture){
+        assert.equal(status.diverted,true,'Cover screenshot requires a real police route diversion');
+        await page.screenshot({path:resolve('screenshots/01-chase.jpg'),type:'jpeg',quality:84});
         await page.keyboard.down('Tab');
         await advance(110);
         await page.screenshot({path:resolve('screenshots/03-risk.jpg'),type:'jpeg',quality:84});
