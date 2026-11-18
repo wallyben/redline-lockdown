@@ -28,10 +28,13 @@ The game also works offline by opening `game/index.html` directly in desktop Chr
 - **Tab (hold):** inspect the actual live police route network and interceptor orders.
 - **Shift near a relay:** close a road, physically disrupting the police route; occupancy and escape connectivity are checked.
 - **F:** send a limited-use radio decoy that redirects the pursuers to another reachable junction.
+- **B:** spend earned REDLINE charge on a 2.4-second acceleration burst. Earn charge from police near misses and sustained high-speed pursuits; per-car cooldown prevents easy farming.
 - **Q:** deploy a limited smoke cloud to break sight.
 - **E:** interact with the bank, optional depot and courier. For the drill, press E once to start and again in the green timing window.
 - **1 / 2 during lockdown:** choose East Dock (safer) or West Quay (farther and more dangerous, with a full-run bonus).
 - **R:** retry; **C:** contract selection; **Escape:** pause.
+
+GRIDFALL chains a second real, safety-checked barrier after the first successful relay hack; both escape routes remain connected. REDLINE Overdrive rewards controlled driving near the police, and completed full escapes can earn up to 1,000 additional skill points.
 
 Complete the rolling pickup, vault and moving courier chain, satisfying the selected contract's additional conditions, then break police contact long enough to bank the score at the chosen exit. Early cashout is possible, but capture, wreck or timeout loses the haul. Upgrades between jobs alter handling, damage resistance and relay tactics. Records remain local to the browser.
 
