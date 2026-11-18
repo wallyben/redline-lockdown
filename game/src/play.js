@@ -166,6 +166,14 @@ function targetForRun(){
   if(state.jobs.stage===0)return Jobs.pickup(state.jobs,state.time);
   if(state.jobs.stage===1)return Drive.pickup;
   if(state.jobs.stage===2)return {x:state.jobs.courier.x,y:state.jobs.courier.y};
+  if(state.jobs.stage===3 && !ContractRules.escapeReady(state,pursuit)) {
+    if(state.contractId==='iris')return {x:690,y:595};
+    if(state.contractId==='switch') {
+      if(!(state.traffic.successfulClosures>0))return Traffic.gates.reduce((best,g)=>City.distance(g.console,state.car)<City.distance(best.console,state.car)?g:best,Traffic.gates[0]).console;
+      if(!pursuit.hadIntercept)return City.nodes[City.nearest(pursuit.units[1])];
+    }
+    if(state.contractId==='cash-depot'&&!state.bonus)return {x:1010,y:650};
+  }
   return state.lockdown?.active ? Lockdown.target(state) : Pursuit.exit;
 }
 function targetLabel(){
@@ -299,7 +307,7 @@ function render() {
     pursuit.units.forEach((unit, i) => Art.reflections(ctx, unit, reducedFlash ? 0 : time, i));
     ctx.restore();
     if (!state.bonus && state.jobs?.stage<3) marker({x:1010,y:650}, 'OPTIONAL CASH · EXTRA ALARM', '#ffcf75');
-    if(state.jobs?.stage===3)marker(targetForRun(), pursuit.lost >= Pursuit.clearDuration(state) ? 'BANK SCORE' : 'BREAK CONTACT', '#82ffbf');
+    if(state.jobs?.stage===3)marker(targetForRun(), !ContractRules.escapeReady(state,pursuit)?'COMPLETE CONTRACT TASK':pursuit.lost >= Pursuit.clearDuration(state) ? 'BANK SCORE' : 'BREAK CONTACT', '#82ffbf');
     if (pursuit.intercept) {
       const target = City.nodes[pursuit.intercept.node];
       marker(target, pursuit.block ? 'ROADBLOCK' : 'BLOCKADE INBOUND', '#ff657f');
