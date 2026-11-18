@@ -32,5 +32,21 @@ const Siren = (() => {
     motor.frequency.setTargetAtTime(38+speed*.22+(impact>0?16:0),audio.currentTime,.08);
     motorGain.gain.setTargetAtTime(active?.025+Math.min(speed/360,1)*.045:0,audio.currentTime,.08);
   }
-  return { enable, update, engine };
+  // Original two-tone one-shot cue; no external audio, files or network.
+  function cue() {
+    if (!audio) return;
+    const now=audio.currentTime;
+    const tone=audio.createOscillator(),gain=audio.createGain();
+    tone.type='triangle';
+    tone.frequency.setValueAtTime(220,now);
+    tone.frequency.exponentialRampToValueAtTime(680,now+.21);
+    tone.frequency.exponentialRampToValueAtTime(430,now+.42);
+    gain.gain.setValueAtTime(.0001,now);
+    gain.gain.exponentialRampToValueAtTime(.055,now+.018);
+    gain.gain.exponentialRampToValueAtTime(.0001,now+.48);
+    tone.connect(gain).connect(audio.destination);
+    tone.start(now);tone.stop(now+.5);
+    tone.onended=()=>{tone.disconnect();gain.disconnect();};
+  }
+  return { enable, update, engine, cue };
 })();
