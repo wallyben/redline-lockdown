@@ -168,7 +168,7 @@ function targetForRun(){
     if(state.contractId==='switch' && !ContractRules.required(state,1).ready){
       return Traffic.gates.reduce((best,g)=>City.distance(g.console,state.car)<City.distance(best.console,state.car)?g:best,Traffic.gates[0]).console;
     }
-    return Drive.pickup;
+    return Drive.vaultFor(state);
   }
   if(state.jobs.stage===2){
     if(!ContractRules.required(state,2).ready){
@@ -195,7 +195,7 @@ function targetLabel(){
     if(state.jobs.stage===2 && state.contractId==='cash-depot')return 'HIGH-VALUE DEPOT CASH';
     if(state.jobs.stage===2 && state.contractId==='iris')return 'GHOST · SMOKE & COVER';
   }
-  return ['ROLLING PICKUP','PORT MERIDIAN VAULT','COURIER TRANSFER','DOCK EXTRACTION'][state.jobs.stage];
+  return ['ROLLING PICKUP',state.contractId==='switch'?'SIGNAL CACHE RAID':'PORT MERIDIAN VAULT','COURIER TRANSFER','DOCK EXTRACTION'][state.jobs.stage];
 }
 window.addEventListener('keydown', e => {
   if (e.target === layoutInput) return;
@@ -344,7 +344,7 @@ function render() {
   if(!title && state.smoke){Smoke.draw(ctx,state);StreetDetail.motion(ctx,state,pursuit,time);}
   ctx.restore();
   const destination = targetForRun();
-  const near = state.jobs?.stage===1 && City.distance(c, Drive.pickup) < 45;
+  const near = state.jobs?.stage===1 && City.distance(c, Drive.vaultFor(state)) < 45;
   const range = Math.round(City.distance(c, destination));
   const driveAngle = Math.atan2(destination.y - c.y, destination.x - c.x);
   const arrow = ['→', '↘', '↓', '↙', '←', '↖', '↑', '↗'][(Math.round(driveAngle / (Math.PI / 4)) + 8) % 8];
