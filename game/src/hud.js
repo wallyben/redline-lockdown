@@ -1,8 +1,13 @@
 const ChaseHUD = (() => {
-  let previous = '';
+  let previous = '', lastPaint=-Infinity, lastRun=null, lastStage=-1;
   function update(element, state, pursuit, arrow, range) {
     const jobs = state.jobs, car = state.car;
     const stage = jobs?.stage || 0;
+    // Canvas runs at 60 fps, but recreating a complex DOM HUD every frame
+    // costs layout time. Refresh at ~10 Hz; force an update on reset/stage change.
+    const t = Number.isFinite(state.time) ? state.time : 0;
+    if (jobs === lastRun && stage === lastStage && t >= lastPaint && t-lastPaint < .1) return;
+    lastRun = jobs; lastStage = stage; lastPaint = t;
     const objectives = ['Hit the rolling pickup','Stop at the bank · E to drill','Match the courier · hold E','Extract before the lockdown tightens'];
     const prerequisite=ContractRules.required(state,stage);
     const objective = !prerequisite.ready ? prerequisite.task :
