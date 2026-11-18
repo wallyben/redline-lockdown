@@ -4,7 +4,9 @@ const ChaseHUD = (() => {
     const jobs = state.jobs, car = state.car;
     const stage = jobs?.stage || 0;
     const objectives = ['Hit the rolling pickup','Stop at the bank · E to drill','Match the courier · hold E','Extract before the lockdown tightens'];
-    const objective = stage===3&&state.lockdown?.active ? Lockdown.exits[state.lockdown.choice].name : objectives[stage];
+    const prerequisite=ContractRules.required(state,stage);
+    const objective = !prerequisite.ready ? prerequisite.task :
+      stage===3&&state.lockdown?.active ? Lockdown.exits[state.lockdown.choice].name : objectives[stage];
     const threat = state.lockdown?.active ? 'CITY LOCKDOWN ACTIVE' :
       !state.collected?'THE JOB IS ON':pursuit.seen?'POLICE HAVE SIGHT':
       pursuit.lost>=Pursuit.clearDuration(state)?'CONTACT LOST':'BREAKING CONTACT';
