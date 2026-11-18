@@ -36,9 +36,7 @@ async function play(browser, viewport, takeShots) {
       const desiredAngle = Math.atan2(dy, dx);
       const error = Math.atan2(Math.sin(desiredAngle - car.angle), Math.cos(desiredAngle - car.angle));
       const speed = Math.hypot(car.vx, car.vy);
-      if(takeShots&&!actionCaptured&&car.x>450&&car.x<610&&speed>170&&await state(()=>state.jobs.stage===1)){
-        if(!actionCaptured) await shot('01-chase.jpg');actionCaptured=true;
-      }
+      // Capture the actual tactical encounter after the gate activates, not a pre-alert drive.
       const desiredSpeed = distance < 100 ? Math.min(speedLimit, distance * 2.4) : speedLimit;
       const wanted = new Set();
       if (speed < desiredSpeed - 10) wanted.add('w');
@@ -140,7 +138,16 @@ async function play(browser, viewport, takeShots) {
   await advance(34);
   assert.equal(await state(() => state.jobs.completed[2]), true, 'Courier transfer did not complete');
   assert.equal(await state(() => state.jobs.stage), 3);
-
+  assert.equal(await state(() => state.lockdown.active),true);
+  assert.equal(await state(() => ContractRules.escapeReady(state,pursuit)),true,'Ghost contract ability and alley must both be completed');
+  await page.keyboard.down('Tab');
+  await advance(100);
+  await page.keyboard.up('Tab');
+  await page.keyboard.press('2');
+  assert.equal(await state(() => Lockdown.target(state).x),130);
+  await page.keyboard.press('1');
+  assert.equal(await state(() => Lockdown.target(state).x),1290);
+  
   // Leave through the dock lane and hide under the loading canopy until all units search past.
   await driveTo(1010, 910, 160, 140);
   await driveTo(1010, 940, 90, 70);
