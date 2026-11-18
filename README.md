@@ -28,12 +28,13 @@ The game also works offline by opening `game/index.html` directly in desktop Chr
 - **Tab (hold):** inspect the actual live police route network and interceptor orders.
 - **Shift near a relay:** close a road, physically disrupting the police route; occupancy and escape connectivity are checked.
 - **F:** send a limited-use radio decoy that redirects the pursuers to another reachable junction.
+- **B:** activate a 2.4-second REDLINE Overdrive burst once charged. Earn charge by fast driving under observed pursuit and authentic close passes; repeated passes against the same unit have a cooldown.
 - **Q:** deploy a limited smoke cloud to break sight.
 - **E:** interact with the bank, optional depot and courier. For the drill, press E once to start and again in the green timing window.
 - **1 / 2 during lockdown:** choose East Dock (safer) or West Quay (farther and more dangerous, with a full-run bonus).
 - **R:** retry; **C:** contract selection; **Escape:** pause.
 
-Complete the rolling pickup, vault and moving courier chain, satisfying the selected contract's additional conditions, then break police contact long enough to bank the score at the chosen exit. Early cashout is possible, but capture, wreck or timeout loses the haul. Upgrades between jobs alter handling, damage resistance and relay tactics. Records remain local to the browser.
+Complete the rolling pickup, vault and moving courier chain, satisfying the selected contract's additional conditions, then break police contact long enough to bank the score at the chosen exit. Full, successful extractions bank an additional REDLINE skill bonus for near misses and Overdrive usage (capped at 1,000 points); deliberate partial cashouts cannot claim it. Early cashout is possible, but capture, wreck or timeout loses the haul. Upgrades between jobs alter handling, damage resistance and relay tactics. Records remain local to the browser.
 
 The entire playable game and its original art and sound are self-contained and require no network requests.
 
