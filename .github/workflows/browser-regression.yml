@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   browser:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 18
     permissions:
       contents: write
@@ -18,15 +18,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Install Playwright and Chromium
+      - name: Use preinstalled Google Chrome with Playwright
         run: |
           npm install --no-save playwright
-          npx playwright install --with-deps chromium
-      - name: Test complete offline escape sequence in Chromium
+          command -v google-chrome || command -v google-chrome-stable
+          google-chrome --version || google-chrome-stable --version
+      - name: Test complete offline escape sequence in Chrome
         shell: bash
         run: |
           export REDLINE_PLAYWRIGHT=playwright
-          export REDLINE_CHROME=$(node -e "process.stdout.write(require('playwright').chromium.executablePath())")
+          export REDLINE_CHROME="$(command -v google-chrome || command -v google-chrome-stable)"
+          test -n "$REDLINE_CHROME"
           node tests/contracts-browser.cjs --shots
           node tests/browser.cjs --shots
           node tests/west-browser.cjs --one
