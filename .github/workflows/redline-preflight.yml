@@ -2,13 +2,13 @@ name: REDLINE candidate preflight and genuine Chrome captures
 on:
   push:
     branches:
-      - improvement/redline-ultimate
+      - improvement/redline-hardening-v2
     paths-ignore:
       - screenshots/**
   workflow_dispatch:
 
 concurrency:
-  group: redline-ultimate-${{ github.ref }}
+  group: redline-hardening-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -40,6 +40,7 @@ jobs:
           export REDLINE_CHROME="$(node -p "require('playwright').chromium.executablePath()")"
           node tests/browser.cjs --shots
           node tests/contracts-browser.cjs --shots
+          node tests/hardening-browser.cjs
           test ! screenshots/01-chase.jpg -ef screenshots/03-risk.jpg
           if cmp -s screenshots/01-chase.jpg screenshots/03-risk.jpg; then
             echo "Chase and tactical map captures must show distinct authentic game moments"
@@ -66,5 +67,5 @@ jobs:
           git add screenshots/
           if ! git diff --cached --quiet; then
             git commit -m "Capture genuine final Chrome screenshots [skip ci]"
-            git push origin "HEAD:improvement/redline-ultimate"
+            git push origin "HEAD:improvement/redline-hardening-v2"
           fi
