@@ -4,7 +4,7 @@
 [![rank](https://make.fun/badge/best-game-01/wallyben/redline-lockdown/rank.svg)](https://make.fun/bounty/best-game-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=best-game-01)
 [![reward](https://make.fun/badge/best-game-01/wallyben/redline-lockdown/reward.svg)](https://make.fun/bounty/best-game-01?utm_source=github&utm_medium=readme&utm_campaign=best-game-01)
 
-Raid Port Meridian's bank or specialized cash targets, hijack the city's street controls, lure police into the wrong intersection, and get out before lockdown. A real-time tactical map reveals interceptor routes, closures and both final exits.
+Raid Port Meridian's bank or specialized cash targets, hijack the city's street controls, lure police into the wrong intersection, and get out before lockdown. A real-time tactical map reveals interceptor routes, closures and both final exits. **After the final courier transfer, Unit Omega enters the city as a physical command interceptor.** Break its intercept with an earned radio spoof or an actual relay diversion for a 750-point commander bonus.
 
 ## Three contracts, three different challenges
 

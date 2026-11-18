@@ -36,8 +36,12 @@ async function play(browser, viewport, takeShots) {
       const desiredAngle = Math.atan2(dy, dx);
       const error = Math.atan2(Math.sin(desiredAngle - car.angle), Math.cos(desiredAngle - car.angle));
       const speed = Math.hypot(car.vx, car.vy);
-      if(takeShots&&!actionCaptured&&car.x>450&&car.x<610&&speed>170&&await state(()=>state.jobs.stage===1)){
-        if(!actionCaptured) await shot('01-chase.jpg');actionCaptured=true;
+      // Capture a genuine fast chase during the bank approach; the late
+      // relay-frame camera can appear stationary despite the tactical depth.
+      if(takeShots && !actionCaptured && car.x>445 && car.x<600 && speed>170 &&
+         await state(()=>state.jobs.stage===1 && pursuit.hadContact)){
+        await shot('01-chase.jpg');
+        actionCaptured=true;
       }
       const desiredSpeed = distance < 100 ? Math.min(speedLimit, distance * 2.4) : speedLimit;
       const wanted = new Set();
@@ -79,7 +83,10 @@ async function play(browser, viewport, takeShots) {
   assert.equal(await state(() => state.jobs.pending), true);
   assert.equal(await page.locator('#upgrade-choices button').count(), 3);
   await chooseUpgrade();
-
+  // Ghost Run's compulsory ability objective is real, not just a score label.
+  await page.keyboard.press('q');
+  assert.equal(await state(() => state.smoke.charges),2);
+  
   // Close the boulevard gate after passing its barrier; patrols must route around it.
   await driveTo(610, 400, 310, 180);
   await page.keyboard.down('Shift');
@@ -94,13 +101,17 @@ async function play(browser, viewport, takeShots) {
   }));
   if(chase.phase==='ready'){
     assert.match(chase.message,/occupied|barrier lane/,JSON.stringify(chase));
-    console.log('Gate safely refused closure with a vehicle in its lane');
-  }else{
+    console.log('Gate safely refunded an unsafe request');
+  }else if(chase.phase==='warning') {
+    assert.match(chase.message,/queued|waiting/,JSON.stringify(chase));
+    assert.equal(chase.edge,undefined);
+    console.log('Gate queued while pursuit vehicle occupies lane');
+  }else {
     assert.equal(chase.phase,'closed',JSON.stringify(chase));
     assert.equal(chase.edge,'6:7');
   }
   assert.ok(chase.tail < 150, 'Police did not visibly close in: ' + chase.tail);
-  if(!actionCaptured) await shot('01-chase.jpg');
+  if(!actionCaptured) { await shot('01-chase.jpg');actionCaptured=true; }
 
   // Bank drill and second seeded upgrade.
   await driveTo(690, 400, 24, 180, 8);
@@ -112,11 +123,12 @@ async function play(browser, viewport, takeShots) {
   assert.ok(bankApproach.distance < 45 && bankApproach.speed < 36, 'Could not stop in bank bay: ' + JSON.stringify(bankApproach));
   await page.keyboard.press('e');
   await advance(950);
+  const drillMid=await state(()=>({sweep:state.sweep,x:state.car.x,y:state.car.y,vx:state.car.vx,vy:state.car.vy}));
   await page.keyboard.press('e');
   await advance(80);
-  assert.equal(await state(() => state.jobs.completed[1]), true, 'Vault interaction failed: ' + JSON.stringify(await state(() => ({ car: state.car, sweep: state.sweep, jobs: state.jobs.stage }))));
+  assert.equal(await state(() => state.jobs.completed[1]), true, 'Vault interaction failed: ' + JSON.stringify({drillMid,after:await state(() => ({ car: state.car, sweep: state.sweep, jobs: state.jobs.stage }))}));
   assert.equal(await page.locator('#upgrade-choices button').count(), 3);
-  await shot('03-risk.jpg');
+  // The Grid tactical overlay is the more distinctive risk/decision capture.
   await chooseUpgrade();
 
   // Alley, moving courier and controlled transfer.
@@ -137,7 +149,16 @@ async function play(browser, viewport, takeShots) {
   await advance(34);
   assert.equal(await state(() => state.jobs.completed[2]), true, 'Courier transfer did not complete');
   assert.equal(await state(() => state.jobs.stage), 3);
-
+  assert.equal(await state(() => state.lockdown.active),true);
+  assert.equal(await state(() => ContractRules.escapeReady(state,pursuit)),true,'Ghost contract ability and alley must both be completed');
+  await page.keyboard.down('Tab');
+  await advance(100);
+  await page.keyboard.up('Tab');
+  await page.keyboard.press('2');
+  assert.equal(await state(() => Lockdown.target(state).x),130);
+  await page.keyboard.press('1');
+  assert.equal(await state(() => Lockdown.target(state).x),1290);
+  
   // Leave through the dock lane and hide under the loading canopy until all units search past.
   await driveTo(1010, 910, 160, 140);
   await driveTo(1010, 940, 90, 70);
@@ -168,9 +189,9 @@ async function play(browser, viewport, takeShots) {
   assert.equal(await state(() => state.jobs.completed.some(Boolean)), false);
   assert.equal(await state(() => state.jobs.haul), 0);
   await page.keyboard.press('q');
-  assert.equal(await state(() => state.smoke.charges), 1);
+  assert.equal(await state(() => state.smoke.charges), 2);
   await page.keyboard.press('q');
-  assert.equal(await state(() => state.smoke.charges), 1, 'Smoke cooldown prevents repeated deployment');
+  assert.equal(await state(() => state.smoke.charges), 2, 'Smoke cooldown prevents repeated deployment');
   assert.equal(await state(() => Records.table(Contracts[0].id).length), 1);
   await page.keyboard.press('Escape');
   const paused = await state(() => state.time);
