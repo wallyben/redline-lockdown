@@ -93,7 +93,7 @@ test('lockdown escort actually joins the pursuit from a real road node',()=>{
   p.refitGrace=5;
   Pursuit.tick(p,run,1/60);
   assert.ok(p.lockdownUnit);
-  assert.equal(p.lockdownUnit.role,'roadblock');
+  assert.equal(p.lockdownUnit.role,'commander');
   assert.ok(p.units.includes(p.lockdownUnit));
   assert.equal(p.lockdownTarget,13);
   assert.ok(p.lockdownUnit.path.length>0);
