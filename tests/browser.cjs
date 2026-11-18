@@ -113,9 +113,10 @@ async function play(browser, viewport, takeShots) {
   assert.ok(bankApproach.distance < 45 && bankApproach.speed < 36, 'Could not stop in bank bay: ' + JSON.stringify(bankApproach));
   await page.keyboard.press('e');
   await advance(950);
+  const drillMid=await state(()=>({sweep:state.sweep,x:state.car.x,y:state.car.y,vx:state.car.vx,vy:state.car.vy}));
   await page.keyboard.press('e');
   await advance(80);
-  assert.equal(await state(() => state.jobs.completed[1]), true, 'Vault interaction failed: ' + JSON.stringify(await state(() => ({ car: state.car, sweep: state.sweep, jobs: state.jobs.stage }))));
+  assert.equal(await state(() => state.jobs.completed[1]), true, 'Vault interaction failed: ' + JSON.stringify({drillMid,after:await state(() => ({ car: state.car, sweep: state.sweep, jobs: state.jobs.stage }))}));
   assert.equal(await page.locator('#upgrade-choices button').count(), 3);
   await shot('03-risk.jpg');
   await chooseUpgrade();
