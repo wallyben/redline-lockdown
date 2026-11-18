@@ -6,7 +6,7 @@ const Traffic = ((city) => {
   ];
   const reset = () => ({ closedEdges: new Set(), barrier: null, selected: null,
     phase: 'ready', timer: 0, waiting: 0, radioJam:0, cooldown: 0, charges: 3, successfulClosures: 0, message: 'Relay gates ready',
-    gridfallUsed:false,gridfallCompleted:0,gridfallFlash:0,latestGate:null,cascade:{phase:'idle',gate:null,timer:0,waiting:0,barrier:null} });
+    gridfallUsed:false,gridfallCompleted:0,gridfallFlash:0,latestGate:null,remotePending:null,remoteSealed:0,cascade:{phase:'idle',gate:null,timer:0,waiting:0,barrier:null} });
   function segmentDistance(point, a, b) {
     const dx = b.x - a.x, dy = b.y - a.y;
     const t = Math.max(0, Math.min(1, ((point.x-a.x)*dx + (point.y-a.y)*dy)/(dx*dx+dy*dy)));
@@ -71,6 +71,7 @@ const Traffic = ((city) => {
     if(!request(state,run,pursuit,gate))return false;
     meter.charge=Math.max(0,meter.charge-.7);
     meter.remoteUsed=1;
+    state.remotePending=gate.id;
     meter.message='GRID OVERRIDE / '+gate.name.toUpperCase();
     meter.messageTime=2.9;
     state.message=gate.name+' / REMOTE CLOSURE ARMED · POLICE MUST REROUTE';
@@ -88,6 +89,15 @@ const Traffic = ((city) => {
         state.waiting += dt;
         if (!viable || (blocked && state.waiting >= 3.0)) {
           state.phase='ready';state.timer=0;state.waiting=0;state.selected=null;state.charges++;
+          // No charge is lost if the one-use remote command could not physically
+          // close its road. Refund the SAME 70% meter and re-arm its one-use token.
+          if(state.remotePending===gate.id && run.momentum){
+            run.momentum.charge=Math.min(1,run.momentum.charge+.7);
+            run.momentum.remoteUsed=0;
+            run.momentum.message='GRID OVERRIDE REFUNDED / ROAD NOT SAFE';
+            run.momentum.messageTime=2.4;
+            state.remotePending=null;
+          }
           state.message = !viable ? 'Gate aborted · escape route blocked, charge restored' :
             'Gate aborted · lane occupied too long, charge restored';
         } else if (blocked) {
@@ -96,6 +106,7 @@ const Traffic = ((city) => {
         } else {
           state.closedEdges = new Set([city.edgeKey(...gate.edge)]);
           state.barrier = barrierFor(gate);
+          if(state.remotePending===gate.id){state.remoteSealed++;state.remotePending=null;}
           state.latestGate=gate;
           state.phase='closed'; state.waiting=0;state.successfulClosures++; state.timer=run.jobs?.modifiers.gateDuration||5;
           // GRIDFALL: a single genuine relay hack chains to one nearby
