@@ -17,7 +17,7 @@ const Lockdown = (() => {
       return false;
     }
     run.lockdown.choice=which;
-    run.lockdown.event=which===0?'EAST: USE COVER TO BREAK LINE OF SIGHT':'WEST: +1,750 BONUS / MORE POLICE PRESSURE';
+    run.lockdown.event=which===0?'EAST: USE COVER TO BREAK LINE OF SIGHT':'WEST: +1,750 / HIDE IN SOUTHERN UNDERPASS';
     return true;
   }
   function tick(run,p,dt=1/60) {
