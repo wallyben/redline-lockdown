@@ -307,8 +307,8 @@ function render() {
     pursuit.units.forEach((unit, i) => Art.reflections(ctx, unit, reducedFlash ? 0 : time, i));
     ctx.restore();
     if (!state.bonus && state.jobs?.stage<3) marker({x:1010,y:650}, 'OPTIONAL CASH · EXTRA ALARM', '#ffcf75');
-    if(state.jobs?.stage===3)marker(targetForRun(), !ContractRules.escapeReady(state,pursuit)?'COMPLETE CONTRACT TASK':pursuit.lost >= Pursuit.clearDuration(state) ? 'BANK SCORE' : 'BREAK CONTACT', '#82ffbf');
-    if (pursuit.intercept) {
+    if(mode!=='results'&&state.jobs?.stage===3)marker(targetForRun(), !ContractRules.escapeReady(state,pursuit)?'COMPLETE CONTRACT TASK':pursuit.lost >= Pursuit.clearDuration(state) ? 'BANK SCORE' : 'BREAK CONTACT', '#82ffbf');
+    if (pursuit.intercept && mode!=='results') {
       const target = City.nodes[pursuit.intercept.node];
       marker(target, pursuit.block ? 'ROADBLOCK' : 'BLOCKADE INBOUND', '#ff657f');
       if (pursuit.block) {
