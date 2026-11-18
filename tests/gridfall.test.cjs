@@ -85,7 +85,7 @@ test('a live courier blocks primary closure while its transfer crosses the lane'
   const {run,p}=setup(2);
   run.jobs.courier={x:560,y:650};
   assert.equal(Traffic.activate(run.traffic,run,p),true);
-  advance(run,p,225);
+  advance(run,p,245); // 0.8s warning plus the full 3.0s occupied-lane safety timeout.
   assert.equal(run.traffic.phase,'ready');
   assert.equal(run.traffic.charges,3);
   assert.equal(run.traffic.barrier,null);
