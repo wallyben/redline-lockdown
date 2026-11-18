@@ -141,9 +141,12 @@ async function play(browser,idx,name){
       // Payday: first travel to the cash depot, then the southern freight courier.
       await driveTo(690,450,90,130);
       await driveTo(690,650,185,180);
-      await driveTo(1010,650,160,240,8);
+      const reachedDepot = await driveTo(1010,650,160,240,8);
+      const beforeDepot = await report('BEFORE DEPOT');
+      assert.equal(reachedDepot,true,'Depot approach did not complete: '+JSON.stringify(beforeDepot));
       await drill();
-      assert.equal(await read(()=>state.bonus),true,'Payday requires actual depot cash');
+      const afterDepot = await report('AFTER DEPOT');
+      assert.equal(afterDepot.bonus,true,'Payday requires actual depot cash: '+JSON.stringify({beforeDepot,afterDepot}));
       await page.keyboard.press('f');
       await driveTo(1010,910,95,200,12);
     }
