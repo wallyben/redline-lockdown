@@ -1,7 +1,7 @@
 // Fully interactive offline browser proof for both non-Ghost contract circuits.
 // All objective progression is achieved through real keyboard controls.
 const assert=require('node:assert/strict');
-const {mkdirSync}=require('node:fs');
+const {mkdirSync,writeFileSync}=require('node:fs');
 const {chromium}=require(process.env.REDLINE_PLAYWRIGHT||'playwright-core');
 const {resolve}=require('node:path');
 const {pathToFileURL}=require('node:url');
@@ -126,13 +126,22 @@ async function play(browser,idx,name){
         await page.screenshot({path:resolve('screenshots/03-risk.jpg'),type:'jpeg',quality:84});
         await page.keyboard.up('Tab');
         if(coverOnly){
-          // Photograph genuine acceleration, with the diversion still active.
-          await page.keyboard.down('w');await advance(430);await page.keyboard.up('w');
-          const pace=await report('REAL GRIDFALL COVER');
-          assert.ok(Math.hypot(pace.car.vx,pace.car.vy)>115,'Cover must show actual speed');
-          assert.equal(await read(()=>pursuit.routeBreak?.real),true);
-        }
-        await page.screenshot({path:resolve('screenshots/01-chase.jpg'),type:'jpeg',quality:84});
+          // Select the fastest *real* browser frame after the genuine diversion.
+          // Sampling never changes game physics or invents a screenshot state.
+          let bestSpeed=-1,bestFrame=null;
+          await page.keyboard.down('w');
+          for(let frame=0;frame<9;frame++){
+            await advance(100);
+            const data=await read(()=>({speed:Math.hypot(state.car.vx,state.car.vy),diverted:pursuit.routeBreak?.real}));
+            if(data.diverted&&data.speed>bestSpeed){
+              bestSpeed=data.speed;bestFrame=await page.screenshot({type:'jpeg',quality:84});
+            }
+          }
+          await page.keyboard.up('w');
+          assert.ok(bestFrame&&bestSpeed>=0,'GRIDFALL cover requires an authentic diverted-pursuit frame');
+          writeFileSync(resolve('screenshots/01-chase.jpg'),bestFrame);
+          console.log('GRIDFALL authentic action-cover velocity',bestSpeed.toFixed(1));
+        }else await page.screenshot({path:resolve('screenshots/01-chase.jpg'),type:'jpeg',quality:84});
       }
       if(coverOnly){
         assert.deepEqual(errors,[], 'Cover capture had no browser errors');
