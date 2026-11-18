@@ -192,7 +192,8 @@ async function play(browser,idx,name){
     const final=await read(()=>({
       result:pursuit.result,score:Pursuit.score(state,pursuit),contract:state.contractId,
       duration:state.time,completed:state.jobs.completed,clear:pursuit.lost,
-      route:state.lockdown.choice,damage:state.car.damage,car:state.car
+      route:state.lockdown.choice,damage:state.car.damage,car:state.car,decoyRemaining:pursuit.decoyTime,
+      police:pursuit.units.map(u=>({role:u.role,x:u.x,y:u.y})),contact:pursuit.contact
     }));
     console.log(name+' FINAL',JSON.stringify(final));
     assert.deepEqual(final.completed,[true,true,true],'All real mission objectives must complete');
