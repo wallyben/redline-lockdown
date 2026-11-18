@@ -1,10 +1,10 @@
 // Deterministic ambient traffic: road-bound vehicles, small fixed pool, no external assets.
 const CivilianTraffic = ((city) => {
   const routes = [
-    [1, 2, 3, 4, 9, 14, 19, 18, 17, 16, 15, 10, 5, 0, 1],
+    [1, 2, 3, 4, 9, 14, 13, 12, 11, 10, 5, 0, 1],
     [6, 7, 8, 13, 12, 11, 6],
     [2, 7, 12, 17, 18, 13, 8, 3, 2],
-    [10, 11, 12, 13, 14, 19, 18, 17, 16, 15, 10],
+    [10, 11, 12, 13, 14, 9, 8, 7, 6, 5, 10],
     [0, 5, 6, 1, 0],
   ];
   const palette = ['#e3b258', '#87d1c6', '#bd8ecf', '#c5d2da', '#9bba6e'];
