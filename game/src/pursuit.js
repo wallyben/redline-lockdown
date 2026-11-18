@@ -192,6 +192,21 @@ const Pursuit = ((city) => {
     }
     p.lost = p.seen ? 0 : p.lost + dt;
     const [tail, interceptor] = p.units;
+    // A physical lockdown vehicle stages near the chosen exit, with a clear
+    // approach and no instant capture. West extraction receives faster pressure.
+    if(run.lockdown?.active && !p.lockdownUnit) {
+      const west=run.lockdown.choice===1;
+      p.lockdownUnit={...patrol(west?5:9),role:'roadblock',speed:0};
+      p.units.push(p.lockdownUnit);p.lockdownTarget=west?10:14;
+      dispatch(p.lockdownUnit,junction(p.lockdownTarget),run.traffic);
+    }
+    if(run.lockdown?.active && p.lockdownUnit) {
+      const target=run.lockdown.choice===1?10:14;
+      if(target!==p.lockdownTarget) {
+        p.lockdownTarget=target;
+        dispatch(p.lockdownUnit,junction(target),run.traffic);
+      }
+    }
     if(run.jobs?.heat>=2&&!p.extraSpawned){
       p.extra={...patrol(14),role:'reinforcement'};p.units.push(p.extra);p.extraSpawned=true;
       if(p.sighting)dispatch(p.extra,searchTarget(p,2),run.traffic);
@@ -227,10 +242,11 @@ const Pursuit = ((city) => {
       }
       if(p.extra&&p.sighting)dispatch(p.extra,p.seen?junction(predict(p.sighting)):searchTarget(p,2),run.traffic);
     }
-    const heatScale=1+Math.min(run.jobs?.heat||0,4)*.045;
+    const heatScale=(1+Math.min(run.jobs?.heat||0,4)*.045)*(run.lockdown?.active&&run.lockdown.choice===1?1.12:1);
     advance(tail, (p.seen ? (p.bonusAlarm ? 235 : 220) * (p.pressure || 1) : 106)*heatScale, dt, run.traffic);
     advance(interceptor, (p.intercept ? 255 : 157)*heatScale, dt, run.traffic);
     if(p.extra)advance(p.extra,(p.seen?175:112)*heatScale,dt,run.traffic);
+    if(p.lockdownUnit)advance(p.lockdownUnit,(run.lockdown?.choice===1?205:150)*heatScale,dt,run.traffic);
     if (p.intercept && !p.block && city.distance(interceptor, city.nodes[p.intercept.node]) < 8 && !interceptor.path.length) {
       p.block = p.intercept;
       if(p.intercept.diverted&&!p.intercept.rewarded&&city.distance(car,city.nodes[p.intercept.node])>150){
