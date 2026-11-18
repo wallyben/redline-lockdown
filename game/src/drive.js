@@ -1,7 +1,7 @@
 const Drive = ((city, jobs) => {
   const start = { x: 130, y: 400, angle: 0, vx: 0, vy: 0, damage: 0, hits: 0 };
   const pickup = { x: 690, y: 400 }; // Port Meridian bank vault
-  const signalCache = { x: 430, y: 400 }; // Grid contract field-side relay vault.
+  const signalCache = { x: 430, y: 530 }; // Grid contract field-side relay vault.
   const vaultFor = run => run?.contractId==='switch' ? signalCache : pickup;
   function reset() {
     return { car: { ...start }, collected: false, bonus: false, banked: false, time: 0, sweep: -1, impact: 0,
