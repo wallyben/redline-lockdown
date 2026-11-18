@@ -2,7 +2,7 @@ name: REDLINE Node regression tests
 on:
   push:
     branches:
-      - improvement/lockdown-96-final
+      - improvement/redline-showdown
   workflow_dispatch:
 jobs:
   test:
