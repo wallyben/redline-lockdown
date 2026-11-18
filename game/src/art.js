@@ -83,6 +83,7 @@ const Art = (() => {
     }
     StreetDetail.paint(c);
     landmarks(c);
+    districtFeatures(c);
     for (let i = 0; i < 9; i++) {
       c.strokeStyle = '#54aac022';
       c.strokeRect(1348 + i * 4, 105 + i * 18, 32, 470 + i * 12);
@@ -187,6 +188,75 @@ const Art = (() => {
     ctx.font = '900 13px system-ui';
     ctx.fillStyle = '#bbffda';
     ctx.fillText('DOCK GATE', 1241, 928);
+  }
+
+
+  // Handmade neighborhood set pieces stay entirely inside non-drivable building
+  // blocks or outside city walls; they do not change the collision graph.
+  function districtFeatures(ctx) {
+    const market = City.blocks.find(b => b.row === 0 && b.col === 0);
+    const mx = market.x + 16, my = market.y + 18;
+    atmosphere(ctx, mx + 89, my + 82, 100, '#f7378b4b');
+    fill(ctx,mx-2,my-3,164,139,'#131827');
+    fill(ctx,mx+3,my+2,154,128,'#172a3c');
+    for(let i=0;i<5;i++){
+      const x=mx+8+i*30;
+      fill(ctx,x,my+30,25,73,'#091724');
+      fill(ctx,x+2,my+32,21,20,['#a43e5f','#377e88','#875fc4','#c27d37','#3f968d'][i]);
+      for(let q=0;q<4;q++)fill(ctx,x+3+q*5,my+57,3,40,q%2?'#18344c':'#365268');
+      fill(ctx,x,my+29,25,3,'#fff1b050');
+    }
+    ctx.font='900 14px system-ui';ctx.fillStyle='#ffc0de';
+    ctx.fillText('NIGHT MARKET',mx+10,my+17);
+    fill(ctx,mx+11,my+19,132,2,'#ef61c5');
+    for(let i=0;i<8;i++){
+      const x=mx+12+i*18,y=my+118+(i%3)*2;
+      atmosphere(ctx,x,y,13,i%2?'#f5c35b32':'#50e6dd32');
+      fill(ctx,x,y,4,4,i%2?'#ffdc92':'#6cebd8');
+    }
+
+    const yard = City.blocks.find(b => b.row === 2 && b.col === 0);
+    const yx=yard.x+15,yy=yard.y+18;
+    fill(ctx,yx-4,yy-4,157,123,'#192630');
+    ctx.strokeStyle='#8796a2';ctx.lineWidth=2;ctx.strokeRect(yx-3,yy-3,155,121);
+    for(let i=0;i<4;i++){
+      const x=yx+4+i*34,cy=yy+16+(i%2)*6;
+      fill(ctx,x+3,cy+4,29,73,'#06141d8a');
+      fill(ctx,x,cy,29,73,i%2?'#35566a':'#7e493b');
+      for(let k=1;k<5;k++)fill(ctx,x+3,cy+k*12,24,2,'#b0c1c233');
+      fill(ctx,x+23,cy,3,73,'#d7d9c033');
+    }
+    fill(ctx,yx+10,yy+97,130,9,'#d2ac60');
+    ctx.font='900 10px system-ui';ctx.fillStyle='#fff4c1';
+    ctx.fillText('FREIGHT YARD 07',yx+12,yy+104);
+
+    const old = City.blocks.find(b => b.row === 1 && b.col === 3);
+    const ox=old.x+20,oy=old.y+24;
+    atmosphere(ctx,ox+83,oy+60,90,'#ce61ff45');
+    fill(ctx,ox-5,oy-5,176,115,'#17192d');
+    fill(ctx,ox,oy,166,103,'#2b203c');
+    ctx.strokeStyle='#bc82e5';ctx.lineWidth=3;ctx.strokeRect(ox+10,oy+10,146,83);
+    for(let i=0;i<5;i++)for(let j=0;j<3;j++){
+      const x=ox+18+i*27,y=oy+17+j*22;
+      fill(ctx,x,y,17,14,(i+j)%3?'#d8b4fb':'#65517f');
+      fill(ctx,x+2,y+2,13,4,'#ecdbff66');
+    }
+    fill(ctx,ox+10,oy+79,145,23,'#1d122b');
+    ctx.font='900 13px system-ui';ctx.fillStyle='#f7b8fe';
+    ctx.fillText('ELECTRIC ARCADE',ox+17,oy+95);
+
+    // The dark harbor beyond the eastern sea wall changes the exit silhouette.
+    fill(ctx,1347,700,83,340,'#082530');
+    for(let i=0;i<15;i++){
+      const x=1352+(i*19)%71,y=707+i*22;
+      fill(ctx,x,y,23,2,i%3?'#26798755':'#72d8d688');
+    }
+    for(const y of [785,920]){
+      fill(ctx,1347,y,56,7,'#795c47');
+      for(let x=1350;x<1402;x+=11)fill(ctx,x,y+8,3,21,'#b0a288');
+    }
+    ctx.font='900 11px system-ui';ctx.fillStyle='#8cdacc';
+    ctx.save();ctx.translate(1367,835);ctx.rotate(Math.PI/2);ctx.fillText('PORT MERIDIAN HARBOR',0,0);ctx.restore();
   }
 
   function reflections(ctx, unit, time, index) {
