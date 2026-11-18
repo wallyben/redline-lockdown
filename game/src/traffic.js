@@ -70,7 +70,13 @@ const Traffic = ((city) => {
           state.barrier = barrierFor(gate);
           state.phase='closed'; state.waiting=0;state.successfulClosures++; state.timer=run.jobs?.modifiers.gateDuration||5;
           state.cooldown=run.jobs?.modifiers.cooldown||8;
-          state.message=`${gate.name} sealed · ${state.timer.toFixed(1)}s`;
+          // Grid's successful first relay sabotage temporarily jams city
+          // police communications. Units keep physically moving and routing.
+          if(run.contractId==='switch' && state.successfulClosures===1 && pursuit){
+            pursuit.refitGrace=Math.max(pursuit.refitGrace||0,3.5);
+            pursuit.contact=0;
+            state.message=`${gate.name} SEALED · GRID RADIO BLACKOUT 3.5s`;
+          } else state.message=`${gate.name} sealed · ${state.timer.toFixed(1)}s`;
         }
       }
     } else if (state.phase === 'closed') {
