@@ -10,7 +10,7 @@ const Pursuit = ((city) => {
     { name: 'Dock patrol', tailX: 430, interceptor: 14 },
   ];
   const reset = (layout = 0) => ({
-    units: [{ ...tailStart, x: layouts[layout].tailX, path: [] }, { ...patrol(layouts[layout].interceptor), angle: layout === 1 ? Math.PI/2 : -Math.PI/2 }],
+    units: [{ ...tailStart, role: 'tail', x: layouts[layout].tailX, path: [] }, { ...patrol(layouts[layout].interceptor), role: 'interceptor', angle: layout === 1 ? Math.PI/2 : -Math.PI/2 }],
     sighting: null, seen: false, lost: 0, elapsed: 0, refresh: 0,
     intercept: null, block: null, contact: 0, result: null, nextInterceptId:1,
     bonusAlarm: false, feint: false, reacquired: 0, hadContact: false, tailRange: Infinity, nearestRange: Infinity,
@@ -176,7 +176,7 @@ const Pursuit = ((city) => {
     p.lost = p.seen ? 0 : p.lost + dt;
     const [tail, interceptor] = p.units;
     if(run.jobs?.heat>=2&&!p.extraSpawned){
-      p.extra=patrol(14);p.units.push(p.extra);p.extraSpawned=true;
+      p.extra={...patrol(14),role:'reinforcement'};p.units.push(p.extra);p.extraSpawned=true;
       if(p.sighting)dispatch(p.extra,searchTarget(p,2),run.traffic);
     }
     if (run.traffic?.phase === 'closed' && !p.rerouteEdgeKey) {
