@@ -112,8 +112,10 @@ test('East Dock extraction accepts the accessible loading apron without entering
 
 test('west underpass is a real sheltered lane, not a wall or blanket immunity',()=>{
   assert.equal(City.inWestTunnel({x:130,y:940}),true);
-  assert.equal(City.inWestTunnel({x:130,y:910}),false);
+  assert.equal(City.inWestTunnel({x:130,y:910}),true);
+  assert.equal(City.inWestTunnel({x:130,y:875}),false);
   assert.equal(City.wall(130,940,11),false);
-  assert.equal(Pursuit.canSee({x:130,y:910},{x:130,y:940}),false,'Street-level cruiser cannot directly see into underpass');
+  assert.equal(Pursuit.canSee({x:130,y:875},{x:130,y:940}),false,'Street-level cruiser cannot directly see into underpass');
   assert.equal(Pursuit.canSee({x:130,y:941},{x:140,y:940}),true,'Police inside the underpass can reacquire the driver');
+  assert.equal(Pursuit.canSee({x:130,y:910},{x:140,y:915}),true,'The exit is not immune if police enter the shelter');
 });

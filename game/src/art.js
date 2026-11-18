@@ -280,13 +280,13 @@ const Art = (() => {
     ctx.fillText('ELECTRIC ARCADE',ox+17,oy+95);
 
     // WEST QUAY UNDERPASS: an actual line-of-sight hideout, not decorative art.
-    // The player must reach the sheltered lane (y>922) to break observation.
+    // The shelter shades the actual marked exit lane (y>=900) and southern bay.
     atmosphere(ctx,142,932,86,'#6de3bc34');
-    fill(ctx,85,922,129,29,'#0b1927');
-    fill(ctx,90,925,119,24,'#102a35');
+    fill(ctx,85,899,129,52,'#0b1927');
+    fill(ctx,90,903,119,47,'#102a35');
     for(let i=0;i<6;i++){
-      fill(ctx,99+i*18,928,7,16,'#214c58');
-      fill(ctx,99+i*18,927,7,2,'#99ffe0');
+      fill(ctx,99+i*18,906,7,37,'#214c58');
+      fill(ctx,99+i*18,905,7,2,'#99ffe0');
     }
     fill(ctx,104,943,91,2,'#62ebc088');
     ctx.font='900 9px system-ui';ctx.fillStyle='#9bfbd3';
