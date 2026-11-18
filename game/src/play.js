@@ -249,8 +249,7 @@ function drawTraffic() {
     ctx.strokeStyle = '#07151c'; ctx.lineWidth = 2; ctx.strokeRect(console.x - 5, console.y - 5, 10, 10);
     ctx.fillStyle = '#e3fff8'; ctx.font = 'bold 8px system-ui'; ctx.fillText('RELAY', console.x - 15, console.y - 13);
   }
-  if (state.traffic.barrier) {
-    const b = state.traffic.barrier;
+  for (const b of [state.traffic.barrier,state.traffic.cascade?.barrier].filter(Boolean)) {
     ctx.save(); ctx.translate(b.x,b.y);
     if (b.orientation === 'h') {
       ctx.fillStyle = '#141a20'; ctx.fillRect(-5,-b.span,10,b.span*2);
@@ -261,13 +260,14 @@ function drawTraffic() {
     }
     ctx.restore();
   }
-  if (state.traffic.phase === 'warning' && state.traffic.barrier === null && state.traffic.selected) {
-    const gate = state.traffic.selected, [a,b] = gate.edge, p=City.nodes[a], q=City.nodes[b];
-    ctx.strokeStyle = '#ff6b62'; ctx.lineWidth = 7; ctx.setLineDash([11,8]);
+  for(const gate of [state.traffic.phase==='warning'?state.traffic.selected:null,
+    state.traffic.cascade?.phase==='warning'?state.traffic.cascade.gate:null].filter(Boolean)){
+    const [a,b]=gate.edge,p=City.nodes[a],q=City.nodes[b];
+    ctx.strokeStyle='#ff6b62';ctx.lineWidth=7;ctx.setLineDash([11,8]);
     const x=(p.x+q.x)/2,y=(p.y+q.y)/2;
     ctx.beginPath();
     if(p.y===q.y){ctx.moveTo(x,y-36);ctx.lineTo(x,y+36);}else{ctx.moveTo(x-36,y);ctx.lineTo(x+36,y);}
-    ctx.stroke(); ctx.setLineDash([]);
+    ctx.stroke();ctx.setLineDash([]);
   }
 }
 

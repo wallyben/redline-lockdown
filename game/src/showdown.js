@@ -36,6 +36,17 @@ const Showdown = (() => {
       ctx.font='bold 11px system-ui';ctx.fillText(breakEvent.real?'NEW ROUTE / OPEN ESCAPE':'POLICE RECOMPUTING',q.x-93,q.y-60);
       ctx.globalAlpha=1;
     }
+    const chain=run.traffic?.cascade;
+    if(chain?.phase==='warning'||(chain?.phase==='closed'&&run.traffic.gridfallFlash>time)){
+      const src=run.traffic.selected?.console,dst=chain.gate?.console;
+      if(src&&dst){
+        const pulse=(time*4)%1;
+        ctx.strokeStyle='#ffe7a5';ctx.lineWidth=4;ctx.setLineDash([11,8]);
+        ctx.beginPath();ctx.moveTo(src.x,src.y);ctx.lineTo(dst.x,dst.y);ctx.stroke();ctx.setLineDash([]);
+        ctx.strokeStyle=chain.phase==='closed'?'#5dffe0':'#ffae6a';ctx.lineWidth=5;
+        ctx.beginPath();ctx.arc(dst.x,dst.y,27+pulse*28,0,Math.PI*2);ctx.stroke();
+      }
+    }
     if(p.showdown?.active && p.lockdownUnit){
       const unit=p.lockdownUnit,r=40+6*Math.sin(time*5);
       ctx.strokeStyle=p.showdown.countered?'#75ffe0':'#ffb06b';ctx.lineWidth=3;
@@ -48,13 +59,16 @@ const Showdown = (() => {
   }
   function screen(ctx,w,h,run,p){
     const cut=p.routeBreak&&p.elapsed<p.routeBreak.until?p.routeBreak:null;
-    if(!p.showdown?.active&&!cut)return;
+    const gridfall=run.traffic?.gridfallFlash>run.time;
+    if(!p.showdown?.active&&!cut&&!gridfall)return;
     const s=p.showdown,diverted=!!cut?.real;
     const width=Math.min(530,w-460),x=Math.max(398,(w-width)/2),y=16;
     if(width<190)return;
-    const headline=cut?(diverted?'POLICE INTERCEPT BROKEN':'RELAY ACTIVATED / ROAD SEALED'):
+    const headline=gridfall?'GRIDFALL / CITY NETWORK OVERRIDE':
+      cut?(diverted?'POLICE INTERCEPT BROKEN':'RELAY ACTIVATED / ROAD SEALED'):
       s.countered?'UNIT OMEGA / SIGNAL DISRUPTED':'FINAL LOCKDOWN / UNIT OMEGA';
-    const detail=cut?(diverted?'RED ROUTE BLOCKED · GREEN ROUTE CONFIRMED':'STREET CLOSED · DISPATCH RECALCULATING'):
+    const detail=gridfall?'TWO JUNCTIONS SEALED · POLICE RE-ROUTED · +900':
+      cut?(diverted?'RED ROUTE BLOCKED · GREEN ROUTE CONFIRMED':'STREET CLOSED · DISPATCH RECALCULATING'):
       s.countered?'COMMANDER OUTSMARTED · +750 BANKED':'LAST INTERCEPT · F RADIO SPOOF OR SHIFT RELAY';
     ctx.save();
     ctx.fillStyle='#081725f5';ctx.fillRect(x,y,width,62);

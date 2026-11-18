@@ -412,8 +412,7 @@ const Art = (() => {
       ctx.strokeStyle = run.traffic?.closedEdges?.has(City.edgeKey(a,b)) ? '#ff526d' : '#43f4c2';
       ctx.lineWidth = 8; ctx.beginPath(); ctx.moveTo(start.x,start.y); ctx.lineTo(end.x,end.y); ctx.stroke();
     }
-    if (run.traffic?.barrier) {
-      const b=run.traffic.barrier;
+    for(const b of [run.traffic?.barrier,run.traffic?.cascade?.barrier].filter(Boolean)){
       if(b.orientation==='h')fill(ctx,b.x-4,b.y-b.span,8,b.span*2,'#ff6575');
       else fill(ctx,b.x-b.span,b.y-4,b.span*2,8,'#ff6575');
     }

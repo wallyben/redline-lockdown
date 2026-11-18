@@ -23,10 +23,10 @@ const City = (() => {
     return edges[a]?.includes(b) && !(road?.closedEdges?.has(edgeKey(a, b)));
   }
   function wall(x, y, radius = 11, road = null) {
-    const barrier = road?.barrier;
-    const atBarrier = barrier && barrier.orientation === 'h'
-      ? Math.abs(x - barrier.x) < 7 + radius && Math.abs(y - barrier.y) < barrier.span + radius
-      : barrier && Math.abs(y - barrier.y) < 7 + radius && Math.abs(x - barrier.x) < barrier.span + radius;
+    const atBarrier=[road?.barrier,road?.cascade?.barrier].filter(Boolean).some(barrier=>
+      barrier.orientation==='h' ?
+        Math.abs(x-barrier.x)<7+radius&&Math.abs(y-barrier.y)<barrier.span+radius :
+        Math.abs(y-barrier.y)<7+radius&&Math.abs(x-barrier.x)<barrier.span+radius);
     return atBarrier || x < 78 + radius || x > 1346 - radius || y < 81 + radius || y > 959 - radius ||
       (y + radius > alley.top && y - radius < alley.bottom && Math.abs(x - alley.x) < 43 && Math.abs(x - alley.x) + radius > alley.halfWidth) ||
       cargo.some(b=>x+radius>b.x&&x-radius<b.right&&y+radius>b.y&&y-radius<b.bottom) ||

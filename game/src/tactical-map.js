@@ -58,6 +58,11 @@ const TacticalMap = (() => {
       }
       ctx.setLineDash([]);
     }
+    if(run.traffic?.cascade?.phase==='warning'){
+      const a=run.traffic.selected?.console,b=run.traffic.cascade.gate?.console;
+      if(a&&b){ctx.strokeStyle='#ffe095';ctx.lineWidth=13;ctx.setLineDash([12,12]);
+        ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.setLineDash([]);}
+    }
     for(const gate of Traffic.gates){
       const q=gate.console,closed=run.traffic.closedEdges.has(City.edgeKey(...gate.edge));
       ctx.fillStyle=closed?'#ff667c':'#5fffd0';
@@ -79,7 +84,7 @@ const TacticalMap = (() => {
     ctx.restore();
     ctx.fillStyle='#cde5ef';ctx.font='bold 13px system-ui';
     const status=p.intercept?'INTERCEPTOR COMMITTED TO JUNCTION '+p.intercept.node:'NO ACTIVE INTERCEPT';
-    const gateStatus=run.traffic.phase==='closed'?'ROAD SEALED':run.traffic.phase==='warning'?'CLOSURE INBOUND':'RELAY READY';
+    const gateStatus=run.traffic.gridfallCompleted?'GRIDFALL · 2 ROADS SEALED':run.traffic.phase==='closed'?'ROAD SEALED':run.traffic.phase==='warning'?'CLOSURE INBOUND':'RELAY READY';
     ctx.fillText('WEST QUAY: RISK +1,750    /    EAST DOCK: COVER ROUTE',x+22,y+height-61);
     ctx.fillText(status+'  /  '+gateStatus,x+22,y+height-39);
     const objective=run.lockdown?.active?Lockdown.exits[run.lockdown.choice].name:'COMPLETE THE HEIST / ESCAPE THE CITY';
