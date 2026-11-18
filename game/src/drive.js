@@ -43,6 +43,12 @@ const Drive = ((city, jobs) => {
     const atPickup = jobStage === 1 && city.distance(c, target) < 45 && speed < 36;
     const atBonus = state.collected && jobStage >= 1 && !state.bonus && city.distance(c,{x:1010,y:650})<45 && speed<36;
     if (!atPickup && !atBonus) state.sweep = -1;
+    // Engaging a stationary drill holds the vehicle's brakes, rather than
+    // letting a tiny residual velocity drift it out of the interaction bay.
+    if(state.sweep>=0&&(atPickup||atBonus)){
+      c.vx*=Math.exp(-10*dt);
+      c.vy*=Math.exp(-10*dt);
+    }
     if (state.sweep >= 0) state.sweep += dt;
     if (input.interact && atPickup) {
       if (state.sweep >= 0.75 && state.sweep <= 1.45) {
