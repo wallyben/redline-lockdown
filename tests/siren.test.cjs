@@ -8,14 +8,14 @@ const source=readFileSync(resolve(__dirname,'../game/src/siren.js'),'utf8');
 function boot(AudioContext) {
   const globals={};
   if(AudioContext)globals.AudioContext=AudioContext;
-  return runInNewContext(source+\`
+  return runInNewContext(source+`
     Siren.enable();
     Siren.update(42,1.4,false,.5);
     Siren.engine(true,200,0);
     Siren.cue();
     Siren.enable(); // repeated starts must remain safe
     'survived';
-  \`,{globalThis:globals,Promise});
+  `,{globalThis:globals,Promise});
 }
 test('Web Audio being unavailable never blocks starting or driving',()=>{
   assert.equal(boot(null),'survived');
