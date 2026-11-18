@@ -9,7 +9,7 @@ const Showdown=require('../game/src/showdown.js');
 
 function setup(){
   const run=Drive.reset(),p=Pursuit.reset();
-  run.seed=1701;run.contractId='iris';run.collected=true;run.jobs.stage=3;
+  run.seed=1701;run.contractId='iris';run.collected=true;run.jobs.stage=3;run.traffic=Traffic.reset();
   run.lockdown=Lockdown.reset();Lockdown.tick(run,p);
   p.refitGrace=4;Pursuit.tick(p,run);
   return {run,p};
