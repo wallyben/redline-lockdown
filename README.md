@@ -10,7 +10,7 @@ Rob the Port Meridian bank, hijack the city's street controls, lure police into 
 
 **Ghost Run:** break police sight with smoke and traverse the covered alley before banking the haul.
 
-**Break the Grid:** lure an interceptor into committing to a junction and activate a real road closure that forces a reroute.
+**Break the Grid:** lure an interceptor into committing to a junction, seal a service-yard relay, then raid the distinct Grid Switch cache before an inner-city courier transfer.
 
 **High-Risk Payday:** take the optional cash depot and attempt the dangerous West Quay extraction for a 1,750-point premium. Abandoning the job allows safer early cashout.
 
