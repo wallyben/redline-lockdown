@@ -29,6 +29,7 @@ jobs:
           export REDLINE_CHROME=$(node -e "process.stdout.write(require('playwright').chromium.executablePath())")
           node tests/browser.cjs --shots
           node tests/west-browser.cjs --one
+          node tests/contracts-browser.cjs
       - name: Save authentic browser captures
         if: always()
         uses: actions/upload-artifact@v4
