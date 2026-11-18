@@ -213,11 +213,11 @@ function rect(x, y, w, h, fill) {
   ctx.fillRect(x, y, w, h);
 }
 
-function marker(p, name, color) {
+function marker(p, name, color, radius=26) {
   ctx.strokeStyle = color;
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.arc(p.x, p.y, 26 + 3 * Math.sin(state.time * 5), 0, 2 * Math.PI);
+  ctx.arc(p.x, p.y, radius + 3 * Math.sin(state.time * 5), 0, 2 * Math.PI);
   ctx.stroke();
   ctx.fillStyle = color;
   ctx.font = 'bold 12px system-ui';
@@ -307,7 +307,7 @@ function render() {
     pursuit.units.forEach((unit, i) => Art.reflections(ctx, unit, reducedFlash ? 0 : time, i));
     ctx.restore();
     if (!state.bonus && state.jobs?.stage<3) marker({x:1010,y:650}, 'OPTIONAL CASH · EXTRA ALARM', '#ffcf75');
-    if(mode!=='results'&&state.jobs?.stage===3)marker(targetForRun(), !ContractRules.escapeReady(state,pursuit)?'COMPLETE CONTRACT TASK':pursuit.lost >= Pursuit.clearDuration(state) ? 'BANK SCORE' : 'BREAK CONTACT', '#82ffbf');
+    if(mode!=='results'&&state.jobs?.stage===3)marker(targetForRun(), !ContractRules.escapeReady(state,pursuit)?'COMPLETE CONTRACT TASK':pursuit.lost >= Pursuit.clearDuration(state) ? 'BANK SCORE' : 'BREAK CONTACT', '#82ffbf',state.lockdown?.choice===0?56:44);
     if (pursuit.intercept && mode!=='results') {
       const target = City.nodes[pursuit.intercept.node];
       marker(target, pursuit.block ? 'ROADBLOCK' : 'BLOCKADE INBOUND', '#ff657f');
