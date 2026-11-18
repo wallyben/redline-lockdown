@@ -39,6 +39,7 @@ function start() {
   state.civilians = CivilianTraffic.reset(Contracts[Number(layoutInput.value)].seed);
   // Contract identities alter resources and initial threat, not only the briefing.
   const contractId = Contracts[Number(layoutInput.value)].id;
+  state.contractId = contractId;
   if (contractId === "iris") state.smoke.charges = 3;
   if (contractId === "switch") state.traffic.charges = 5;
   if (contractId === "cash-depot") state.jobs.heat = 1;
