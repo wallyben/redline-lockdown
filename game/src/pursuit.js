@@ -10,7 +10,7 @@ const Pursuit = ((city) => {
     { name: 'Dock patrol', tailX: 430, interceptor: 14 },
   ];
   const reset = (layout = 0) => ({
-    units: [{ ...tailStart, role: 'tail', x: layouts[layout].tailX, path: [] }, { ...patrol(layouts[layout].interceptor), role: 'interceptor', angle: layout === 1 ? Math.PI/2 : -Math.PI/2 }],
+    units: [layout===2 ? {...patrol(11),role:'tail',angle:0} : { ...tailStart, role: 'tail', x: layouts[layout].tailX, path: [] }, { ...patrol(layouts[layout].interceptor), role: 'interceptor', angle: layout === 1 ? Math.PI/2 : -Math.PI/2 }],
     sighting: null, seen: false, lost: 0, elapsed: 0, refresh: 0,
     intercept: null, block: null, contact: 0, result: null, nextInterceptId:1,
     bonusAlarm: false, feint: false, reacquired: 0, hadContact: false, hadIntercept:false, tailRange: Infinity, nearestRange: Infinity,
