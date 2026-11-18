@@ -154,12 +154,13 @@ async function play(browser, viewport, takeShots) {
   
   // The west route is physically farther, across the southern boulevard.
   await driveTo(1010,910,180,180);
-  await driveTo(690,910,220,220);
-  // High-risk West Quay requires actually using the tactical tools to break
-  // the interceptor's line of sight before crossing the open southern road.
+  // Break the live intercept BEFORE the long southern crossing. Waiting
+  // until the middle junction can allow a committed interceptor to trap us.
   await page.keyboard.press('q');
   const decoyReady=await state(()=>pursuit.decoyCharges>0&&!!pursuit.sighting);
-  if(decoyReady)await page.keyboard.press('f');
+  assert.equal(decoyReady,true,'Ghost must have its earned tactical decoy before West Quay');
+  await page.keyboard.press('f');
+  await driveTo(690,910,220,220);
   await driveTo(430,910,220,220);
   await driveTo(130,910,180,240,14);
   await brakeToStop();
