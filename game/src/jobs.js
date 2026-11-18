@@ -49,7 +49,7 @@ const Jobs = ((city) => {
     } else if(jobs.stage===3) jobs.target={...city.nodes[19]};
     return jobs.event;
   }
-  function completeVault(jobs){ if(jobs.stage!==1||jobs.pending)return false;jobs.completed[1]=true;jobs.haul+=1200;jobs.heat+=1;jobs.pending=true;jobs.nextStage=2;jobs.event='Vault drill complete';jobs.pendingTitle=jobs.event;return true; }
+  function completeVault(jobs){ if(jobs.stage!==1||jobs.pending)return false;jobs.completed[1]=true;jobs.haul+=1200;jobs.heat+=1;jobs.pending=true;jobs.nextStage=2;jobs.event=jobs.seed===1702?'Signal cache extracted':'Vault drill complete';jobs.pendingTitle=jobs.event;return true; }
   function offer(jobs){
     let value=jobs.seed ^ ((jobs.stage+1)*0x9e3779b9);
     const pool=upgrades.slice();
