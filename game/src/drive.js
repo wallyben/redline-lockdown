@@ -1,6 +1,8 @@
 const Drive = ((city, jobs) => {
   const start = { x: 130, y: 400, angle: 0, vx: 0, vy: 0, damage: 0, hits: 0 };
   const pickup = { x: 690, y: 400 }; // Port Meridian bank vault
+  const signalCache = { x: 430, y: 400 }; // Grid contract field-side relay vault.
+  const vaultFor = run => run?.contractId==='switch' ? signalCache : pickup;
   function reset() {
     return { car: { ...start }, collected: false, bonus: false, banked: false, time: 0, sweep: -1, impact: 0,
       traffic: typeof Traffic === 'undefined' ? null : Traffic.reset(),
@@ -38,7 +40,7 @@ const Drive = ((city, jobs) => {
       state.impact = 0.65;
     }
     const jobStage = state.jobs?.stage ?? (state.collected ? 1 : 0);
-    const target = jobStage === 0 ? jobs.pickup(state.jobs,state.time) : jobStage === 1 ? pickup :
+    const target = jobStage === 0 ? jobs.pickup(state.jobs,state.time) : jobStage === 1 ? vaultFor(state) :
       jobStage === 2 ? { x:state.jobs.courier.x,y:state.jobs.courier.y } : {x:1290,y:910};
     const atPickup = jobStage === 1 && city.distance(c, target) < 45 && speed < 36;
     const atBonus = state.collected && jobStage >= 1 && !state.bonus && city.distance(c,{x:1010,y:650})<45 && speed<36;
@@ -72,6 +74,6 @@ const Drive = ((city, jobs) => {
       if(prior===0&&state.jobs.stage===0&&state.jobs.pending)state.collected=true;
     }
   }
-  return { reset, tick, pickup };
+  return { reset, tick, pickup, signalCache, vaultFor };
 })(typeof module === 'undefined' ? City : require('./city.js'), typeof module === 'undefined' ? Jobs : require('./jobs.js'));
 if (typeof module !== 'undefined') module.exports = Drive;
