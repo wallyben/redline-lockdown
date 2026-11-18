@@ -14,7 +14,8 @@ const City = (() => {
   const cargo = [{x:1264,y:900,right:1278,bottom:930}];
   const sightBlocks = [{x:1236,y:925,right:1322,bottom:931}];
   const alley = { x: 690, top: 485, bottom: 620, halfWidth: 32, coverTop: 467, coverBottom: 853 };
-  const inCover = ({ x, y }) => (Math.abs(x - alley.x) < 43 && y > alley.coverTop && y < alley.coverBottom) || (x > 1160 && y > 860);
+  const inWestTunnel = ({x,y}) => x>=95 && x<=205 && y>=900 && y<951;
+  const inCover = ({ x, y }) => (Math.abs(x - alley.x) < 43 && y > alley.coverTop && y < alley.coverBottom) || (x > 1160 && y > 860) || inWestTunnel({x,y});
   const inDockShadow = ({x,y}) => x > 1280 && y > 930 && y < 955;
   const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   function edgeKey(a, b) { return a < b ? `${a}:${b}` : `${b}:${a}`; }
@@ -54,6 +55,6 @@ const City = (() => {
     }
     return [];
   }
-  return { xs, ys, widths, blocks, cargo, sightBlocks, nodes, edges, alley, inCover, inDockShadow, distance, wall, sightWall, nearest, route, edgeKey, edgeOpen };
+  return { xs, ys, widths, blocks, cargo, sightBlocks, nodes, edges, alley, inCover, inDockShadow, inWestTunnel, distance, wall, sightWall, nearest, route, edgeKey, edgeOpen };
 })();
 if (typeof module !== 'undefined') module.exports = City;

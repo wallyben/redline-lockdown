@@ -149,3 +149,27 @@ test('a visible relay prompt accepts interaction at the same distance',()=>{
  assert.ok(Traffic.near(run));
  assert.equal(Traffic.activate(state,run,{units:[]}),true);
 });
+
+
+test('precision vault drill suppresses contact briefly without canceling pursuit AI', () => {
+  const { run, police }=afterPickup();
+  run.jobs.stage=1;
+  run.sweep=1.1;
+  Object.assign(run.car,{x:690,y:400,vx:0,vy:0});
+  Object.assign(police.units[0],{x:692,y:400,angle:0});
+  police.hadContact=true;
+  police.contact=.7;
+  police.refitGrace=0;
+  Pursuit.tick(police,run,1/60);
+  assert.ok(police.contact<=.16,'Timed minigame must remain playable even with a cruiser nearby');
+  assert.equal(police.result,null);
+  assert.ok(police.elapsed>0,'Police simulation must continue normally');
+});
+
+test('payday tail stages on a southern road rather than blocking the first rolling pickup',()=>{
+ const payday=Pursuit.reset(2),ghost=Pursuit.reset(0);
+ assert.deepEqual({x:payday.units[0].x,y:payday.units[0].y},{x:430,y:650});
+ assert.deepEqual({x:ghost.units[0].x,y:ghost.units[0].y},{x:452,y:400});
+ assert.equal(payday.units[0].role,'tail');
+ assert.ok(City.route(City.nearest(payday.units[0]),7).length>0,'The pursuit must remain road-connected');
+});

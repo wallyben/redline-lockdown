@@ -83,6 +83,7 @@ const Art = (() => {
     }
     StreetDetail.paint(c);
     landmarks(c);
+    districtFeatures(c);
     for (let i = 0; i < 9; i++) {
       c.strokeStyle = '#54aac022';
       c.strokeRect(1348 + i * 4, 105 + i * 18, 32, 470 + i * 12);
@@ -189,6 +190,121 @@ const Art = (() => {
     ctx.fillText('DOCK GATE', 1241, 928);
   }
 
+
+  // Handmade neighborhood set pieces stay entirely inside non-drivable building
+  // blocks or outside city walls; they do not change the collision graph.
+  function districtFeatures(ctx) {
+    const market = City.blocks.find(b => b.row === 0 && b.col === 0);
+    const mx = market.x + 16, my = market.y + 18;
+    atmosphere(ctx, mx + 89, my + 82, 100, '#f7378b4b');
+    fill(ctx,mx-2,my-3,164,139,'#131827');
+    fill(ctx,mx+3,my+2,154,128,'#172a3c');
+    for(let i=0;i<5;i++){
+      const x=mx+8+i*30;
+      fill(ctx,x,my+30,25,73,'#091724');
+      fill(ctx,x+2,my+32,21,20,['#a43e5f','#377e88','#875fc4','#c27d37','#3f968d'][i]);
+      for(let q=0;q<4;q++)fill(ctx,x+3+q*5,my+57,3,40,q%2?'#18344c':'#365268');
+      fill(ctx,x,my+29,25,3,'#fff1b050');
+    }
+    ctx.font='900 14px system-ui';ctx.fillStyle='#ffc0de';
+    ctx.fillText('NIGHT MARKET',mx+10,my+17);
+    fill(ctx,mx+11,my+19,132,2,'#ef61c5');
+    for(let i=0;i<8;i++){
+      const x=mx+12+i*18,y=my+118+(i%3)*2;
+      atmosphere(ctx,x,y,13,i%2?'#f5c35b32':'#50e6dd32');
+      fill(ctx,x,y,4,4,i%2?'#ffdc92':'#6cebd8');
+    }
+
+    // The armored transfer lockbox is a distinct on-street Payday objective.
+    // Its façade sits inside an existing block, without changing collisions.
+    const cache=City.blocks.find(b=>b.row===0&&b.col===1);
+    const ax=cache.x+18,ay=cache.bottom-73;
+    atmosphere(ctx,ax+64,ay+38,52,'#f4a65c35');
+    fill(ctx,ax,ay,132,67,'#111d2b');
+    fill(ctx,ax+5,ay+5,122,56,'#3b4556');
+    fill(ctx,ax+10,ay+10,40,40,'#192331');
+    ctx.strokeStyle='#ffc777';ctx.lineWidth=3;
+    ctx.strokeRect(ax+13,ay+13,34,34);
+    ctx.beginPath();ctx.arc(ax+30,ay+30,11,0,Math.PI*2);ctx.stroke();
+    fill(ctx,ax+56,ay+12,65,3,'#8bd4df');
+    ctx.font='900 10px system-ui';ctx.fillStyle='#ffdda2';
+    ctx.fillText('ARMORED',ax+57,ay+29);
+    ctx.fillText('TRANSFER',ax+57,ay+43);
+    fill(ctx,ax+10,ay+53,110,5,'#d9a75d');
+
+    // Original municipal switch-house beside Grid's separately playable raid.
+    const hub = City.blocks.find(b => b.row===1 && b.col===0);
+    const hx=hub.x+13,hy=hub.y+12;
+    atmosphere(ctx,hx+65,hy+69,70,'#39e8bc4c');
+    fill(ctx,hx,hy,137,138,'#081a2b');
+    fill(ctx,hx+5,hy+5,127,128,'#163a46');
+    for(let i=0;i<3;i++){
+      fill(ctx,hx+10+i*41,hy+15,33,72,'#0b1b30');
+      fill(ctx,hx+13+i*41,hy+18,27,10,'#54eac3');
+      for(let q=0;q<5;q++)fill(ctx,hx+14+i*41,hy+36+q*9,25,3,q===2?'#f6a95a':'#68bdb1');
+      fill(ctx,hx+21+i*41,hy+84,12,5,'#ffae6d');
+    }
+    fill(ctx,hx+6,hy+100,125,26,'#06131c');
+    ctx.fillStyle='#9dffe0';ctx.font='900 12px system-ui';
+    ctx.fillText('GRID SWITCH',hx+13,hy+117);
+    fill(ctx,hx+7,hy+126,122,3,'#42e4bd');
+
+    const yard = City.blocks.find(b => b.row === 2 && b.col === 0);
+    const yx=yard.x+15,yy=yard.y+18;
+    fill(ctx,yx-4,yy-4,157,123,'#192630');
+    ctx.strokeStyle='#8796a2';ctx.lineWidth=2;ctx.strokeRect(yx-3,yy-3,155,121);
+    for(let i=0;i<4;i++){
+      const x=yx+4+i*34,cy=yy+16+(i%2)*6;
+      fill(ctx,x+3,cy+4,29,73,'#06141d8a');
+      fill(ctx,x,cy,29,73,i%2?'#35566a':'#7e493b');
+      for(let k=1;k<5;k++)fill(ctx,x+3,cy+k*12,24,2,'#b0c1c233');
+      fill(ctx,x+23,cy,3,73,'#d7d9c033');
+    }
+    fill(ctx,yx+10,yy+97,130,9,'#d2ac60');
+    ctx.font='900 10px system-ui';ctx.fillStyle='#fff4c1';
+    ctx.fillText('FREIGHT YARD 07',yx+12,yy+104);
+
+    const old = City.blocks.find(b => b.row === 1 && b.col === 3);
+    const ox=old.x+20,oy=old.y+24;
+    atmosphere(ctx,ox+83,oy+60,90,'#ce61ff45');
+    fill(ctx,ox-5,oy-5,176,115,'#17192d');
+    fill(ctx,ox,oy,166,103,'#2b203c');
+    ctx.strokeStyle='#bc82e5';ctx.lineWidth=3;ctx.strokeRect(ox+10,oy+10,146,83);
+    for(let i=0;i<5;i++)for(let j=0;j<3;j++){
+      const x=ox+18+i*27,y=oy+17+j*22;
+      fill(ctx,x,y,17,14,(i+j)%3?'#d8b4fb':'#65517f');
+      fill(ctx,x+2,y+2,13,4,'#ecdbff66');
+    }
+    fill(ctx,ox+10,oy+79,145,23,'#1d122b');
+    ctx.font='900 13px system-ui';ctx.fillStyle='#f7b8fe';
+    ctx.fillText('ELECTRIC ARCADE',ox+17,oy+95);
+
+    // WEST QUAY UNDERPASS: an actual line-of-sight hideout, not decorative art.
+    // The shelter shades the actual marked exit lane (y>=900) and southern bay.
+    atmosphere(ctx,142,932,86,'#6de3bc34');
+    fill(ctx,85,899,129,52,'#0b1927');
+    fill(ctx,90,903,119,47,'#102a35');
+    for(let i=0;i<6;i++){
+      fill(ctx,99+i*18,906,7,37,'#214c58');
+      fill(ctx,99+i*18,905,7,2,'#99ffe0');
+    }
+    fill(ctx,104,943,91,2,'#62ebc088');
+    ctx.font='900 9px system-ui';ctx.fillStyle='#9bfbd3';
+    ctx.fillText('WEST QUAY / COVER',96,940);
+    // The dark harbor beyond the eastern sea wall changes the exit silhouette.
+    fill(ctx,1347,700,83,340,'#082530');
+    for(let i=0;i<15;i++){
+      const x=1352+(i*19)%71,y=707+i*22;
+      fill(ctx,x,y,23,2,i%3?'#26798755':'#72d8d688');
+    }
+    for(const y of [785,920]){
+      fill(ctx,1347,y,56,7,'#795c47');
+      for(let x=1350;x<1402;x+=11)fill(ctx,x,y+8,3,21,'#b0a288');
+    }
+    ctx.font='900 11px system-ui';ctx.fillStyle='#8cdacc';
+    ctx.save();ctx.translate(1367,835);ctx.rotate(Math.PI/2);ctx.fillText('PORT MERIDIAN HARBOR',0,0);ctx.restore();
+  }
+
   function reflections(ctx, unit, time, index) {
     const phase = Math.sin(time * 16 + index);
     ctx.save();
@@ -241,8 +357,14 @@ const Art = (() => {
     if(!police){atmosphere(ctx,-20,0,32,c.braking?'#ff322c8a':'#ff402c30');}
     fill(ctx, -22, -11, 46, 23, '#090e16bb');
     for (const x of [-14, 10]) for (const y of [-11, 7]) fill(ctx, x, y, 9, 4, '#0b0e16');
+    // Functional silhouettes: tail white, interceptor violet, reinforcement amber.
+    const role=c.role||'tail';
+    const emergency=police && role==='roadblock' ? ['#ffdd92','#bd603a','#78322a','#ffe4ba'] :
+      police && role==='interceptor' ? ['#f9deff','#a78fe8','#5f5ba5','#c2abff'] :
+      police && role==='reinforcement' ? ['#fff0c4','#d8b66b','#896c3e','#ffe1a6'] :
+      ['#f7ffff','#bfdae2','#718e9e','#d6eaf0'];
     const paint=ctx.createLinearGradient(0,-10,0,10);
-    paint.addColorStop(0,police?'#f7ffff':courier?'#fff1ad':'#ffb899');paint.addColorStop(.25,police?'#bfdae2':courier?'#ebc151':'#ff684e');paint.addColorStop(.7,police?'#718e9e':courier?'#b28827':'#b72236');paint.addColorStop(1,police?'#d6eaf0':courier?'#edc65f':'#f45747');ctx.fillStyle=paint;
+    paint.addColorStop(0,police?emergency[0]:courier?'#fff1ad':'#ffb899');paint.addColorStop(.25,police?emergency[1]:courier?'#ebc151':'#ff684e');paint.addColorStop(.7,police?emergency[2]:courier?'#b28827':'#b72236');paint.addColorStop(1,police?emergency[3]:courier?'#edc65f':'#f45747');ctx.fillStyle=paint;
     ctx.beginPath();
     ctx.roundRect(-20, -9, 40, 18, [4, 6, 6, 4]);
     ctx.fill();
@@ -261,6 +383,9 @@ const Art = (() => {
     if (police) {
       fill(ctx, -2, -7, 4, 7, '#ff4b68');
       fill(ctx, -2, 0, 4, 7, '#56a2ff');
+      if (role === 'interceptor') { fill(ctx,-16,-8,6,16,'#7a5ec2'); fill(ctx,9,-8,5,16,'#7a5ec2'); }
+      if (role === 'reinforcement') { fill(ctx,-18,-9,6,18,'#e4b45c'); fill(ctx,11,-9,6,18,'#e4b45c'); }
+      if (role === 'roadblock') { fill(ctx,-24,-13,11,26,'#c77c42'); fill(ctx,15,-13,11,26,'#c77c42');fill(ctx,8,-3,14,6,'#ffd484'); }
     }
     if(courier){fill(ctx,-3,-15,8,5,'#fff1b0');fill(ctx,-5,10,11,3,'#ffdb69');}
     ctx.restore();
@@ -292,7 +417,7 @@ const Art = (() => {
     const dot = (q, color) => fill(ctx, q.x - 15, q.y - 15, 30, 30, color);
     dot(run.collected ? Pursuit.exit : Drive.pickup, run.collected ? '#6affc0' : '#ffc978');
     if (p.intercept) dot(City.nodes[p.intercept.node], '#ff5c76');
-    for(const unit of p.units)dot(unit,'#ff617f');
+    for(const unit of p.units)dot(unit,unit.role==='interceptor'?'#b995ff':unit.role==='reinforcement'?'#ffd083':unit.role==='roadblock'?'#ffad66':'#ff617f');
     const destination=run.jobs?.stage===0?Jobs.pickup(run.jobs,run.time):run.jobs?.stage===1?Drive.pickup:run.jobs?.stage===2?run.jobs.courier:Pursuit.exit;
     dot(destination,'#ffdf84');
     dot(run.car, '#ffffff');
