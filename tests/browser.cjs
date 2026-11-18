@@ -79,7 +79,10 @@ async function play(browser, viewport, takeShots) {
   assert.equal(await state(() => state.jobs.pending), true);
   assert.equal(await page.locator('#upgrade-choices button').count(), 3);
   await chooseUpgrade();
-
+  // Ghost Run's compulsory ability objective is real, not just a score label.
+  await page.keyboard.press('q');
+  assert.equal(await state(() => state.smoke.charges),2);
+  
   // Close the boulevard gate after passing its barrier; patrols must route around it.
   await driveTo(610, 400, 310, 180);
   await page.keyboard.down('Shift');
