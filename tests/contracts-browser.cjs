@@ -194,9 +194,13 @@ async function play(browser,idx,name){
       await page.keyboard.press('f');
       // Spoof BEFORE the west junction: the commander must have time to leave
       // its physical intercept position; the player cannot pass through it.
-      await driveTo(430,910,220,200);
-      await driveTo(130,910,170,240,15);
+      await driveTo(430,935,205,230,16);
+      // Enter the genuine West Quay sheltered lane instead of stopping at
+      // the central junction where reinforced police can pin a stationary car.
+      await driveTo(130,935,170,300,16);
       await brake();
+      const covered=await read(()=>City.inWestTunnel(state.car));
+      assert.equal(covered,true,'Payday needs to physically reach West Quay cover: '+JSON.stringify(await report('WEST QUAY APPROACH')));
     }
     await advance(12000);
     const final=await read(()=>({
