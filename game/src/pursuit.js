@@ -15,6 +15,7 @@ const Pursuit = ((city) => {
     intercept: null, block: null, contact: 0, result: null, nextInterceptId:1,
     bonusAlarm: false, feint: false, reacquired: 0, hadContact: false, hadIntercept:false, tailRange: Infinity, nearestRange: Infinity,
     decoyCharges:2,decoyCooldown:0,decoyTime:0,decoyTarget:null,decoyUsed:0,
+    showdown:(typeof Showdown==='undefined'?require('./showdown.js'):Showdown).state(),routeBreak:null,
   });
 
   function canSee(unit, car, road = null) {
@@ -197,15 +198,15 @@ const Pursuit = ((city) => {
     // approach and no instant capture. West extraction receives faster pressure.
     if(run.lockdown?.active && !p.lockdownUnit) {
       const west=run.lockdown.choice===1;
-      p.lockdownUnit={...patrol(west?5:9),role:'roadblock',speed:0};
+      p.lockdownUnit={...patrol(west?5:9),role:'commander',speed:0};
       p.units.push(p.lockdownUnit);p.lockdownTarget=west?11:13;
       dispatch(p.lockdownUnit,junction(p.lockdownTarget),run.traffic);
     }
     if(run.lockdown?.active && p.lockdownUnit) {
-      const target=run.lockdown.choice===1?11:13;
+      const target=p.decoyTime>0&&p.decoyTarget ? 'decoy' : run.lockdown.choice===1?11:13;
       if(target!==p.lockdownTarget) {
         p.lockdownTarget=target;
-        dispatch(p.lockdownUnit,junction(target),run.traffic);
+        dispatch(p.lockdownUnit,target==='decoy'?roadPoint(p.decoyTarget,run.traffic):junction(target),run.traffic);
       }
     }
     if(run.jobs?.heat>=2&&!p.extraSpawned){
@@ -214,12 +215,19 @@ const Pursuit = ((city) => {
     }
     if (run.traffic?.phase === 'closed' && !p.rerouteEdgeKey) {
       p.rerouteEdgeKey = [...run.traffic.closedEdges][0];
+      const old=[tail,interceptor,p.lockdownUnit].filter(Boolean).map(u=>({unit:u,path:[{x:u.x,y:u.y},...u.path.map(q=>({x:q.x,y:q.y,edge:q.edge}))]}));
       const diverted=p.intercept&&interceptor.path.some(point=>point.edge?.length===2&&
         city.edgeKey(...point.edge)===p.rerouteEdgeKey);
       if(diverted)p.intercept.diverted=true;
       if (p.sighting) {
         dispatch(tail, p.seen ? roadPoint(p.sighting, run.traffic) : searchTarget(p,0), run.traffic);
         dispatch(interceptor, p.intercept ? junction(p.intercept.node) : searchTarget(p,1), run.traffic);
+        if(p.lockdownUnit)dispatch(p.lockdownUnit,p.lockdownTarget==='decoy'?roadPoint(p.decoyTarget,run.traffic):junction(run.lockdown.choice===1?11:13),run.traffic);
+        const changed=old.find(o=>o.unit.path.some(q=>q.edge?.length===2 &&
+          !city.edgeOpen(...q.edge,run.traffic)) && o.unit.path.length>1);
+        p.routeBreak={old:changed?.path||[],next:changed?[{x:changed.unit.x,y:changed.unit.y},...changed.unit.path]:[],
+          at:run.traffic.selected?.console||run.car,real:!!changed,until:p.elapsed+5};
+        if(changed)p.feint=true;
       }
     } else if (run.traffic?.phase !== 'closed') p.rerouteEdgeKey = null;
     if (p.intercept && p.elapsed >= p.intercept.expires) {
@@ -248,6 +256,7 @@ const Pursuit = ((city) => {
     advance(interceptor, (p.intercept ? 255 : 157)*heatScale, dt, run.traffic);
     if(p.extra)advance(p.extra,(p.seen?175:112)*heatScale,dt,run.traffic);
     if(p.lockdownUnit)advance(p.lockdownUnit,(run.lockdown?.choice===1?205:150)*heatScale,dt,run.traffic);
+    (typeof Showdown==='undefined'?require('./showdown.js'):Showdown).tick(p,run,dt);
     if (p.intercept && !p.block && city.distance(interceptor, city.nodes[p.intercept.node]) < 8 && !interceptor.path.length) {
       p.block = p.intercept;
       if(p.intercept.diverted&&!p.intercept.rewarded&&city.distance(car,city.nodes[p.intercept.node])>150){
@@ -303,8 +312,9 @@ const Pursuit = ((city) => {
       run.contractId === 'switch' && (run.traffic?.successfulClosures || 0) >= 1 ? 1200 :
       run.contractId === 'cash-depot' && run.bonus ? 1400 : 0;
     const routeBonus=success && !run.jobs?.earlyCashout && run.lockdown?.choice===1 ? 1750 : 0;
-    return { extraction, recorder, bonus, pace, condition, feint, styleBonus, routeBonus,
-      total: extraction+recorder+bonus+pace+condition+feint+styleBonus+routeBonus };
+    const commanderBonus=success && !run.jobs?.earlyCashout && pursuit.showdown?.countered ? 750 : 0;
+    return { extraction, recorder, bonus, pace, condition, feint, styleBonus, routeBonus, commanderBonus,
+      total: extraction+recorder+bonus+pace+condition+feint+styleBonus+routeBonus+commanderBonus };
   }
   return { reset, tick, deployDecoy, canSee, predict, score, exit, clearTime, clearDuration, layouts };
 })(typeof module === 'undefined' ? City : require('./city.js'));
