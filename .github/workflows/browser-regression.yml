@@ -2,7 +2,7 @@ name: REDLINE browser playthrough
 on:
   push:
     branches:
-      - improvement/lockdown-96-chat
+      - improvement/lockdown-96-final
   workflow_dispatch:
 concurrency:
   group: redline-browser-upgrade
