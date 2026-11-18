@@ -315,8 +315,9 @@ const Pursuit = ((city) => {
     const routeBonus=success && !run.jobs?.earlyCashout && run.lockdown?.choice===1 ? 1750 : 0;
     const commanderBonus=success && !run.jobs?.earlyCashout && pursuit.showdown?.countered ? 750 : 0;
     const gridfallBonus=success && !run.jobs?.earlyCashout && run.traffic?.gridfallCompleted?900:0;
-    return { extraction, recorder, bonus, pace, condition, feint, styleBonus, routeBonus, commanderBonus, gridfallBonus,
-      total: extraction+recorder+bonus+pace+condition+feint+styleBonus+routeBonus+commanderBonus+gridfallBonus };
+    const redlineBonus=success && !run.jobs?.earlyCashout ? Math.min(1000,(run.momentum?.nearMisses||0)*175+(run.momentum?.used||0)*125) : 0;
+    return { extraction, recorder, bonus, pace, condition, feint, styleBonus, routeBonus, commanderBonus, gridfallBonus, redlineBonus,
+      total: extraction+recorder+bonus+pace+condition+feint+styleBonus+routeBonus+commanderBonus+gridfallBonus+redlineBonus };
   }
   return { reset, tick, deployDecoy, canSee, predict, score, exit, clearTime, clearDuration, layouts };
 })(typeof module === 'undefined' ? City : require('./city.js'));
