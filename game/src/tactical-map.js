@@ -51,6 +51,13 @@ const TacticalMap = (() => {
       ctx.strokeStyle='#ff6889';ctx.lineWidth=9;ctx.beginPath();ctx.arc(q.x,q.y,32,0,Math.PI*2);ctx.stroke();
       ctx.font='900 21px system-ui';ctx.fillStyle='#ffd5e6';ctx.fillText('INTERCEPT',q.x+35,q.y-15);
     }
+    if(p.routeBreak?.real && p.elapsed<p.routeBreak.until){
+      for(const [path,color] of [[p.routeBreak.old,'#ff647e'],[p.routeBreak.next,'#63ffd5']]){
+        ctx.strokeStyle=color;ctx.lineWidth=12;ctx.setLineDash([16,12]);
+        ctx.beginPath();path.forEach((pt,i)=>i?ctx.lineTo(pt.x,pt.y):ctx.moveTo(pt.x,pt.y));ctx.stroke();
+      }
+      ctx.setLineDash([]);
+    }
     for(const gate of Traffic.gates){
       const q=gate.console,closed=run.traffic.closedEdges.has(City.edgeKey(...gate.edge));
       ctx.fillStyle=closed?'#ff667c':'#5fffd0';

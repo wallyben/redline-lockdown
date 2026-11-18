@@ -47,17 +47,21 @@ const Showdown = (() => {
     ctx.restore();
   }
   function screen(ctx,w,h,run,p){
-    if(!p.showdown?.active)return;
-    const s=p.showdown;
+    const cut=p.routeBreak&&p.elapsed<p.routeBreak.until?p.routeBreak:null;
+    if(!p.showdown?.active&&!cut)return;
+    const s=p.showdown,diverted=!!cut?.real;
     const width=Math.min(530,w-460),x=Math.max(398,(w-width)/2),y=16;
     if(width<190)return;
+    const headline=cut?(diverted?'POLICE INTERCEPT BROKEN':'RELAY ACTIVATED / ROAD SEALED'):
+      s.countered?'UNIT OMEGA / SIGNAL DISRUPTED':'FINAL LOCKDOWN / UNIT OMEGA';
+    const detail=cut?(diverted?'RED ROUTE BLOCKED · GREEN ROUTE CONFIRMED':'STREET CLOSED · DISPATCH RECALCULATING'):
+      s.countered?'COMMANDER OUTSMARTED · +750 BANKED':'LAST INTERCEPT · F RADIO SPOOF OR SHIFT RELAY';
     ctx.save();
-    ctx.fillStyle='#081725ed';ctx.fillRect(x,y,width,60);
-    ctx.strokeStyle=s.countered?'#6affc5':'#ff936f';ctx.lineWidth=2;ctx.strokeRect(x,y,width,60);
-    ctx.font='900 17px system-ui';ctx.fillStyle='#fff';
-    ctx.fillText(s.countered?'OMEGA DECEIVED / ROUTE OPEN':'FINAL LOCKDOWN / UNIT OMEGA',x+15,y+25);
-    ctx.font='bold 11px system-ui';ctx.fillStyle=s.countered?'#80ffd4':'#ffca95';
-    ctx.fillText(s.countered?'POLICE RESPONSE DISRUPTED · BONUS SECURED':'USE A RELAY OR DECOY TO BREAK THE COMMANDER',x+15,y+45);
+    ctx.fillStyle='#081725f5';ctx.fillRect(x,y,width,62);
+    ctx.strokeStyle=cut?(diverted?'#66ffcb':'#ffbd77'):s.countered?'#6affc5':'#ff936f';
+    ctx.lineWidth=3;ctx.strokeRect(x,y,width,62);
+    ctx.font='900 18px system-ui';ctx.fillStyle='#fff';ctx.fillText(headline,x+15,y+27);
+    ctx.font='bold 11px system-ui';ctx.fillStyle='#a6ffe1';ctx.fillText(detail,x+15,y+48);
     ctx.restore();
   }
   return {state,tick,world,screen};

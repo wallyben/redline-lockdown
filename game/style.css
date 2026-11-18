@@ -37,3 +37,9 @@ section{max-height:94vh;overflow:auto}
 /* Results should emphasize the banked score, not duplicate title-screen controls. */
 #brief[data-mode="results"] > small {display:none}
 #brief[data-mode="results"] .actions {margin-top:18px}
+
+/* Judge-readable title: three action beats, not a miniature instruction manual. */
+#brief[data-mode="title"] .contract-goal{font-size:14px;line-height:1.55}
+#brief[data-mode="title"] .contract-goal b{font-size:13px;color:#91ffe0}
+#brief[data-mode="title"] .contract-card{min-height:78px}
+#brief[data-mode="title"] > small{font-size:11px;color:#b1ced5;letter-spacing:.02em}

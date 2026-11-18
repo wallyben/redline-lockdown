@@ -313,6 +313,7 @@ function render() {
   Cinematic.streets(ctx,time);
   if (!title) CivilianTraffic.draw(ctx, state.civilians);
   if (!title) drawTraffic();
+  if(!title&&state.smoke)Showdown.world(ctx,state,pursuit,time);
   Art.weather(ctx, c, time, w / zoom, h / zoom);
   if (!title && state.jobs?.stage !== 3) marker(targetForRun(), targetLabel(), state.jobs?.stage===2?'#6be7ff':'#f4c468');
   if (state.collected) {
@@ -342,7 +343,7 @@ function render() {
   Art.spray(ctx, c, time);
   Art.car(ctx, c, false, time);
   Cinematic.steam(ctx,time);
-  if(!title && state.smoke){Smoke.draw(ctx,state);StreetDetail.motion(ctx,state,pursuit,time);Showdown.world(ctx,state,pursuit,time);}
+  if(!title && state.smoke){Smoke.draw(ctx,state);StreetDetail.motion(ctx,state,pursuit,time);}
   ctx.restore();
   const destination = targetForRun();
   const near = state.jobs?.stage===1 && City.distance(c, Drive.vaultFor(state)) < 45;

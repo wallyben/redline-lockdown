@@ -339,6 +339,7 @@ const Art = (() => {
     ctx.save();
     ctx.translate(c.x, c.y);
     ctx.rotate(c.angle);
+    ctx.scale(1.1,1.1);
     const beam = ctx.createLinearGradient(17, 0, 112, 0);
     beam.addColorStop(0, '#d9ecff85');
     beam.addColorStop(1, '#d9ecff00');

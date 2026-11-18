@@ -93,7 +93,7 @@ async function play(browser,idx,name){
       road:state.traffic.phase,closures:state.traffic.successfulClosures,bonus:state.bonus,
       smoke:state.smoke?.charges,transfer:state.jobs.transfer,alert:state.jobs.event,
       police:pursuit.result,lost:pursuit.lost,seen:pursuit.seen,intercept:pursuit.intercept?.node,
-      remaining:180-state.time
+      remaining:180-state.time,diverted:pursuit.routeBreak?.real||false,omega:pursuit.showdown?.countered||false
     }));
     console.log(name+' '+tag,JSON.stringify(snapshot));
     return snapshot;
