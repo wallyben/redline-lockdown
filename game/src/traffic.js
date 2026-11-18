@@ -5,7 +5,7 @@ const Traffic = ((city) => {
     { id: 'dock-cut', name: 'Dock Approach', edge: [13, 18], console: { x: 971, y: 780 } },
   ];
   const reset = () => ({ closedEdges: new Set(), barrier: null, selected: null,
-    phase: 'ready', timer: 0, waiting: 0, cooldown: 0, charges: 3, successfulClosures: 0, message: 'Relay gates ready' });
+    phase: 'ready', timer: 0, waiting: 0, radioJam:0, cooldown: 0, charges: 3, successfulClosures: 0, message: 'Relay gates ready' });
   function segmentDistance(point, a, b) {
     const dx = b.x - a.x, dy = b.y - a.y;
     const t = Math.max(0, Math.min(1, ((point.x-a.x)*dx + (point.y-a.y)*dy)/(dx*dx+dy*dy)));
@@ -51,6 +51,7 @@ const Traffic = ((city) => {
   }
   function tick(state, run, pursuit, dt=1/60) {
     state.cooldown = Math.max(0,state.cooldown-dt);
+    state.radioJam=Math.max(0,(state.radioJam||0)-dt);
     if (state.phase === 'warning') {
       state.timer -= dt;
       if (state.timer <= 0) {
@@ -74,7 +75,7 @@ const Traffic = ((city) => {
           // police communications. Units keep physically moving and routing.
           if(run.contractId==='switch' && state.successfulClosures===1 && pursuit){
             pursuit.refitGrace=Math.max(pursuit.refitGrace||0,3.5);
-            pursuit.contact=0;
+            pursuit.contact=0;state.radioJam=3.5;
             state.message=`${gate.name} SEALED · GRID RADIO BLACKOUT 3.5s`;
           } else state.message=`${gate.name} sealed · ${state.timer.toFixed(1)}s`;
         }
@@ -84,7 +85,7 @@ const Traffic = ((city) => {
       if (state.timer <= 0) {
         state.closedEdges.clear(); state.barrier=null; state.phase='ready'; state.timer=0; state.selected=null;
         state.message='Gate open · relay cooling';
-      } else state.message = `${state.selected.name} sealed · ${state.timer.toFixed(1)}s`;
+      } else state.message = state.radioJam>0 ? `GRID RADIO JAM ${state.radioJam.toFixed(1)}s · STREET SEALED` : `${state.selected.name} sealed · ${state.timer.toFixed(1)}s`;
     }
   }
   function near(run) {
