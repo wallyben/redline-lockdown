@@ -215,6 +215,23 @@ const Art = (() => {
       fill(ctx,x,y,4,4,i%2?'#ffdc92':'#6cebd8');
     }
 
+    // The armored transfer lockbox is a distinct on-street Payday objective.
+    // Its façade sits inside an existing block, without changing collisions.
+    const cache=City.blocks.find(b=>b.row===0&&b.col===1);
+    const ax=cache.x+18,ay=cache.bottom-73;
+    atmosphere(ctx,ax+64,ay+38,52,'#f4a65c35');
+    fill(ctx,ax,ay,132,67,'#111d2b');
+    fill(ctx,ax+5,ay+5,122,56,'#3b4556');
+    fill(ctx,ax+10,ay+10,40,40,'#192331');
+    ctx.strokeStyle='#ffc777';ctx.lineWidth=3;
+    ctx.strokeRect(ax+13,ay+13,34,34);
+    ctx.beginPath();ctx.arc(ax+30,ay+30,11,0,Math.PI*2);ctx.stroke();
+    fill(ctx,ax+56,ay+12,65,3,'#8bd4df');
+    ctx.font='900 10px system-ui';ctx.fillStyle='#ffdda2';
+    ctx.fillText('ARMORED',ax+57,ay+29);
+    ctx.fillText('TRANSFER',ax+57,ay+43);
+    fill(ctx,ax+10,ay+53,110,5,'#d9a75d');
+
     // Original municipal switch-house beside Grid's separately playable raid.
     const hub = City.blocks.find(b => b.row===1 && b.col===0);
     const hx=hub.x+13,hy=hub.y+12;

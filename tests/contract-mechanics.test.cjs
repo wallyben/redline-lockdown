@@ -71,3 +71,16 @@ test('Early cashout does not force optional mastery tasks',()=>{
   assert.equal(Rules.required(run,1).ready,true);
   assert.equal(Rules.required(run,2).ready,true);
 });
+
+test('Ghost, Grid and Payday objectives use three genuinely different bank/cache locations',()=>{
+  const ghost=setup('iris',1701,1),grid=setup('switch',1702,1),payday=setup('cash-depot',1703,1);
+  assert.deepEqual(Drive.vaultFor(ghost),{x:690,y:400});
+  assert.deepEqual(Drive.vaultFor(grid),{x:430,y:530});
+  assert.deepEqual(Drive.vaultFor(payday),{x:520,y:400});
+  const target=Drive.vaultFor(payday);
+  Object.assign(payday.car,{...target,vx:0,vy:0});
+  Drive.tick(payday,{...control,interact:true});
+  for(let i=0;i<59;i++)Drive.tick(payday,control);
+  Drive.tick(payday,{...control,interact:true});
+  assert.equal(payday.jobs.completed[1],true,'Payday lockbox is playable at the physical marker');
+});
