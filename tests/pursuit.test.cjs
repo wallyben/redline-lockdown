@@ -165,3 +165,11 @@ test('precision vault drill suppresses contact briefly without canceling pursuit
   assert.equal(police.result,null);
   assert.ok(police.elapsed>0,'Police simulation must continue normally');
 });
+
+test('payday tail stages on a southern road rather than blocking the first rolling pickup',()=>{
+ const payday=Pursuit.reset(2),ghost=Pursuit.reset(0);
+ assert.deepEqual({x:payday.units[0].x,y:payday.units[0].y},{x:430,y:650});
+ assert.deepEqual({x:ghost.units[0].x,y:ghost.units[0].y},{x:452,y:400});
+ assert.equal(payday.units[0].role,'tail');
+ assert.ok(City.route(City.nearest(payday.units[0]),7).length>0,'The pursuit must remain road-connected');
+});
