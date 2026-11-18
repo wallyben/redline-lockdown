@@ -253,8 +253,12 @@ const Pursuit = ((city) => {
     const pace = success ? Math.max(0, 800 - Math.round(run.time * 8)) : 0;
     const condition = success ? Math.round(Math.max(0,100-run.car.damage)*5) : 0;
     const feint = success && pursuit.feint ? 500+(run.jobs?.modifiers.feint||0) : 0;
-    return { extraction, recorder, bonus, pace, condition, feint,
-      total: extraction+recorder+bonus+pace+condition+feint };
+    // Skill mastery is specific to the contract, not just its patrol arrangement.
+    const styleBonus = !success ? 0 : run.contractId === 'iris' && !pursuit.reacquired && run.car.damage < 20 ? 1200 :
+      run.contractId === 'switch' && (run.traffic?.successfulClosures || 0) >= 1 ? 1200 :
+      run.contractId === 'cash-depot' && run.bonus ? 1400 : 0;
+    return { extraction, recorder, bonus, pace, condition, feint, styleBonus,
+      total: extraction+recorder+bonus+pace+condition+feint+styleBonus };
   }
   return { reset, tick, canSee, predict, score, exit, clearTime, clearDuration, layouts };
 })(typeof module === 'undefined' ? City : require('./city.js'));
