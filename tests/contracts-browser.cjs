@@ -11,7 +11,7 @@ const capture=process.argv.includes('--shots');
 if(capture)mkdirSync(resolve('screenshots'),{recursive:true});
 
 async function play(browser,idx,name){
-  const page=await browser.newPage({viewport:{width:1280,height:720},offline:true});
+  const page=await browser.newPage({viewport:{width:1920,height:1080},offline:true});
   const errors=[],external=[];
   page.on('pageerror',err=>errors.push(err.message));
   page.on('request',req=>{if(!req.url().startsWith('file:'))external.push(req.url());});

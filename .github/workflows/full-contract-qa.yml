@@ -2,10 +2,10 @@ name: REDLINE all-contract full QA
 on:
   push:
     branches:
-      - improvement/gridfall-final
+      - experiment/gridfall-qa-1920
   workflow_dispatch:
 concurrency:
-  group: redline-gridfall-full-qa
+  group: redline-gridfall-full-qa-1920
   cancel-in-progress: true
 jobs:
   contracts:
