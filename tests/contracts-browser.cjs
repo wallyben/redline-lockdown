@@ -1,10 +1,13 @@
 // Fully interactive offline browser proof for both non-Ghost contract circuits.
 // All objective progression is achieved through real keyboard controls.
 const assert=require('node:assert/strict');
+const {mkdirSync}=require('node:fs');
 const {chromium}=require(process.env.REDLINE_PLAYWRIGHT||'playwright-core');
 const {resolve}=require('node:path');
 const {pathToFileURL}=require('node:url');
 const modes=[{idx:1,name:'BREAK THE GRID'},{idx:2,name:'HIGH-RISK PAYDAY'}];
+const capture=process.argv.includes('--shots');
+if(capture)mkdirSync(resolve('screenshots'),{recursive:true});
 
 async function play(browser,idx,name){
   const page=await browser.newPage({viewport:{width:1280,height:720},offline:true});
@@ -115,6 +118,12 @@ async function play(browser,idx,name){
       await advance(1000);
       let status=await report('AFTER GRID RELAY');
       assert.ok(status.closures>=1,'Grid relay never sealed: '+JSON.stringify(status));
+      if(capture){
+        await page.keyboard.down('Tab');
+        await advance(110);
+        await page.screenshot({path:resolve('screenshots/03-risk.jpg'),type:'jpeg',quality:84});
+        await page.keyboard.up('Tab');
+      }
       await driveTo(430,530,45,230,8);
     }else{
       await page.keyboard.press('q');
@@ -127,8 +136,8 @@ async function play(browser,idx,name){
 
     if(idx===1){
       // Grid's courier is not on Ghost's route; it starts at the inner-city junction.
-      await driveTo(690,450,90,130);
-      await driveTo(690,650,75,190,12);
+      await driveTo(430,650,90,140);
+      await driveTo(690,650,95,200,12);
     }else{
       // Payday: first travel to the cash depot, then the southern freight courier.
       await driveTo(690,450,90,130);
