@@ -5,7 +5,7 @@ const Momentum = (() => {
   const reset = () => ({
     charge: .45, active: 0, cooldown: 0, used: 0,
     nearMisses: 0, streak: 0, bestStreak: 0, streakTimer: 0,
-    nearCooldowns: [], message: '', messageTime: 0,
+    nearCooldowns: [], nearArmed: [], message: '', messageTime: 0,
   });
   function activate(run) {
     const m = run?.momentum;
@@ -38,8 +38,12 @@ const Momentum = (() => {
       const unit = police.units[i];
       const gap = Math.hypot(car.x-unit.x, car.y-unit.y);
       const cd = m.nearCooldowns[i] || 0;
-      if (speed >= 115 && gap >= 30 && gap < 76 && cd <= 0) {
+      // A near miss must be a new pass. Staying beside a cruiser for five seconds
+      // cannot print another reward; a genuine separation rearms the sensor.
+      if (gap > 100) m.nearArmed[i] = true;
+      if (speed >= 115 && gap >= 30 && gap < 76 && cd <= 0 && m.nearArmed[i] !== false) {
         m.nearCooldowns[i] = 5;
+        m.nearArmed[i] = false;
         m.nearMisses++;
         m.streak = m.streakTimer > 0 ? m.streak + 1 : 1;
         m.bestStreak = Math.max(m.bestStreak, m.streak);
