@@ -12,7 +12,7 @@ const Lockdown = (() => {
   }
   function select(run,which) {
     if(!run.lockdown?.active || (which!==0 && which!==1)) return false;
-    if(run.contractId==='cash-depot' && which===0) {
+    if(run.contractId==='cash-depot' && !run.jobs?.earlyCashout && which===0) {
       run.lockdown.event='PAYDAY REQUIRES THE WEST QUAY EXFIL';
       return false;
     }
@@ -26,7 +26,7 @@ const Lockdown = (() => {
     if(!l.active && run.jobs?.stage===3) {
       l.active=true;
       l.elapsed=0;
-      l.choice=run.contractId==='cash-depot'?1:0;
+      l.choice=run.contractId==='cash-depot'&&!run.jobs?.earlyCashout?1:0;
       l.event='CITY LOCKDOWN / CHOOSE EAST OR WEST WITH 1 OR 2';
       l.announced=true;
       p.refresh=0;
