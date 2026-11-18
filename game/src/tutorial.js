@@ -22,7 +22,7 @@ const Tutorial = (() => {
       if (distance(run.car, goal) >= 45) return { key: 'BANK', text: 'DRIVE INTO THE GOLD VAULT CIRCLE AND STOP' };
       return speed >= 36
         ? { key: 'BRAKE', text: 'STOP BELOW 36 SPEED TO ACCESS THE VAULT' }
-        : { key: 'PRESS E', text: 'START THE DRILL · THEN HIT E AGAIN IN THE GREEN BAND' };
+        : { key: 'PRESS E', text: 'PRESS E TO START THE DRILL · HIT E AGAIN IN THE GREEN BAND' };
     }
     if (stage === 2) {
       const courier = run.jobs.courier;
