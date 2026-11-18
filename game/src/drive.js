@@ -52,7 +52,11 @@ const Drive = ((city, jobs) => {
     if (state.sweep >= 0) state.sweep += dt;
     if (input.interact && atPickup) {
       if (state.sweep >= 0.75 && state.sweep <= 1.45) {
-        jobs.completeVault(state.jobs);
+        const gate = typeof ContractRules === 'undefined'
+          ? (typeof module === 'undefined' ? {ready:true} : require('./contract-rules.js').required(state,1))
+          : ContractRules.required(state,1);
+        if(gate.ready)jobs.completeVault(state.jobs);
+        else state.jobs.event = gate.task;
         state.sweep = -1;
       }
       else state.sweep = 0;
