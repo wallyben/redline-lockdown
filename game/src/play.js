@@ -71,6 +71,7 @@ function pause() {
 function finish() {
   mode = 'results';
   brief.dataset.mode = 'results';
+  brief.dataset.exit = state.lockdown?.choice===1?'west':'east';
   document.querySelector('#run-cards').innerHTML = '';
   hud.hidden = true;
   intermission.hidden = true;
