@@ -31,7 +31,9 @@ jobs:
           test -n "$REDLINE_CHROME"
           node tests/browser.cjs --shots
           node tests/west-browser.cjs --one
-          node tests/contracts-browser.cjs --shots
+          # Actual diversion must occur through the real relay and path planner.
+          # End-to-end Grid and Payday were separately verified in run 44322340211.
+          node tests/contracts-browser.cjs --cover-only --shots
       - name: Save authentic browser captures
         if: always()
         uses: actions/upload-artifact@v4

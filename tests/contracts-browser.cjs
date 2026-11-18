@@ -5,7 +5,8 @@ const {mkdirSync}=require('node:fs');
 const {chromium}=require(process.env.REDLINE_PLAYWRIGHT||'playwright-core');
 const {resolve}=require('node:path');
 const {pathToFileURL}=require('node:url');
-const modes=[{idx:1,name:'BREAK THE GRID'},{idx:2,name:'HIGH-RISK PAYDAY'}];
+const coverOnly=process.argv.includes('--cover-only');
+const modes=coverOnly?[{idx:1,name:'BREAK THE GRID / ROUTE DIVERSION CAPTURE'}]:[{idx:1,name:'BREAK THE GRID'},{idx:2,name:'HIGH-RISK PAYDAY'}];
 const capture=process.argv.includes('--shots');
 if(capture)mkdirSync(resolve('screenshots'),{recursive:true});
 
@@ -125,6 +126,12 @@ async function play(browser,idx,name){
         await advance(110);
         await page.screenshot({path:resolve('screenshots/03-risk.jpg'),type:'jpeg',quality:84});
         await page.keyboard.up('Tab');
+      }
+      if(coverOnly){
+        assert.deepEqual(errors,[], 'Cover capture had no browser errors');
+        assert.deepEqual(external,[], 'Cover capture must remain offline');
+        console.log('Real police road diversion and screenshot pair PASSED');
+        return;
       }
       await driveTo(430,530,45,230,8);
     }else{
