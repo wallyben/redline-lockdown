@@ -66,25 +66,36 @@ function pause() {
 }
 
 function finish() {
-  mode = 'results'; brief.dataset.mode='results';
+  mode = 'results';
+  brief.dataset.mode = 'results';
   document.querySelector('#run-cards').innerHTML = '';
   hud.hidden = true;
   intermission.hidden = true;
   layoutChoice.hidden = false;
-  const s = Pursuit.score(state, pursuit);
-  const record = Records.bank(state, pursuit, Contracts[Number(layoutInput.value)]);
-  brief.querySelector('h1').innerHTML = 'RUN <span>REPORT</span>';
-  brief.querySelector('p').textContent = pursuit.result + '  /  ' + s.total.toLocaleString() + ' pts\n' +
-    'Job haul +' + s.recorder + '  ·  Escape +' + s.extraction +
-    '  ·  Optional cash +' + s.bonus + '  ·  Time +' + s.pace + '\nCar condition +' + s.condition + '  ·  Interceptor feint +' + s.feint + '\nContract mastery +' + s.styleBonus + '\n' + (record ? 'Personal best ' + Records.table(Contracts[Number(layoutInput.value)].id)[0].total + ' · ' + (record.delta === null ? 'First record' : (record.delta >= 0 ? '+' : '') + record.delta + ' vs best') : 'No score banked');
+
   const contract = Contracts[Number(layoutInput.value)];
-  const medal = s.total >= contract.gold ? 'GOLD' : s.total >= contract.gold*.85 ? 'SILVER' : s.total ? 'BRONZE' : 'NO SCORE BANKED';
-  brief.querySelector('p').textContent += '\nPoints bank only on escape. Capture or wreck: 0 points.\n' + (state.jobs.completed.map((done,i)=>done?'JOB '+(i+1)+' ✓':null).filter(Boolean).join(' · ')||'No job completed') + '\n' + (s.total > 0 && state.car.damage <= 5 ? 'CLEAN ESCAPE · ' : s.total > 0 ? 'ESCAPED · ' : '') + medal + (s.total ? ' · ' + Math.abs(s.total-contract.gold) + (s.total >= contract.gold ? ' above Gold target' : ' to Gold target') : '') +
-    '\n' + state.time.toFixed(1) + ' seconds · ' + Math.max(0,100-state.car.damage).toFixed(0) + '% integrity';
+  const score = Pursuit.score(state, pursuit);
+  const record = Records.bank(state, pursuit, contract);
+  const best = Records.table(contract.id)[0];
+  const completed = state.jobs.completed.filter(Boolean).length;
+  const intact = Math.max(0, Math.round(100 - state.car.damage));
+  const won = score.total > 0;
+  const medal = !won ? 'NO SCORE' : score.total >= contract.gold ? 'GOLD' :
+    score.total >= contract.gold * .85 ? 'SILVER' : 'BRONZE';
+
+  brief.querySelector('h1').innerHTML = won ?
+    'ESCAPED<span>' + medal + ' GETAWAY</span>' :
+    'BUSTED<span>' + pursuit.result + '</span>';
+  brief.querySelector('p').textContent =
+    completed + '/3 JOBS CLEARED  ·  ' + state.time.toFixed(1) + 's  ·  ' + intact + '% CAR\n' +
+    'HAUL +' + score.recorder.toLocaleString() + '  ·  EXTRACTION +' + score.extraction.toLocaleString() + '\n' +
+    'CONTRACT MASTERY +' + score.styleBonus.toLocaleString() + '  ·  TIME +' + score.pace.toLocaleString() + '\n' +
+    (best ? 'PERSONAL BEST ' + best.total.toLocaleString() + '  ·  ' + (record?.delta == null ? 'FIRST RECORD' : (record.delta >= 0 ? '+' : '') + record.delta + ' VS BEST') : 'NO SCORE BANKED') + '\n' +
+    (won ? 'TAKE THE MONEY. OUTRUN THE LOCKDOWN.' : 'CAPTURE OR WRECK LOSES EVERYTHING.');
+  document.querySelector('#run-cards').innerHTML =
+    '<div class="score-hero">' + score.total.toLocaleString() +
+    '<small>' + (won ? 'POINTS BANKED' : 'POINTS LOST') + '</small></div>';
   startButton.textContent = 'Retry ↵';
-  brief.querySelector('p').textContent += '\nC · contract select';
-  brief.querySelector('h1').innerHTML = s.total ? 'ESCAPED<span>'+medal+' GETAWAY</span>' : 'BUSTED<span>'+pursuit.result+'</span>';
-  document.querySelector('#run-cards').innerHTML = '<div class=score-hero>'+s.total.toLocaleString()+'<small>POINTS BANKED</small></div>';
   brief.hidden = false;
 }
 
@@ -261,7 +272,7 @@ function render() {
   if (!title) CivilianTraffic.draw(ctx, state.civilians);
   if (!title) drawTraffic();
   Art.weather(ctx, c, time, w / zoom, h / zoom);
-  if (!title) marker(targetForRun(), targetLabel(), state.jobs?.stage===2?'#6be7ff':'#f4c468');
+  if (!title && state.jobs?.stage !== 3) marker(targetForRun(), targetLabel(), state.jobs?.stage===2?'#6be7ff':'#f4c468');
   if (state.collected) {
     ctx.save();
     ctx.beginPath();
@@ -300,7 +311,7 @@ function render() {
   shade.addColorStop(0, '#0b142000');
   shade.addColorStop(1, '#050916a8');
   rect(0, 0, w, h, shade);
-  if (mode !== 'title') {Cinematic.screen(ctx,w,h,state,pursuit,reducedFlash);Art.minimap(ctx, w, h, state, pursuit);}
+  if (mode === 'playing' || mode === 'paused' || mode === 'intermission') {Cinematic.screen(ctx,w,h,state,pursuit,reducedFlash);Art.minimap(ctx, w, h, state, pursuit);}
   if (state.sweep >= 0 && !state.bonus) {
     const x = w / 2 - 105;
     const y = h - 66;
