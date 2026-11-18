@@ -35,6 +35,8 @@ function start() {
   camera = null;
   state = Drive.reset();
   state.smoke = Smoke.reset();
+  state.lockdown = Lockdown.reset();
+  state.ghostAlley = false;
   state.jobs = Jobs.reset(Contracts[Number(layoutInput.value)].seed);
   state.civilians = CivilianTraffic.reset(Contracts[Number(layoutInput.value)].seed);
   // Contract identities alter resources and initial threat, not only the briefing.
@@ -89,7 +91,7 @@ function finish() {
   brief.querySelector('p').textContent =
     completed + '/3 JOBS CLEARED  ·  ' + state.time.toFixed(1) + 's  ·  ' + intact + '% CAR\n' +
     'HAUL +' + score.recorder.toLocaleString() + '  ·  EXTRACTION +' + score.extraction.toLocaleString() + '\n' +
-    'CONTRACT MASTERY +' + score.styleBonus.toLocaleString() + '  ·  TIME +' + score.pace.toLocaleString() + '\n' +
+    'MASTERY +' + score.styleBonus.toLocaleString() + '  ·  ROUTE +' + score.routeBonus.toLocaleString() + '\n' +
     (best ? 'PERSONAL BEST ' + best.total.toLocaleString() + '  ·  ' + (record?.delta == null ? 'FIRST RECORD' : (record.delta >= 0 ? '+' : '') + record.delta + ' VS BEST') : 'NO SCORE BANKED') + '\n' +
     (won ? 'TAKE THE MONEY. OUTRUN THE LOCKDOWN.' : 'CAPTURE OR WRECK LOSES EVERYTHING.');
   document.querySelector('#run-cards').innerHTML =
@@ -119,7 +121,7 @@ function showContract() {
   const best = Records.table(c.id)[0];
   brief.querySelector('h1').innerHTML = 'REDLINE <span>LOCKDOWN</span>';
   brief.querySelector('p').innerHTML = '<strong>ROB THE BANK. CUT THE GRID. VANISH.</strong><br>Close roads behind you. Smoke the tail. Risk one more job — or escape with what you have.';
-  document.querySelector('#run-cards').innerHTML = `<div class="mission-grid"><div><b>01 / SNATCH</b><span>Hit the rolling pickup</span></div><div><b>02 / CRACK</b><span>Time the vault drill</span></div><div><b>03 / VANISH</b><span>Match the courier, then escape</span></div></div><div class="contract-goal">${c.goal}<br>GOLD ${c.gold.toLocaleString()} · BEST ${best?best.total.toLocaleString():'—'} · ${Contracts.filter(c=>(Records.table(c.id)[0]?.total||0)>=c.gold).length}/3 contracts mastered</div>`;
+  document.querySelector('#run-cards').innerHTML = `<div class="mission-grid">${c.beats.map((beat,i)=>`<div><b>0${i+1} / ${beat[0]}</b><span>${beat[1]}</span></div>`).join('')}</div><div class="contract-goal">${c.goal}<br>GOLD ${c.gold.toLocaleString()} · BEST ${best?best.total.toLocaleString():'—'} · ${Contracts.filter(c=>(Records.table(c.id)[0]?.total||0)>=c.gold).length}/3 contracts mastered</div>`;
   const rows=Records.table(c.id);
   if(rows.length) brief.querySelector('p').textContent += rows.length ? '\n\nPERSONAL RECORDS\n' +
     rows.map(r=>r.total+' pts · '+r.time.toFixed(1)+' s · '+r.integrity.toFixed(0)+'%').join('\n') : '';
@@ -153,15 +155,16 @@ function targetForRun(){
   if(state.jobs.stage===0)return Jobs.pickup(state.jobs,state.time);
   if(state.jobs.stage===1)return Drive.pickup;
   if(state.jobs.stage===2)return {x:state.jobs.courier.x,y:state.jobs.courier.y};
-  return Pursuit.exit;
+  return state.lockdown?.active ? Lockdown.target(state) : Pursuit.exit;
 }
 function targetLabel(){
   if(!state.jobs)return state.collected?'DOCK EXIT':'BANK VAULT';
+  if(state.jobs.stage===3 && state.lockdown?.active) return Lockdown.exits[state.lockdown.choice].name;
   return ['ROLLING PICKUP','PORT MERIDIAN VAULT','COURIER TRANSFER','DOCK EXTRACTION'][state.jobs.stage];
 }
 window.addEventListener('keydown', e => {
   if (e.target === layoutInput) return;
-  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'Enter'].includes(e.code)) e.preventDefault();
+  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'Enter', 'Tab'].includes(e.code)) e.preventDefault();
   keys.add(e.code);
   if (e.repeat) return;
   if (e.code === 'Enter') confirm();
@@ -175,6 +178,9 @@ window.addEventListener('keydown', e => {
   }
   if (e.code === 'KeyE') interact = true;
   if (e.code === 'KeyQ' && mode === 'playing') Smoke.deploy(state);
+  if (e.code === 'KeyF' && mode === 'playing') Pursuit.deployDecoy(pursuit,state);
+  if (mode === 'playing' && state.lockdown?.active && e.code==='Digit1') Lockdown.select(state,0);
+  if (mode === 'playing' && state.lockdown?.active && e.code==='Digit2') Lockdown.select(state,1);
 });
 window.addEventListener('keyup', e => keys.delete(e.code));
 window.addEventListener('blur', () => {
@@ -282,7 +288,7 @@ function render() {
     pursuit.units.forEach((unit, i) => Art.reflections(ctx, unit, reducedFlash ? 0 : time, i));
     ctx.restore();
     if (!state.bonus && state.jobs?.stage<3) marker({x:1010,y:650}, 'OPTIONAL CASH · EXTRA ALARM', '#ffcf75');
-    if(state.jobs?.stage===3)marker(Pursuit.exit, pursuit.lost >= Pursuit.clearDuration(state) ? 'BANK SCORE' : 'BREAK CONTACT', '#82ffbf');
+    if(state.jobs?.stage===3)marker(targetForRun(), pursuit.lost >= Pursuit.clearDuration(state) ? 'BANK SCORE' : 'BREAK CONTACT', '#82ffbf');
     if (pursuit.intercept) {
       const target = City.nodes[pursuit.intercept.node];
       marker(target, pursuit.block ? 'ROADBLOCK' : 'BLOCKADE INBOUND', '#ff657f');
@@ -324,6 +330,7 @@ function render() {
     ctx.fillText('PRESS E IN THE GREEN BAND', x, y - 12);
   }
   ChaseHUD.update(hud, state, pursuit, arrow, range);
+  if(mode==='playing' && keys.has('Tab'))TacticalMap.draw(ctx,w,h,state,pursuit);
 
 }
 
@@ -339,6 +346,7 @@ function frame(now) {
         drift: keys.has('Space'), interact, interactHeld: keys.has('KeyE'),
       });
       if(previousJobStage===2&&state.jobs.stage===3){pursuit.contact=0;pursuit.refitGrace=3.5;}
+      if(City.inCover(state.car) && state.car.y < 850)state.ghostAlley=true;
       if (keys.has('ShiftLeft') || keys.has('ShiftRight')) {
         if (!state.gateKeyDown) Traffic.activate(state.traffic, state, pursuit);
         state.gateKeyDown = true;
@@ -347,6 +355,7 @@ function frame(now) {
       Traffic.tick(state.traffic, state, pursuit);
       CivilianTraffic.tick(state.civilians, state, 1/60);
       Smoke.tick(state,1/60);
+      Lockdown.tick(state,pursuit,1/60);
       Cinematic.tick(state);
       Pursuit.tick(pursuit, state);
       if (pursuit.result) finish();
