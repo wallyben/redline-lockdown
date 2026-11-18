@@ -2,7 +2,7 @@ name: REDLINE Node regression tests
 on:
   push:
     branches:
-      - improvement/redline-showdown
+      - improvement/gridfall-final
   workflow_dispatch:
 jobs:
   test:
