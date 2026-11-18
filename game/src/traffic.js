@@ -74,9 +74,9 @@ const Traffic = ((city) => {
           // Grid's successful first relay sabotage temporarily jams city
           // police communications. Units keep physically moving and routing.
           if(run.contractId==='switch' && state.successfulClosures===1 && pursuit){
-            pursuit.refitGrace=Math.max(pursuit.refitGrace||0,3.5);
-            pursuit.contact=0;state.radioJam=3.5;
-            state.message=`${gate.name} SEALED · GRID RADIO BLACKOUT 3.5s`;
+            pursuit.refitGrace=Math.max(pursuit.refitGrace||0,5.0);
+            pursuit.contact=0;state.radioJam=5.0;
+            state.message=`${gate.name} SEALED · GRID RADIO BLACKOUT 5.0s`;
           } else state.message=`${gate.name} sealed · ${state.timer.toFixed(1)}s`;
         }
       }
