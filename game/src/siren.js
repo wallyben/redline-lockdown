@@ -60,5 +60,35 @@ const Siren = (() => {
     tone.start(now);tone.stop(now+.5);
     tone.onended=()=>{tone.disconnect();gain.disconnect();};
   }
-  return { enable, update, engine, cue };
+  // Lightweight original feedback for real player actions, never a soundtrack.
+  // Single short voice per event; no network, samples, assets or added packages.
+  function signal(kind) {
+    if (!audio || audio.state !== 'running') return;
+    const sounds = {
+      job:     {from:410,to:730,duration:.24,volume:.036,type:'triangle'},
+      relay:   {from:260,to:520,duration:.30,volume:.044,type:'square'},
+      grid:    {from:410,to:180,duration:.42,volume:.05,type:'triangle'},
+      lockdown:{from:370,to:135,duration:.48,volume:.055,type:'sawtooth'},
+      escape:  {from:330,to:880,duration:.48,volume:.052,type:'triangle'},
+      busted:  {from:250,to:92,duration:.55,volume:.05,type:'triangle'}
+    };
+    const sound=sounds[kind];
+    if(!sound)return;
+    try {
+      const now=audio.currentTime;
+      const tone=audio.createOscillator(),envelope=audio.createGain();
+      tone.type=sound.type;
+      tone.frequency.setValueAtTime(sound.from,now);
+      tone.frequency.exponentialRampToValueAtTime(sound.to,now+sound.duration);
+      envelope.gain.setValueAtTime(.0001,now);
+      envelope.gain.exponentialRampToValueAtTime(sound.volume,now+.025);
+      envelope.gain.exponentialRampToValueAtTime(.0001,now+sound.duration);
+      tone.connect(envelope).connect(audio.destination);
+      tone.start(now);tone.stop(now+sound.duration+.025);
+      tone.onended=()=>{tone.disconnect();envelope.disconnect();};
+    } catch {
+      // Audio failure is never allowed to interrupt gameplay.
+    }
+  }
+  return { enable, update, engine, cue, signal };
 })();
