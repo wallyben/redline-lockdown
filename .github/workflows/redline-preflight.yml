@@ -1,0 +1,53 @@
+name: REDLINE candidate preflight and genuine Chrome captures
+on:
+  push:
+    branches:
+      - improvement/redline-ultimate
+    paths-ignore:
+      - screenshots/**
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify JavaScript syntax
+        run: |
+          for file in game/src/*.js; do node --check "$file"; done
+          node --check tests/momentum.test.cjs
+      - name: Run all deterministic simulation tests
+        run: node --test tests/*.test.cjs
+      - name: Install open-source Playwright and Chromium
+        run: |
+          npm install --no-save --no-audit --no-fund playwright
+          npx playwright install --with-deps chromium
+      - name: Play full mission in offline Chrome at two sizes and capture real screenshots
+        env:
+          REDLINE_PLAYWRIGHT: playwright
+        run: |
+          export REDLINE_CHROME="$(node -p "require('playwright').chromium.executablePath()")"
+          node tests/browser.cjs --shots
+          node tests/contracts-browser.cjs --shots
+      - name: Upload genuine screenshots for independent inspection
+        uses: actions/upload-artifact@v4
+        with:
+          name: redline-real-chrome-screenshots
+          path: screenshots/*.jpg
+          if-no-files-found: error
+      - name: Commit proven real screenshots to candidate branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add screenshots/
+          if ! git diff --cached --quiet; then
+            git commit -m "Capture genuine final Chrome screenshots [skip ci]"
+            git push origin "HEAD:improvement/redline-overdrive-polish"
+          fi
