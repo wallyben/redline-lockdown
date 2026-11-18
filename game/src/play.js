@@ -49,6 +49,7 @@ function start() {
   pursuit = Pursuit.reset(Contracts[Number(layoutInput.value)].layout);
   state.seed = Contracts[Number(layoutInput.value)].seed;
   pursuit.pressure = Contracts[Number(layoutInput.value)].pressure;
+  if(contractId==='cash-depot')pursuit.refitGrace=2.4; // High-heat raid starts with a short lead, not an immediate capture.
   interact = false;
   mode = 'playing';
   brief.hidden = true;
