@@ -20,6 +20,7 @@ const Pursuit = ((city) => {
   function canSee(unit, car, road = null) {
     const d = city.distance(unit, car);
     if(city.inDockShadow(car)&&!city.inDockShadow(unit))return false;
+    if(city.inWestTunnel(car)&&!city.inWestTunnel(unit))return false;
     if (d > 260 || (d > 54 && city.inCover(unit) !== city.inCover(car))) return false;
     const samples = Math.ceil(d / 11);
     for (let i = 1; i < samples; i++) {
