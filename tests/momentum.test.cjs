@@ -49,7 +49,7 @@ test('physical near misses chain but have a per-unit anti-farming cooldown', () 
   p.units[0].x=735;
   Momentum.tick(r,p);
   assert.equal(r.momentum.nearMisses,2);
-  assert.equal(r.momentum.bestStreak,1);
+  assert.equal(r.momentum.bestStreak,2); // A second legitimate pass within seven seconds chains.
 });
 
 test('activated overdrive delivers greater acceleration while keeping speed bounded', () => {
