@@ -1,28 +1,40 @@
 const Siren = (() => {
-  let audio, oscillator, volume, filter, pan, motor, motorGain;
+  let audio, oscillator, volume, filter, pan, motor, motorGain, unavailable=false;
   function enable() {
+    if (unavailable) return;
     if (!audio) {
-      audio = new AudioContext();
+      const AudioCtor=globalThis.AudioContext || globalThis.webkitAudioContext;
+      if(typeof AudioCtor!=='function'){unavailable=true;return;}
+      try {
+      audio = new AudioCtor();
       oscillator = audio.createOscillator();
       oscillator.type = 'triangle';
       filter = audio.createBiquadFilter();
       filter.type = 'lowpass';
       volume = audio.createGain();
       volume.gain.value = 0;
-      pan = audio.createStereoPanner();
+      pan = audio.createStereoPanner ? audio.createStereoPanner() : audio.createGain();
       oscillator.connect(filter).connect(volume).connect(pan).connect(audio.destination);
       oscillator.start();
       motor=audio.createOscillator(); motor.type='sawtooth';motorGain=audio.createGain();motorGain.gain.value=0;
       const muffler=audio.createBiquadFilter();muffler.type='lowpass';muffler.frequency.value=250;
       motor.connect(muffler).connect(motorGain).connect(audio.destination);motor.start();
+      } catch (error) {
+        unavailable=true;
+        try{audio?.close?.();}catch{}
+        audio=null;
+        return;
+      }
     }
-    if (audio.state === 'suspended') audio.resume().catch(() => {});
+    if (audio.state === 'suspended') {
+      try { Promise.resolve(audio.resume()).catch(()=>{}); } catch {}
+    }
   }
   function update(distance, time, covered, direction = 0) {
     if (!audio) return;
     const near = Math.max(0, 1 - distance / 360);
     const now = audio.currentTime;
-    pan.pan.setTargetAtTime(Math.max(-1,Math.min(1,direction)),now,.1);
+    if(pan.pan)pan.pan.setTargetAtTime(Math.max(-1,Math.min(1,direction)),now,.1);
     oscillator.frequency.setTargetAtTime(665 + 245 * Math.sin(time * Math.PI * 1.55), now, .04);
     filter.frequency.setTargetAtTime(covered ? 420 : 1950, now, .08);
     volume.gain.setTargetAtTime(near * near * .22, now, .09);
