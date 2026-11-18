@@ -11,3 +11,11 @@ section{max-height:94vh;overflow:auto}
 #brief[data-mode=results] h1{font-size:76px;margin-bottom:16px}#brief[data-mode=results] p{font-size:12px;line-height:1.6}#brief[data-mode=results] .eyebrow{margin-bottom:18px}#brief[data-mode=results] .score-hero{font-size:48px;margin:12px 0}#brief[data-mode=results] small{margin-top:12px}
 
 #hud{width:350px}.chase-threat{padding:9px 14px;font-size:17px}.chase-objective{padding:9px 14px;font-size:18px}.chase-stats{padding:8px 14px}.chase-route{padding:7px 14px}.ability-bar{padding:8px 14px}.win-rule{padding:7px 14px;font-size:8px}
+
+
+/* Reward screen: four-line readable summary instead of dense debug copy. */
+#brief[data-mode="results"] {max-width:min(560px,88vw);background:#0a1420f5}
+#brief[data-mode="results"] h1 {margin-bottom:22px}
+#brief[data-mode="results"] p {font-size:14px;line-height:1.8;color:#c9dfeb;letter-spacing:.018em}
+#brief[data-mode="results"] .score-hero {font-size:72px;margin:18px 0 16px;text-shadow:0 0 24px #45eec939}
+#brief[data-mode="results"] .score-hero small {font-size:12px;color:#a4ffe2}
