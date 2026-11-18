@@ -171,9 +171,10 @@ async function play(browser,idx,name){
       // exit rather than passing straight through the occupied dock blockade.
       await page.keyboard.press('2');
       assert.equal(await read(()=>state.lockdown.choice),1,'Grid selected the West Quay route');
-      await driveTo(430,910,145,220);
+      // Deploy the earned radio spoof BEFORE the occupied west interchange.
       await page.keyboard.press('q');
       if(await read(()=>pursuit.decoyCharges>0&&!!pursuit.sighting))await page.keyboard.press('f');
+      await driveTo(430,910,145,220);
       await driveTo(130,910,165,250,15);
       await brake();
     }else{
