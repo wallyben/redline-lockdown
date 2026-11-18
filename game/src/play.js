@@ -35,6 +35,7 @@ function start() {
   camera = null;
   state = Drive.reset();
   state.smoke = Smoke.reset();
+  state.momentum = Momentum.reset();
   state.lockdown = Lockdown.reset();
   state.ghostAlley = false;
   state.jobs = Jobs.reset(Contracts[Number(layoutInput.value)].seed);
@@ -92,7 +93,7 @@ function finish() {
   brief.querySelector('p').textContent =
     completed + '/3 JOBS CLEARED  ·  ' + state.time.toFixed(1) + 's  ·  ' + intact + '% CAR\n' +
     'HAUL +' + score.recorder.toLocaleString() + '  ·  EXTRACTION +' + score.extraction.toLocaleString() + '\n' +
-    'MASTERY +' + score.styleBonus.toLocaleString() + '  ·  OMEGA +' + score.commanderBonus.toLocaleString() + '\n' +
+    'MASTERY +' + score.styleBonus.toLocaleString() + '  ·  OMEGA +' + score.commanderBonus.toLocaleString() + '  ·  REDLINE +' + score.redlineBonus.toLocaleString() + '\n' +
     (best ? 'PERSONAL BEST ' + best.total.toLocaleString() + '  ·  ' + (record?.delta == null ? 'FIRST RECORD' : (record.delta >= 0 ? '+' : '') + record.delta + ' VS BEST') : 'NO SCORE BANKED') + '\n' +
     (won ? 'TAKE THE MONEY. OUTRUN THE LOCKDOWN.' : 'CAPTURE OR WRECK LOSES EVERYTHING.');
   document.querySelector('#run-cards').innerHTML =
@@ -121,7 +122,7 @@ function showContract() {
   const c = Contracts[Number(layoutInput.value)];
   const best = Records.table(c.id)[0];
   brief.querySelector('h1').innerHTML = 'REDLINE <span>LOCKDOWN</span>';
-  brief.querySelector('p').innerHTML = '<strong>CONTROL THE STREETS. BREAK THE POLICE.</strong><br>Seal a junction. Watch the intercept collapse. Escape before UNIT OMEGA reaches the exit.';
+  brief.querySelector('p').innerHTML = '<strong>CONTROL THE STREETS. BREAK THE POLICE.</strong><br>Hijack road relays. Chain police near misses. Earn OVERDRIVE (B). Beat UNIT OMEGA to extraction.';
   const cards=Contracts.map((contract,index) =>
     `<button type="button" class="contract-card ${index===Number(layoutInput.value)?'selected':''}" data-contract="${index}">
       <b>0${index+1} / ${contract.name}</b><span>${contract.beats.map(beat=>beat[0]).join(' · ')}</span>
@@ -215,6 +216,7 @@ window.addEventListener('keydown', e => {
   if (e.code === 'KeyE') interact = true;
   if (e.code === 'KeyQ' && mode === 'playing') Smoke.deploy(state);
   if (e.code === 'KeyF' && mode === 'playing') Pursuit.deployDecoy(pursuit,state);
+  if (e.code === 'KeyB' && mode === 'playing' && Momentum.activate(state) && !muted) Siren.cue();
   if (mode === 'playing' && state.lockdown?.active && e.code==='Digit1') Lockdown.select(state,0);
   if (mode === 'playing' && state.lockdown?.active && e.code==='Digit2') Lockdown.select(state,1);
 });
@@ -341,6 +343,7 @@ function render() {
   }
   if(!title&&state.jobs?.stage===2)Art.car(ctx,state.jobs.courier,false,time,true);
   Art.spray(ctx, c, time);
+  if (!title) Momentum.world(ctx, state, time, reducedFlash);
   Art.car(ctx, c, false, time);
   Cinematic.steam(ctx,time);
   if(!title && state.smoke){Smoke.draw(ctx,state);StreetDetail.motion(ctx,state,pursuit,time);}
@@ -354,7 +357,7 @@ function render() {
   shade.addColorStop(0, '#0b142000');
   shade.addColorStop(1, '#050916a8');
   rect(0, 0, w, h, shade);
-  if (mode === 'playing' || mode === 'paused' || mode === 'intermission') {Cinematic.screen(ctx,w,h,state,pursuit,reducedFlash);Art.minimap(ctx, w, h, state, pursuit);Showdown.screen(ctx,w,h,state,pursuit);}
+  if (mode === 'playing' || mode === 'paused' || mode === 'intermission') {Cinematic.screen(ctx,w,h,state,pursuit,reducedFlash);Art.minimap(ctx, w, h, state, pursuit);Showdown.screen(ctx,w,h,state,pursuit);Momentum.screen(ctx,w,h,state);}
   if (state.sweep >= 0 && !state.bonus) {
     const x = w / 2 - 105;
     const y = h - 66;
@@ -396,6 +399,7 @@ function frame(now) {
       Lockdown.tick(state,pursuit,1/60);
       Cinematic.tick(state);
       Pursuit.tick(pursuit, state);
+      Momentum.tick(state, pursuit, 1/60);
       if (pursuit.result) finish();
     }
     accumulator -= 1 / 60;
