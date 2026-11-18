@@ -31,7 +31,7 @@ test('Grid requires an executed relay closure before bank may be drilled',()=>{
   for(let i=0;i<60;i++)Drive.tick(run,control);
   Drive.tick(run,{...control,interact:true});
   assert.equal(run.jobs.completed[1],false);
-  assert.match(run.jobs.event,/RELAY/);
+  assert.match(Rules.required(run,1).task,/RELAY/);
   run.traffic.successfulClosures=1;
   assert.equal(Rules.required(run,1).ready,true);
   Drive.tick(run,{...control,interact:true});
