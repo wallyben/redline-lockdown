@@ -216,7 +216,7 @@ const Art = (() => {
     }
 
     // Original municipal switch-house beside Grid's separately playable raid.
-    const hub = City.blocks.find(b => b.row===0 && b.col===1);
+    const hub = City.blocks.find(b => b.row===1 && b.col===0);
     const hx=hub.x+13,hy=hub.y+12;
     atmosphere(ctx,hx+65,hy+69,70,'#39e8bc4c');
     fill(ctx,hx,hy,137,138,'#081a2b');
