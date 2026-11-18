@@ -9,7 +9,7 @@ const Jobs = ((city) => {
   ];
   const courierRoutes = {
     1701:[13,18,19,14,9,8,13], // Ghost: waterfront loop.
-    1702:[12,17,18,13,8,7,12], // Grid: inner-city interference route.
+    1702:[11,16,17,12,7,6,11], // Grid: western service-road courier avoids committed police blockade.
     1703:[18,19,14,9,8,13,18], // Payday: freight route starts at the southern wharf.
   };
   const courierRoute = jobs => courierRoutes[jobs.seed] || courierRoutes[1701];

@@ -135,9 +135,8 @@ async function play(browser,idx,name){
     await upgrade();
 
     if(idx===1){
-      // Grid's courier is not on Ghost's route; it starts at the inner-city junction.
+      // Grid's courier stays in the western service corridor the relay opened.
       await driveTo(430,650,90,140);
-      await driveTo(690,650,95,200,12);
     }else{
       // Payday: first travel to the cash depot, then the southern freight courier.
       await driveTo(690,450,90,130);
@@ -162,10 +161,9 @@ async function play(browser,idx,name){
       // exit rather than passing straight through the occupied dock blockade.
       await page.keyboard.press('2');
       assert.equal(await read(()=>state.lockdown.choice),1,'Grid selected the West Quay route');
-      await driveTo(690,910,120,150);
+      await driveTo(430,910,145,220);
       await page.keyboard.press('q');
       if(await read(()=>pursuit.decoyCharges>0&&!!pursuit.sighting))await page.keyboard.press('f');
-      await driveTo(430,910,220,230);
       await driveTo(130,910,165,250,15);
       await brake();
     }else{
