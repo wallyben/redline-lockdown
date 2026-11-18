@@ -23,7 +23,7 @@ test('cash-depot vault uses its actual distinct position',()=>{
   assert.match(text(r),/START THE DRILL/);
 });
 test('GRID contract prerequisite overrides misleading bank prompt',()=>{
-  const r=run();r.jobs.stage=1;r.contractId='switch';r.traffic.successfulClosures=0;
+  const r=run();r.jobs.stage=1;r.contractId='switch';r.traffic={successfulClosures:0};
   assert.match(text(r),/HACK A LIVE RELAY/);
   r.traffic.successfulClosures=1;
   Object.assign(r.car,{x:430,y:530,vx:0});
