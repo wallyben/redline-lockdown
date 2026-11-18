@@ -86,3 +86,17 @@ test('overdrive timers use simulation time and stop naturally without wall time'
   assert.ok(before>0);
   assert.equal(Momentum.activate(r),false);
 });
+
+// After the anti-farming cooldown expires, proximity alone is not another skilled pass.
+test('lingering beside a cruiser never awards repeated near misses', () => {
+  const r=run(), p={seen:false,units:[{x:735,y:400}]};
+  Momentum.tick(r,p);
+  assert.equal(r.momentum.nearMisses,1);
+  for(let i=0;i<540;i++) Momentum.tick(r,p);
+  assert.equal(r.momentum.nearMisses,1);
+  p.units[0].x=805;
+  Momentum.tick(r,p);
+  p.units[0].x=735;
+  Momentum.tick(r,p);
+  assert.equal(r.momentum.nearMisses,2);
+});
