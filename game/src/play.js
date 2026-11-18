@@ -92,7 +92,7 @@ function finish() {
   brief.querySelector('p').textContent =
     completed + '/3 JOBS CLEARED  ·  ' + state.time.toFixed(1) + 's  ·  ' + intact + '% CAR\n' +
     'HAUL +' + score.recorder.toLocaleString() + '  ·  EXTRACTION +' + score.extraction.toLocaleString() + '\n' +
-    'MASTERY +' + score.styleBonus.toLocaleString() + '  ·  OMEGA +' + score.commanderBonus.toLocaleString() + '\n' +
+    'MASTERY +' + score.styleBonus.toLocaleString() + '  ·  GRIDFALL +' + score.gridfallBonus.toLocaleString() + '  ·  OMEGA +' + score.commanderBonus.toLocaleString() + '\n' +
     (best ? 'PERSONAL BEST ' + best.total.toLocaleString() + '  ·  ' + (record?.delta == null ? 'FIRST RECORD' : (record.delta >= 0 ? '+' : '') + record.delta + ' VS BEST') : 'NO SCORE BANKED') + '\n' +
     (won ? 'TAKE THE MONEY. OUTRUN THE LOCKDOWN.' : 'CAPTURE OR WRECK LOSES EVERYTHING.');
   document.querySelector('#run-cards').innerHTML =
@@ -121,7 +121,7 @@ function showContract() {
   const c = Contracts[Number(layoutInput.value)];
   const best = Records.table(c.id)[0];
   brief.querySelector('h1').innerHTML = 'REDLINE <span>LOCKDOWN</span>';
-  brief.querySelector('p').innerHTML = '<strong>CONTROL THE STREETS. BREAK THE POLICE.</strong><br>Seal a junction. Watch the intercept collapse. Escape before UNIT OMEGA reaches the exit.';
+  brief.querySelector('p').innerHTML = '<strong>GRIDFALL: HIJACK THE CITY. BREAK THE PURSUIT.</strong><br>Chain two real road closures. Outthink UNIT OMEGA. Escape with the haul.';
   const cards=Contracts.map((contract,index) =>
     `<button type="button" class="contract-card ${index===Number(layoutInput.value)?'selected':''}" data-contract="${index}">
       <b>0${index+1} / ${contract.name}</b><span>${contract.beats.map(beat=>beat[0]).join(' · ')}</span>
@@ -135,8 +135,12 @@ function showContract() {
     card.onclick=()=>{layoutInput.value=card.dataset.contract;showContract();};
 
   const rows=Records.table(c.id);
-  if(rows.length) brief.querySelector('p').textContent += rows.length ? '\n\nPERSONAL RECORDS\n' +
-    rows.map(r=>r.total+' pts · '+r.time.toFixed(1)+' s · '+r.integrity.toFixed(0)+'%').join('\n') : '';
+  if(rows.length){
+    const history=document.createElement('span');
+    history.textContent='\n\nPERSONAL RECORDS\n'+
+      rows.map(r=>r.total+' pts · '+r.time.toFixed(1)+' s · '+r.integrity.toFixed(0)+'%').join('\n');
+    brief.querySelector('p').append(history);
+  }
   startButton.textContent = 'Drive ↵';
 }
 layoutInput.onchange = showContract;
