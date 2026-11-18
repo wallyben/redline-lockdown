@@ -269,7 +269,8 @@ const Pursuit = ((city) => {
     const handoff=run.jobs?.stage===2&&run.jobs.transfer>0&&city.distance(car,run.jobs.courier)<65;
     // Required precision minigames cannot become unwinnable simply because a
     // cruiser parks on the stationary player. Contact resumes after completion.
-    const drilling=run.jobs?.stage===1&&run.sweep>=0&&city.distance(car,{x:690,y:400})<45;
+    const vault=run.contractId==='switch'?{x:430,y:400}:{x:690,y:400};
+    const drilling=run.jobs?.stage===1&&run.sweep>=0&&city.distance(car,vault)<45;
     if(p.refitGrace>0) p.contact=0;
     else if(handoff||drilling)p.contact=Math.min(p.contact,.16);
     else if (contactBlockade || (p.seen && p.nearestRange < 24)) {
