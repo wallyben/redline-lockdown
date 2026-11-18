@@ -14,7 +14,20 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Verify every browser script parses and source stays local
+        shell: bash
+        run: |
+          for file in game/src/*.js; do node --check "$file"; done
+          node -e "const fs=require('fs'), a=fs.readdirSync('screenshots').filter(f=>/\\.(jpe?g|png)$/i.test(f));if(a.length<3||a.length>4)process.exit(2);for(const f of a){const size=fs.statSync('screenshots/'+f).size;if(size>256*1024){console.error(f,size);process.exit(3);}}console.log('Screenshot size gate passed',a.length)"
       - name: Run source and gameplay regression tests
         shell: bash
         run: |
           node --test tests/*.test.cjs
+      - name: Export official dossier twice, byte-identically
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/redline-a" "$RUNNER_TEMP/redline-b"
+          MAKEFUN_OUTPUT_DIR="$RUNNER_TEMP/redline-a" node main.ts
+          MAKEFUN_OUTPUT_DIR="$RUNNER_TEMP/redline-b" node main.ts
+          diff -qr "$RUNNER_TEMP/redline-a" "$RUNNER_TEMP/redline-b"
+          du -sh "$RUNNER_TEMP/redline-a"
