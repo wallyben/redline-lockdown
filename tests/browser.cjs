@@ -170,7 +170,7 @@ async function play(browser, viewport, takeShots) {
   await page.keyboard.press('q');
   assert.equal(await state(() => state.smoke.charges), 2);
   await page.keyboard.press('q');
-  assert.equal(await state(() => state.smoke.charges), 1, 'Smoke cooldown prevents repeated deployment');
+  assert.equal(await state(() => state.smoke.charges), 2, 'Smoke cooldown prevents repeated deployment');
   assert.equal(await state(() => Records.table(Contracts[0].id).length), 1);
   await page.keyboard.press('Escape');
   const paused = await state(() => state.time);
