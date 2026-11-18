@@ -132,7 +132,9 @@ async function play(browser,idx,name){
           assert.ok(Math.hypot(pace.car.vx,pace.car.vy)>115,'Cover must show actual speed');
           assert.equal(await read(()=>pursuit.routeBreak?.real),true);
         }
-        await page.screenshot({path:resolve('screenshots/01-chase.jpg'),type:'jpeg',quality:84});
+        // Keep the authentic high-speed chase cover produced by browser.cjs.
+        // Cover-only validation deliberately captures its own independent action frame.
+        if(coverOnly) await page.screenshot({path:resolve('screenshots/01-chase.jpg'),type:'jpeg',quality:84});
       }
       if(coverOnly){
         assert.deepEqual(errors,[], 'Cover capture had no browser errors');
