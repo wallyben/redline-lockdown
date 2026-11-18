@@ -40,6 +40,13 @@ async function play(browser, viewport, takeShots) {
       // relay-frame camera can appear stationary despite the tactical depth.
       if(takeShots && !actionCaptured && car.x>445 && car.x<600 && speed>170 &&
          await state(()=>state.jobs.stage===1 && pursuit.hadContact)){
+        // Capture the chase at a genuine high-speed moment, without fabricating gameplay.
+        // If real police-pressure driving earned enough charge, demonstrate its burst.
+        if(await state(()=>state.momentum.charge >= .7)){
+          await page.keyboard.press('b');
+          assert.equal(await state(()=>state.momentum.used),1);
+          await advance(80);
+        }
         await shot('01-chase.jpg');
         actionCaptured=true;
       }
@@ -153,6 +160,7 @@ async function play(browser, viewport, takeShots) {
   assert.equal(await state(() => ContractRules.escapeReady(state,pursuit)),true,'Ghost contract ability and alley must both be completed');
   await page.keyboard.down('Tab');
   await advance(100);
+  await shot('03-risk.jpg'); // Genuine final-stage tactical map, not a mock-up.
   await page.keyboard.up('Tab');
   await page.keyboard.press('2');
   assert.equal(await state(() => Lockdown.target(state).x),130);
