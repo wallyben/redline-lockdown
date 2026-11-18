@@ -77,3 +77,20 @@ test('an occupied relay request queues safely and commits once the barrier lane 
   assert.equal(run.traffic.successfulClosures,1);
   assert.equal(City.wall(560,650,11,run.traffic),true);
 });
+
+test('Grid street sabotage briefly jams police contact without moving or removing police units',()=>{
+  const {run,police}=setup();
+  run.contractId='switch';run.car.x=560;run.car.y=693;
+  police.contact=.55;
+  const oldUnits=police.units.slice();
+  assert.equal(Traffic.activate(run.traffic,run,police),true);
+  for(let i=0;i<50;i++)Traffic.tick(run.traffic,run,police,1/60);
+  assert.equal(run.traffic.successfulClosures,1);
+  assert.ok(run.traffic.radioJam>3);
+  assert.ok(police.refitGrace>=3.49);
+  assert.equal(police.contact,0);
+  assert.deepEqual(police.units,oldUnits,'Units still move on the road network in future pursuit ticks');
+  assert.match(run.traffic.message,/BLACKOUT/);
+  for(let i=0;i<220;i++)Traffic.tick(run.traffic,run,police,1/60);
+  assert.equal(run.traffic.radioJam,0);
+});
