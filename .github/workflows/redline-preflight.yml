@@ -1,8 +1,8 @@
-name: REDLINE candidate preflight and genuine Chrome captures
+name: REDLINE V3 full regression and authentic captures
 on:
   push:
     branches:
-      - improvement/redline-hardening-v2
+      - improvement/redline-hardening-v3
     paths-ignore:
       - screenshots/**
   workflow_dispatch:
@@ -67,5 +67,5 @@ jobs:
           git add screenshots/
           if ! git diff --cached --quiet; then
             git commit -m "Capture genuine final Chrome screenshots [skip ci]"
-            git push origin "HEAD:improvement/redline-hardening-v2"
+            git push origin "HEAD:improvement/redline-hardening-v3"
           fi
