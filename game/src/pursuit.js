@@ -150,7 +150,7 @@ const Pursuit = ((city) => {
     if(!choices.length)return false;
     choices.sort((a,b)=>b.d-a.d);
     const chosen=choices[(p.decoyUsed*7+run.seed)%Math.min(choices.length,4)].n;
-    p.decoyCharges--;p.decoyCooldown=12;p.decoyTime=3.5;p.decoyUsed++;
+    p.decoyCharges--;p.decoyCooldown=12;p.decoyTime=run.lockdown?.active?7.5:3.5;p.decoyUsed++;
     p.decoyTarget={x:chosen.x,y:chosen.y,dx:1,dy:0};
     p.sighting={...p.decoyTarget};p.seen=false;p.refresh=0;p.intercept=null;p.block=null;
     return true;

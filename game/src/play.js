@@ -381,7 +381,8 @@ function frame(now) {
         turn: down('KeyD', 'ArrowRight') - down('KeyA', 'ArrowLeft'),
         drift: keys.has('Space'), interact, interactHeld: keys.has('KeyE'),
       });
-      if(previousJobStage===2&&state.jobs.stage===3){pursuit.contact=0;pursuit.refitGrace=3.5;}
+      if(previousJobStage===2&&state.jobs.stage===3){pursuit.contact=0;pursuit.refitGrace=3.5;
+        pursuit.decoyCharges=Math.min(2,pursuit.decoyCharges+1);pursuit.decoyCooldown=0;}
       if(City.inCover(state.car) && state.car.y < 850)state.ghostAlley=true;
       if (keys.has('ShiftLeft') || keys.has('ShiftRight')) {
         if (!state.gateKeyDown) Traffic.activate(state.traffic, state, pursuit);

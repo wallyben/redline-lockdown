@@ -13,7 +13,7 @@ const ChaseHUD = (() => {
       !state.collected?'THE JOB IS ON':pursuit.seen?'POLICE HAVE SIGHT':
       pursuit.lost>=Pursuit.clearDuration(state)?'CONTACT LOST':'BREAKING CONTACT';
     const detail = pursuit.contact>.1?`CAPTURE ${Math.min(100,Math.round(pursuit.contact/.87*100))}% · DRIVE AWAY`:
-      state.lockdown?.active?'1: EAST SHADOW DOCK  /  2: WEST QUAY +1,750':
+      state.lockdown?.active?'F: OMEGA SPOOF ONLINE  /  1: EAST · 2: WEST':
       !state.collected?'Three jobs. One getaway.':pursuit.seen?
       `${Math.round(pursuit.nearestRange)} m to nearest police`:
       `Hide for ${Math.max(0,Pursuit.clearDuration(state)-pursuit.lost).toFixed(1)}s`;
@@ -27,7 +27,7 @@ const ChaseHUD = (() => {
       'TAB · LIVE NETWORK  /  F · RADIO DECOY';
     const mastery=state.lockdown?.active && !pursuit.showdown?.countered ?
       'COUNTER OMEGA: RELAY OR RADIO DECOY · +750 PTS' : ContractRules.nextAction(state,pursuit);
-    const decoy=`F · RADIO DECOY ${pursuit.decoyCharges}/2 ${pursuit.decoyCooldown>0?'· '+pursuit.decoyCooldown.toFixed(0)+'s':'· READY'}`;
+    const decoy=`F · ${state.lockdown?.active?'OMEGA SPOOF':'RADIO DECOY'} ${pursuit.decoyCharges}/2 ${pursuit.decoyCooldown>0?'· '+pursuit.decoyCooldown.toFixed(0)+'s':'· READY'}`;
     const html = `<div class="chase-threat">${threat}<span>${detail}</span></div><div class="chase-objective"><small>${stage===3?'LOCKDOWN / EXTRACTION':'JOB '+(stage+1)+' / 3'}</small>${objective}<span>${arrow} ${range} m${stage===2?' · '+Math.round(jobs.transfer/.7*100)+'% transferred':''}</span></div><div class="chase-stats"><span>AT RISK<strong>${Math.round((jobs?.haul||0)*(jobs?.multiplier||1)).toLocaleString()} pts</strong></span><span>HEAT<strong>${Math.min(4,Math.ceil(jobs?.heat||0))}/4</strong></span><span>CAR<strong>${Math.max(0,100-Math.round(car.damage))}%</strong></span><span>TIME<strong>${Math.ceil(Math.max(0,180-state.time))}s</strong></span></div><div class="chase-route">${route}<span class="mastery-note">${mastery}</span></div><div class="ability-bar"><b>Q · SMOKE ${state.smoke?.charges??2}/${state.smoke?.maxCharges??2}</b><span>${decoy}</span></div><div class="win-rule">${state.lockdown?.event||'BREAK SIGHT · BANK SCORE AT EXTRACTION · CAPTURE LOSES IT'}</div>`;
     if (html !== previous) { element.innerHTML = html; previous = html; }
   }
