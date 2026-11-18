@@ -95,13 +95,17 @@ async function play(browser, viewport, takeShots) {
   }));
   if(chase.phase==='ready'){
     assert.match(chase.message,/occupied|barrier lane/,JSON.stringify(chase));
-    console.log('Gate safely refused closure with a vehicle in its lane');
-  }else{
+    console.log('Gate safely refunded an unsafe request');
+  }else if(chase.phase==='warning') {
+    assert.match(chase.message,/queued|waiting/,JSON.stringify(chase));
+    assert.equal(chase.edge,undefined);
+    console.log('Gate queued while pursuit vehicle occupies lane');
+  }else {
     assert.equal(chase.phase,'closed',JSON.stringify(chase));
     assert.equal(chase.edge,'6:7');
   }
   assert.ok(chase.tail < 150, 'Police did not visibly close in: ' + chase.tail);
-  if(!actionCaptured) await shot('01-chase.jpg');
+  if(!actionCaptured) { await shot('01-chase.jpg');actionCaptured=true; }
 
   // Bank drill and second seeded upgrade.
   await driveTo(690, 400, 24, 180, 8);
