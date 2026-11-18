@@ -189,7 +189,7 @@ async function play(browser,idx,name){
     if(idx===1)assert.ok(final.score.styleBonus>0,'Grid mastery scoring must be real');
     if(idx===2){assert.equal(final.route,1);assert.equal(final.score.routeBonus,1750);assert.ok(final.score.bonus>0);}
     assert.deepEqual(errors,[]);assert.deepEqual(external,[]);
-    assert.equal(await read(()=>Records.table(Contracts[idx].id).length),1);
+    assert.equal(await read(()=>Records.table(state.contractId).length),1);
     console.log(name+' offline keyboard playthrough PASSED');
   }finally{await page.close();}
 }
