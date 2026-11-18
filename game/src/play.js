@@ -74,6 +74,7 @@ function pause() {
 
 function finish() {
   keys.clear(); interact = false;
+  if (!muted) Siren.signal(['Escaped','Clean getaway','Partial cashout'].includes(pursuit.result) ? 'escape' : 'busted');
   mode = 'results';
   brief.dataset.mode = 'results';
   // Keep the genuine getaway car visible beside the earned score at West Quay.
@@ -398,6 +399,10 @@ function frame(now) {
   while (accumulator >= 1 / 60) {
     if (mode === 'playing') {
       const previousJobStage=state.jobs?.stage;
+      const completedBefore=state.jobs.completed.filter(Boolean).length;
+      const gridBefore=state.traffic.gridfallCompleted;
+      const roadBefore=state.traffic.phase;
+      const lockdownBefore=state.lockdown?.active;
       Drive.tick(state, {
         gas: down('KeyW', 'ArrowUp') - down('KeyS', 'ArrowDown'),
         turn: down('KeyD', 'ArrowRight') - down('KeyA', 'ArrowLeft'),
@@ -418,6 +423,15 @@ function frame(now) {
       Cinematic.tick(state);
       Pursuit.tick(pursuit, state);
       Momentum.tick(state, pursuit, 1/60);
+      // Prioritize the most important real event so several sound cues never
+      // pile up on one frame, especially when courier triggers lockdown.
+      if (!muted) {
+        const cue=!lockdownBefore&&state.lockdown?.active ? 'lockdown' :
+          state.traffic.gridfallCompleted>gridBefore ? 'grid' :
+          roadBefore!=='closed'&&state.traffic.phase==='closed' ? 'relay' :
+          state.jobs.completed.filter(Boolean).length>completedBefore ? 'job' : null;
+        if(cue)Siren.signal(cue);
+      }
       if (pursuit.result) finish();
     }
     accumulator -= 1 / 60;
