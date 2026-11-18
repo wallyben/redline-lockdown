@@ -181,12 +181,14 @@ async function play(browser,idx,name){
       await page.keyboard.press('q');
       await driveTo(690,910,220,230);
       await driveTo(430,910,220,200);
-      await driveTo(130,910,170,240,15);
-      // The alternate quay has a narrow, physical underpass hideout, not
-      // an automatic safe zone at the extraction point.
-      await driveTo(130,940,75,130,8);
+      // Enter the narrow physical underpass from the east BEFORE braking.
+      // Turning south only after reaching the exit can leave the car exposed.
+      await driveTo(180,937,165,260,14);
+      await driveTo(130,940,85,150,10);
       await brake();
-      assert.equal(await read(()=>City.inWestTunnel(state.car)),true,'West Quay cover was not reached');
+      const finalCover=await report('WEST QUAY COVER');
+      assert.equal(await read(()=>City.inWestTunnel(state.car)),true,
+        'West Quay underpass not reached: '+JSON.stringify(finalCover));
     }
     await advance(12000);
     const final=await read(()=>({
