@@ -92,7 +92,7 @@ function finish() {
   brief.querySelector('p').textContent =
     completed + '/3 JOBS CLEARED  ·  ' + state.time.toFixed(1) + 's  ·  ' + intact + '% CAR\n' +
     'HAUL +' + score.recorder.toLocaleString() + '  ·  EXTRACTION +' + score.extraction.toLocaleString() + '\n' +
-    'MASTERY +' + score.styleBonus.toLocaleString() + '  ·  ROUTE +' + score.routeBonus.toLocaleString() + '\n' +
+    'MASTERY +' + score.styleBonus.toLocaleString() + '  ·  OMEGA +' + score.commanderBonus.toLocaleString() + '\n' +
     (best ? 'PERSONAL BEST ' + best.total.toLocaleString() + '  ·  ' + (record?.delta == null ? 'FIRST RECORD' : (record.delta >= 0 ? '+' : '') + record.delta + ' VS BEST') : 'NO SCORE BANKED') + '\n' +
     (won ? 'TAKE THE MONEY. OUTRUN THE LOCKDOWN.' : 'CAPTURE OR WRECK LOSES EVERYTHING.');
   document.querySelector('#run-cards').innerHTML =
@@ -121,15 +121,15 @@ function showContract() {
   const c = Contracts[Number(layoutInput.value)];
   const best = Records.table(c.id)[0];
   brief.querySelector('h1').innerHTML = 'REDLINE <span>LOCKDOWN</span>';
-  brief.querySelector('p').innerHTML = '<strong>ROB THE BANK. CUT THE GRID. VANISH.</strong><br>Close roads behind you. Smoke the tail. Risk one more job — or escape with what you have.';
+  brief.querySelector('p').innerHTML = '<strong>CONTROL THE STREETS. BREAK THE POLICE.</strong><br>Seal a junction. Watch the intercept collapse. Escape before UNIT OMEGA reaches the exit.';
   const cards=Contracts.map((contract,index) =>
     `<button type="button" class="contract-card ${index===Number(layoutInput.value)?'selected':''}" data-contract="${index}">
       <b>0${index+1} / ${contract.name}</b><span>${contract.beats.map(beat=>beat[0]).join(' · ')}</span>
     </button>`).join('');
   document.querySelector('#run-cards').innerHTML =
     `<div class="contract-picker">${cards}</div><div class="contract-goal"><b>MISSION OBJECTIVES</b><br>
-     ${c.beats.map((beat,i)=>`0${i+1} / ${beat[1]}`).join(' · ')}<br>
-     ${c.goal}<br>GOLD ${c.gold.toLocaleString()} · PERSONAL BEST ${best?best.total.toLocaleString():'—'} ·
+     ${c.beats.map((beat,i)=>`<b>0${i+1}</b> ${beat[0]}: ${beat[1]}`).join('<br>')}
+     <br><b>GOLD ${c.gold.toLocaleString()}</b> · BEST ${best?best.total.toLocaleString():'—'} ·
      ${Contracts.filter(item=>(Records.table(item.id)[0]?.total||0)>=item.gold).length}/3 MASTERED</div>`;
   for(const card of document.querySelectorAll('#run-cards [data-contract]'))
     card.onclick=()=>{layoutInput.value=card.dataset.contract;showContract();};
@@ -342,7 +342,7 @@ function render() {
   Art.spray(ctx, c, time);
   Art.car(ctx, c, false, time);
   Cinematic.steam(ctx,time);
-  if(!title && state.smoke){Smoke.draw(ctx,state);StreetDetail.motion(ctx,state,pursuit,time);}
+  if(!title && state.smoke){Smoke.draw(ctx,state);StreetDetail.motion(ctx,state,pursuit,time);Showdown.world(ctx,state,pursuit,time);}
   ctx.restore();
   const destination = targetForRun();
   const near = state.jobs?.stage===1 && City.distance(c, Drive.vaultFor(state)) < 45;
@@ -353,7 +353,7 @@ function render() {
   shade.addColorStop(0, '#0b142000');
   shade.addColorStop(1, '#050916a8');
   rect(0, 0, w, h, shade);
-  if (mode === 'playing' || mode === 'paused' || mode === 'intermission') {Cinematic.screen(ctx,w,h,state,pursuit,reducedFlash);Art.minimap(ctx, w, h, state, pursuit);}
+  if (mode === 'playing' || mode === 'paused' || mode === 'intermission') {Cinematic.screen(ctx,w,h,state,pursuit,reducedFlash);Art.minimap(ctx, w, h, state, pursuit);Showdown.screen(ctx,w,h,state,pursuit);}
   if (state.sweep >= 0 && !state.bonus) {
     const x = w / 2 - 105;
     const y = h - 66;

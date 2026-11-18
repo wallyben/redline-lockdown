@@ -34,6 +34,12 @@ const TacticalMap = (() => {
       ctx.lineWidth=run.traffic.closedEdges.has(key)?14:8;
       ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
     }
+    if(p.showdown?.active && p.lockdownUnit){
+      ctx.strokeStyle=p.showdown.countered?'#64ffc5':'#ffab76';ctx.lineWidth=12;
+      ctx.beginPath();ctx.arc(p.lockdownUnit.x,p.lockdownUnit.y,32,0,Math.PI*2);ctx.stroke();
+      ctx.fillStyle='#ffdb9a';ctx.font='900 20px system-ui';
+      ctx.fillText('OMEGA',p.lockdownUnit.x+39,p.lockdownUnit.y-15);
+    }
     const interceptor=p.units[1];
     if(interceptor?.path?.length) {
       ctx.beginPath();ctx.moveTo(interceptor.x,interceptor.y);

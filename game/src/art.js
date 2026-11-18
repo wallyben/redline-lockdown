@@ -359,7 +359,8 @@ const Art = (() => {
     for (const x of [-14, 10]) for (const y of [-11, 7]) fill(ctx, x, y, 9, 4, '#0b0e16');
     // Functional silhouettes: tail white, interceptor violet, reinforcement amber.
     const role=c.role||'tail';
-    const emergency=police && role==='roadblock' ? ['#ffdd92','#bd603a','#78322a','#ffe4ba'] :
+    const emergency=police && role==='commander' ? ['#fff1d9','#dc5a42','#602c38','#ffdba8'] :
+      police && role==='roadblock' ? ['#ffdd92','#bd603a','#78322a','#ffe4ba'] :
       police && role==='interceptor' ? ['#f9deff','#a78fe8','#5f5ba5','#c2abff'] :
       police && role==='reinforcement' ? ['#fff0c4','#d8b66b','#896c3e','#ffe1a6'] :
       ['#f7ffff','#bfdae2','#718e9e','#d6eaf0'];
@@ -386,6 +387,8 @@ const Art = (() => {
       if (role === 'interceptor') { fill(ctx,-16,-8,6,16,'#7a5ec2'); fill(ctx,9,-8,5,16,'#7a5ec2'); }
       if (role === 'reinforcement') { fill(ctx,-18,-9,6,18,'#e4b45c'); fill(ctx,11,-9,6,18,'#e4b45c'); }
       if (role === 'roadblock') { fill(ctx,-24,-13,11,26,'#c77c42'); fill(ctx,15,-13,11,26,'#c77c42');fill(ctx,8,-3,14,6,'#ffd484'); }
+      if (role === 'commander') {fill(ctx,-27,-15,8,30,'#15161f');fill(ctx,18,-15,8,30,'#15161f');
+        fill(ctx,-13,-3,26,6,'#ffd585');fill(ctx,5,-7,4,14,'#f95c50');}
     }
     if(courier){fill(ctx,-3,-15,8,5,'#fff1b0');fill(ctx,-5,10,11,3,'#ffdb69');}
     ctx.restore();
