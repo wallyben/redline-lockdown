@@ -25,9 +25,10 @@ The game also works offline by opening `game/index.html` directly in desktop Chr
 ## Controls
 
 - **W/Up:** accelerate; **S/Down:** brake or reverse; **A/D or arrows:** steer; **Space:** handbrake.
-- **Tab (hold):** inspect the actual live police route network and interceptor orders.
+- **Tab (hold):** inspect the actual live police route network and interceptor orders. **While holding Tab, press 1/2/3 or click a glowing relay node** to spend 70% earned Overdrive charge on one remotely operated road closure per run. The same charge also powers the **B** speed boost, forcing a real tactical choice. The remote barrier still checks road occupancy and reachable exits.
 - **Shift near a relay:** close a road, physically disrupting the police route; occupancy and escape connectivity are checked.
 - **F:** send a limited-use radio decoy that redirects the pursuers to another reachable junction.
+- **Grid Override:** earn charge under real police pressure and near misses; remote sabotage uses a real physical barrier and AI re-routing, not a teleport or guaranteed police shutdown. Failed/unsafe overrides refund their resources.
 - **B:** spend earned REDLINE charge on a 2.4-second acceleration burst. Earn charge from police near misses and sustained high-speed pursuits; per-car cooldown prevents easy farming.
 - **Q:** deploy a limited smoke cloud to break sight.
 - **E:** interact with the bank, optional depot and courier. For the drill, press E once to start and again in the green timing window.

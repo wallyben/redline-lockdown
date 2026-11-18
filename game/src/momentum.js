@@ -3,7 +3,7 @@
 const Momentum = (() => {
   const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
   const reset = () => ({
-    charge: .45, active: 0, cooldown: 0, used: 0,
+    charge: .45, active: 0, cooldown: 0, used: 0, remoteUsed: 0,
     nearMisses: 0, streak: 0, bestStreak: 0, streakTimer: 0,
     nearCooldowns: [], nearArmed: [], message: '', messageTime: 0,
   });
