@@ -1,0 +1,20 @@
+name: REDLINE Node regression tests
+on:
+  push:
+    branches:
+      - improvement/lockdown-96-chat
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Run source and gameplay regression tests
+        shell: bash
+        run: |
+          node --test tests/*.test.cjs
