@@ -31,6 +31,8 @@ document.querySelector('#flash').onclick = e => {
 };
 
 function start() {
+  keys.clear(); // Menu or prior-run keys must not accelerate the fresh car.
+  interact = false;
   Siren.enable();
   camera = null;
   state = Drive.reset();
@@ -60,6 +62,7 @@ function start() {
 }
 
 function pause() {
+  keys.clear(); interact = false;
   mode = 'paused';
   document.querySelector('#run-cards').innerHTML = '';
   layoutChoice.hidden = true;
@@ -70,6 +73,7 @@ function pause() {
 }
 
 function finish() {
+  keys.clear(); interact = false;
   mode = 'results';
   brief.dataset.mode = 'results';
   // Keep the genuine getaway car visible beside the earned score at West Quay.
@@ -109,6 +113,7 @@ function confirm() {
   if (mode === 'intermission') {
     continueAfterUpgrade();
   } else if (mode === 'paused') {
+    keys.clear(); interact = false;
     mode = 'playing';
     brief.hidden = true;
     startButton.blur();
@@ -116,6 +121,7 @@ function confirm() {
 }
 
 function showContract() {
+  keys.clear(); interact = false;
   mode = 'title'; brief.dataset.mode='title';
   brief.hidden = false;
   hud.hidden = true;
@@ -151,6 +157,7 @@ showContract();
 startButton.onclick = confirm;
 
 function openIntermission() {
+  keys.clear(); interact = false;
   mode='intermission'; hud.hidden=true; brief.hidden=true; intermission.hidden=false;
   Jobs.offer(state.jobs); state.selectedUpgrade=null; continueJob.disabled=true;
   document.querySelector('#job-summary').textContent = `${state.jobs.pendingTitle}. Current haul at risk: $${Math.round(state.jobs.haul*state.jobs.multiplier).toLocaleString()}. Hull ${Math.max(0,100-state.car.damage).toFixed(0)}%. Heat ${state.jobs.heat}/4; continuing adds 0.25× and more heat brings more patrols.`;
@@ -163,11 +170,12 @@ function openIntermission() {
 }
 function continueAfterUpgrade(){
   if(!state.selectedUpgrade||!Jobs.choose(state.jobs,state.selectedUpgrade))return;
+  keys.clear(); interact = false;
   pursuit.contact=0; pursuit.refitGrace=3.2;
   intermission.hidden=true;hud.hidden=false;mode='playing';
 }
 continueJob.onclick=continueAfterUpgrade;
-cashOut.onclick=()=>{Jobs.cashOut(state.jobs);intermission.hidden=true;hud.hidden=false;mode='playing';};
+cashOut.onclick=()=>{keys.clear();interact=false;Jobs.cashOut(state.jobs);intermission.hidden=true;hud.hidden=false;mode='playing';};
 function pickUpgrade(index){const button=upgradeChoices.children[index];if(button)button.click();}
 function targetForRun(){
   if(!state.jobs)return state.collected?Pursuit.exit:Drive.pickup;
@@ -210,7 +218,9 @@ window.addEventListener('keydown', e => {
   // Native buttons own Enter/Space; do not also trigger a global start/retry.
   if ((e.code === 'Enter' || e.code === 'Space') && e.target?.closest?.('button')) return;
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'Enter', 'Tab'].includes(e.code)) e.preventDefault();
-  keys.add(e.code);
+  // Simulation keys are accepted only while playing. In menus they must not
+  // become latent inputs when Enter/Space starts or resumes the car.
+  if (mode === 'playing') keys.add(e.code);
   if (e.repeat) return;
   if (e.code === 'Enter') confirm();
   if (mode==='intermission' && ['Digit1','Digit2','Digit3'].includes(e.code)) pickUpgrade(Number(e.code.slice(-1))-1);
@@ -221,7 +231,7 @@ window.addEventListener('keydown', e => {
     if (mode === 'playing') pause();
     else if (mode === 'paused') confirm();
   }
-  if (e.code === 'KeyE') interact = true;
+  if (e.code === 'KeyE' && mode === 'playing') interact = true;
   if (e.code === 'KeyQ' && mode === 'playing') Smoke.deploy(state);
   if (e.code === 'KeyF' && mode === 'playing') Pursuit.deployDecoy(pursuit,state);
   if (e.code === 'KeyB' && mode === 'playing' && Momentum.activate(state) && !muted) Siren.cue();
