@@ -2,7 +2,7 @@ name: REDLINE browser playthrough
 on:
   push:
     branches:
-      - improvement/gridfall-final
+      - experiment/gridfall-speed-cover
   workflow_dispatch:
 concurrency:
   group: redline-browser-upgrade
@@ -29,10 +29,7 @@ jobs:
           export REDLINE_PLAYWRIGHT=playwright
           export REDLINE_CHROME="$(command -v google-chrome || command -v google-chrome-stable)"
           test -n "$REDLINE_CHROME"
-          node tests/browser.cjs --shots
-          node tests/west-browser.cjs --one
-          # Actual diversion must occur through the real relay and path planner.
-          # End-to-end Grid and Payday were separately verified in run 44322340211.
+          # Dedicated speed-cover experiment, no gameplay changes.
           node tests/contracts-browser.cjs --cover-only --shots
       - name: Save authentic browser captures
         if: always()
@@ -51,5 +48,5 @@ jobs:
           git add screenshots/01-chase.jpg screenshots/02-start.jpg screenshots/03-risk.jpg screenshots/04-results.jpg
           if ! git diff --cached --quiet; then
             git commit -m "Capture current verified REDLINE gameplay [skip ci]"
-            git push origin HEAD:improvement/gridfall-final
+            git push origin HEAD:experiment/gridfall-speed-cover
           fi

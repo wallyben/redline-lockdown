@@ -121,11 +121,19 @@ async function play(browser,idx,name){
       assert.ok(status.closures>=1,'Grid relay never sealed: '+JSON.stringify(status));
       if(capture){
         assert.equal(status.diverted,true,'Cover screenshot requires a real police route diversion');
-        await page.screenshot({path:resolve('screenshots/01-chase.jpg'),type:'jpeg',quality:84});
         await page.keyboard.down('Tab');
         await advance(110);
         await page.screenshot({path:resolve('screenshots/03-risk.jpg'),type:'jpeg',quality:84});
         await page.keyboard.up('Tab');
+        if(coverOnly){
+          // A genuine high-speed dash immediately after sealing the network,
+          // without changing the game state outside normal keyboard driving.
+          await page.keyboard.down('w');await advance(430);await page.keyboard.up('w');
+          const pace=await report('REAL SPEED COVER');
+          assert.ok(Math.hypot(pace.car.vx,pace.car.vy)>115,'Cover needs real motion');
+          assert.equal(await read(()=>pursuit.routeBreak?.real),true);
+        }
+        await page.screenshot({path:resolve('screenshots/01-chase.jpg'),type:'jpeg',quality:84});
       }
       if(coverOnly){
         assert.deepEqual(errors,[], 'Cover capture had no browser errors');
