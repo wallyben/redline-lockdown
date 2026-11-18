@@ -7,6 +7,10 @@ on:
       - screenshots/**
   workflow_dispatch:
 
+concurrency:
+  group: redline-ultimate-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
@@ -36,6 +40,11 @@ jobs:
           export REDLINE_CHROME="$(node -p "require('playwright').chromium.executablePath()")"
           node tests/browser.cjs --shots
           node tests/contracts-browser.cjs --shots
+          test ! screenshots/01-chase.jpg -ef screenshots/03-risk.jpg
+          if cmp -s screenshots/01-chase.jpg screenshots/03-risk.jpg; then
+            echo "Chase and tactical map captures must show distinct authentic game moments"
+            exit 1
+          fi
       - name: Build official-format offline submission dossier
         run: |
           export MAKEFUN_OUTPUT_DIR="$RUNNER_TEMP/redline-dossier"
