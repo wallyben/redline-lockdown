@@ -17,7 +17,8 @@ const ChaseHUD = (() => {
       `${Math.round(pursuit.nearestRange)} m to nearest police`:
       `Hide for ${Math.max(0,Pursuit.clearDuration(state)-pursuit.lost).toFixed(1)}s`;
     const relay=Traffic.near(state);
-    const route=state.traffic.phase==='closed'?'ROAD SEALED · INTERCEPTOR REROUTING':
+    const route=state.traffic.radioJam>0?`GRID RADIO BLACKOUT · ${state.traffic.radioJam.toFixed(1)}s / POLICE REROUTED`:
+      state.traffic.phase==='closed'?'ROAD SEALED · INTERCEPTOR REROUTING':
       relay?`SHIFT · CLOSE ${relay.name} · ${state.traffic.charges} LEFT`:
       pursuit.intercept?`INTERCEPT ON NODE ${pursuit.intercept.node} · TAB MAP`:
       'TAB · LIVE NETWORK  /  F · RADIO DECOY';
