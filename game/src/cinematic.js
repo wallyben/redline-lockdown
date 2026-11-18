@@ -3,7 +3,7 @@ const Cinematic = (() => {
   let tracks=[],last=null,runTime=-1,event=null,previousStage=0,previousSmoke=0;
   function tick(run){
     if(run.time<runTime){tracks=[];last=null;event=null;previousStage=0;previousSmoke=0;}runTime=run.time;
-    if(run.jobs.stage!==previousStage){event={text:run.jobs.stage===3?'FINAL RUN / REACH THE DOCKS':'NEXT JOB / KEEP MOVING',time:run.time};previousStage=run.jobs.stage;}
+    if(run.jobs.stage!==previousStage){event={text:run.jobs.stage===3?'CITY LOCKDOWN / TWO EXITS, ONE SHOT':'NEXT JOB / KEEP MOVING',time:run.time};previousStage=run.jobs.stage;}
     if((run.smoke?.used||0)>previousSmoke){previousSmoke=run.smoke.used;event={text:'SMOKE DEPLOYED / CHANGE COURSE',time:run.time};}
     const c=run.car,speed=Math.hypot(c.vx,c.vy);
     const slip=Math.abs(-c.vx*Math.sin(c.angle)+c.vy*Math.cos(c.angle));
