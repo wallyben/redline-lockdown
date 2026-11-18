@@ -1,8 +1,13 @@
 // Read-only operational map of live pursuit orders, player position, relays and exits.
 const TacticalMap = (() => {
+  function layout(w,h) {
+    const desktop=w>=1060, width=Math.min(820,w-(desktop?440:40));
+    const height=Math.min(540,h-40);
+    const x=desktop?Math.max(390,(w-width)/2):(w-width)/2;
+    return {x,y:(h-height)/2,width,height};
+  }
   function draw(ctx,w,h,run,p) {
-    const width=Math.min(820,w-40),height=Math.min(540,h-40);
-    const x=(w-width)/2,y=(h-height)/2;
+    const {x,y,width,height}=layout(w,h);
     ctx.save();
     ctx.fillStyle='#020710ee';ctx.fillRect(0,0,w,h);
     ctx.fillStyle='#091d2bf8';ctx.fillRect(x,y,width,height);
@@ -62,10 +67,11 @@ const TacticalMap = (() => {
     ctx.fillStyle='#cde5ef';ctx.font='bold 13px system-ui';
     const status=p.intercept?'INTERCEPTOR COMMITTED TO JUNCTION '+p.intercept.node:'NO ACTIVE INTERCEPT';
     const gateStatus=run.traffic.phase==='closed'?'ROAD SEALED':run.traffic.phase==='warning'?'CLOSURE INBOUND':'RELAY READY';
+    ctx.fillText('WEST QUAY: RISK +1,750    /    EAST DOCK: COVER ROUTE',x+22,y+height-61);
     ctx.fillText(status+'  /  '+gateStatus,x+22,y+height-39);
     const objective=run.lockdown?.active?Lockdown.exits[run.lockdown.choice].name:'COMPLETE THE HEIST / ESCAPE THE CITY';
     ctx.fillStyle='#84ffc9';ctx.fillText(objective,x+22,y+height-17);
     ctx.restore();
   }
-  return {draw};
+  return {draw,layout};
 })();

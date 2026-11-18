@@ -33,3 +33,7 @@ section{max-height:94vh;overflow:auto}
 #brief[data-mode="title"] .contract-goal b{font-size:10px;color:#76efce;letter-spacing:.13em}
 #brief[data-mode="title"] small{font-size:10px;line-height:1.5}
 @media(max-width:710px){.contract-picker{grid-template-columns:1fr}.contract-card{min-height:50px}.contract-card span{margin-top:3px}}
+
+/* Results should emphasize the banked score, not duplicate title-screen controls. */
+#brief[data-mode="results"] > small {display:none}
+#brief[data-mode="results"] .actions {margin-top:18px}
