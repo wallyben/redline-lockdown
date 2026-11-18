@@ -1,8 +1,8 @@
-name: REDLINE V3 full regression and authentic captures
+name: REDLINE final-grid full regression and authentic captures
 on:
   push:
     branches:
-      - improvement/redline-hardening-v3
+      - improvement/redline-final-grid-override
     paths-ignore:
       - screenshots/**
   workflow_dispatch:
@@ -41,6 +41,7 @@ jobs:
           node tests/browser.cjs --shots
           node tests/contracts-browser.cjs --shots
           node tests/hardening-browser.cjs
+          node tests/grid-override-browser.cjs
           test ! screenshots/01-chase.jpg -ef screenshots/03-risk.jpg
           if cmp -s screenshots/01-chase.jpg screenshots/03-risk.jpg; then
             echo "Chase and tactical map captures must show distinct authentic game moments"
@@ -67,5 +68,5 @@ jobs:
           git add screenshots/
           if ! git diff --cached --quiet; then
             git commit -m "Capture genuine final Chrome screenshots [skip ci]"
-            git push origin "HEAD:improvement/redline-hardening-v3"
+            git push origin "HEAD:improvement/redline-final-grid-override"
           fi
