@@ -27,7 +27,8 @@ const Traffic = ((city) => {
   }
   function connected(run, edge) {
     const road = { closedEdges: new Set([city.edgeKey(...edge)]) };
-    return city.route(city.nearest(run.car), 19, road).length > 0;
+    const destination=run.lockdown?.active&&run.lockdown.choice===1?15:19;
+    return city.route(city.nearest(run.car), destination, road).length > 0;
   }
   function activate(state, run, pursuit) {
     const range=90*(run.jobs?.modifiers.relayRange||1);
