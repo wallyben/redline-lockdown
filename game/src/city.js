@@ -14,7 +14,8 @@ const City = (() => {
   const cargo = [{x:1264,y:900,right:1278,bottom:930}];
   const sightBlocks = [{x:1236,y:925,right:1322,bottom:931}];
   const alley = { x: 690, top: 485, bottom: 620, halfWidth: 32, coverTop: 467, coverBottom: 853 };
-  const inCover = ({ x, y }) => (Math.abs(x - alley.x) < 43 && y > alley.coverTop && y < alley.coverBottom) || (x > 1160 && y > 860);
+  const inWestTunnel = ({x,y}) => x>=95 && x<=205 && y>=900 && y<951;
+  const inCover = ({ x, y }) => (Math.abs(x - alley.x) < 43 && y > alley.coverTop && y < alley.coverBottom) || (x > 1160 && y > 860) || inWestTunnel({x,y});
   const inDockShadow = ({x,y}) => x > 1280 && y > 930 && y < 955;
   const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   function edgeKey(a, b) { return a < b ? `${a}:${b}` : `${b}:${a}`; }
@@ -22,10 +23,10 @@ const City = (() => {
     return edges[a]?.includes(b) && !(road?.closedEdges?.has(edgeKey(a, b)));
   }
   function wall(x, y, radius = 11, road = null) {
-    const barrier = road?.barrier;
-    const atBarrier = barrier && barrier.orientation === 'h'
-      ? Math.abs(x - barrier.x) < 7 + radius && Math.abs(y - barrier.y) < barrier.span + radius
-      : barrier && Math.abs(y - barrier.y) < 7 + radius && Math.abs(x - barrier.x) < barrier.span + radius;
+    const atBarrier=[road?.barrier,road?.cascade?.barrier].filter(Boolean).some(barrier=>
+      barrier.orientation==='h' ?
+        Math.abs(x-barrier.x)<7+radius&&Math.abs(y-barrier.y)<barrier.span+radius :
+        Math.abs(y-barrier.y)<7+radius&&Math.abs(x-barrier.x)<barrier.span+radius);
     return atBarrier || x < 78 + radius || x > 1346 - radius || y < 81 + radius || y > 959 - radius ||
       (y + radius > alley.top && y - radius < alley.bottom && Math.abs(x - alley.x) < 43 && Math.abs(x - alley.x) + radius > alley.halfWidth) ||
       cargo.some(b=>x+radius>b.x&&x-radius<b.right&&y+radius>b.y&&y-radius<b.bottom) ||
@@ -54,6 +55,6 @@ const City = (() => {
     }
     return [];
   }
-  return { xs, ys, widths, blocks, cargo, sightBlocks, nodes, edges, alley, inCover, inDockShadow, distance, wall, sightWall, nearest, route, edgeKey, edgeOpen };
+  return { xs, ys, widths, blocks, cargo, sightBlocks, nodes, edges, alley, inCover, inDockShadow, inWestTunnel, distance, wall, sightWall, nearest, route, edgeKey, edgeOpen };
 })();
 if (typeof module !== 'undefined') module.exports = City;
