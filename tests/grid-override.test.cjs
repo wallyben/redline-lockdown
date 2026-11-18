@@ -30,6 +30,7 @@ test('remote operator spends earned charge and seals a real street from far away
   assert.equal(run.traffic.charges,2);
   for(let i=0;i<60;i++)Traffic.tick(run.traffic,run,p);
   assert.equal(run.traffic.phase,'closed');
+  assert.equal(run.traffic.remoteSealed,1,'Remote command only succeeds once road physically seals');
   assert.equal(City.edgeOpen(6,7,run.traffic),false);
   assert.deepEqual(p.units.map(u=>({x:u.x,y:u.y})),beforeUnits,'Remote hack must not teleport police');
   for(const exit of [15,19])assert.ok(City.route(City.nearest(run.car),exit,run.traffic).length>0);
@@ -82,4 +83,23 @@ test('every displayed tactical relay has a pixel-accurate mouse hit target',()=>
       assert.equal(tactical.hitRelay(w,h,x+60,y+60),null);
     }
   }
+});
+
+test('occupied remote relay aborts safely and refunds BOTH the boost charge and remote token',()=>{
+  const {run,p}=setup();
+  const before=run.momentum.charge;
+  assert.equal(Traffic.override(run.traffic,run,p,'yard-cut'),true);
+  // Put a stationary car in the exact barrier lane before the countdown.
+  run.car.x=560;run.car.y=650;
+  for(let i=0;i<245;i++)Traffic.tick(run.traffic,run,p);
+  assert.equal(run.traffic.phase,'ready');
+  assert.equal(run.traffic.remotePending,null);
+  assert.equal(run.traffic.remoteSealed,0);
+  assert.equal(run.traffic.charges,3);
+  assert.equal(run.momentum.remoteUsed,0);
+  assert.ok(Math.abs(run.momentum.charge-before)<1e-10);
+  assert.equal(City.edgeOpen(11,12,run.traffic),true);
+  // A genuine new tactical decision is available once the traffic clears.
+  run.car.x=130;run.car.y=400;
+  assert.equal(Traffic.override(run.traffic,run,p,'hotel-cut'),true);
 });
