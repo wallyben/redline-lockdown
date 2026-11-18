@@ -3,12 +3,13 @@ const assert=require('node:assert/strict');
 const City=require('../game/src/city.js');
 const Drive=require('../game/src/drive.js');
 const Jobs=require('../game/src/jobs.js');
+const Traffic=require('../game/src/traffic.js');
 const Rules=require('../game/src/contract-rules.js');
 
 const control={gas:0,turn:0,drift:false,interact:false,interactHeld:false};
 function setup(id,seed,stage=2) {
   const run=Drive.reset();
-  run.contractId=id;run.jobs=Jobs.reset(seed);run.jobs.stage=stage;run.collected=true;
+  run.contractId=id;run.jobs=Jobs.reset(seed);run.jobs.stage=stage;run.collected=true;run.traffic=Traffic.reset();
   run.car={x:1010,y:650,vx:0,vy:0,damage:0,angle:0};
   run.smoke={used:0};run.ghostAlley=false;run.bonus=false;
   return run;
