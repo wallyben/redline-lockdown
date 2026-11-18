@@ -98,3 +98,14 @@ test('lockdown escort actually joins the pursuit from a real road node',()=>{
   assert.equal(p.lockdownTarget,13);
   assert.ok(p.lockdownUnit.path.length>0);
 });
+
+test('East Dock extraction accepts the accessible loading apron without entering cargo collision',()=>{
+  const run=Drive.reset(),p=Pursuit.reset();
+  run.collected=true;run.jobs.stage=3;run.lockdown=Lockdown.reset();
+  run.lockdown.active=true;run.lockdown.choice=0;
+  Object.assign(run.car,{x:1252.2,y:938.5,vx:0,vy:0});
+  assert.ok(City.wall(run.car.x,run.car.y,11,run.traffic)===false);
+  p.lost=10;p.refitGrace=3;
+  Pursuit.tick(p,run,1/60);
+  assert.ok(['Escaped','Clean getaway'].includes(p.result),String(p.result));
+});
