@@ -121,11 +121,18 @@ async function play(browser,idx,name){
       assert.ok(status.closures>=1,'Grid relay never sealed: '+JSON.stringify(status));
       if(capture){
         assert.equal(status.diverted,true,'Cover screenshot requires a real police route diversion');
-        await page.screenshot({path:resolve('screenshots/01-chase.jpg'),type:'jpeg',quality:84});
         await page.keyboard.down('Tab');
         await advance(110);
         await page.screenshot({path:resolve('screenshots/03-risk.jpg'),type:'jpeg',quality:84});
         await page.keyboard.up('Tab');
+        if(coverOnly){
+          // Photograph genuine acceleration, with the diversion still active.
+          await page.keyboard.down('w');await advance(430);await page.keyboard.up('w');
+          const pace=await report('REAL GRIDFALL COVER');
+          assert.ok(Math.hypot(pace.car.vx,pace.car.vy)>115,'Cover must show actual speed');
+          assert.equal(await read(()=>pursuit.routeBreak?.real),true);
+        }
+        await page.screenshot({path:resolve('screenshots/01-chase.jpg'),type:'jpeg',quality:84});
       }
       if(coverOnly){
         assert.deepEqual(errors,[], 'Cover capture had no browser errors');
@@ -217,6 +224,10 @@ async function play(browser,idx,name){
     if(idx===2){assert.equal(final.route,1);assert.equal(final.score.routeBonus,1750);assert.ok(final.score.bonus>0);}
     assert.deepEqual(errors,[]);assert.deepEqual(external,[]);
     assert.equal(await read(()=>Records.table(state.contractId).length),1);
+    if(capture&&idx===1){
+      assert.equal(await read(()=>mode),'results','Capture only a genuine completed Grid getaway');
+      await page.screenshot({path:resolve('screenshots/04-results.jpg'),type:'jpeg',quality:84});
+    }
     console.log(name+' offline keyboard playthrough PASSED');
   }finally{await page.close();}
 }

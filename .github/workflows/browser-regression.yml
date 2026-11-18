@@ -32,7 +32,9 @@ jobs:
           node tests/browser.cjs --shots
           node tests/west-browser.cjs --one
           # Actual diversion must occur through the real relay and path planner.
-          # End-to-end Grid and Payday were separately verified in run 44322340211.
+          # Both full contracts, including GRIDFALL, are exercised here;
+          # final cover is a real acceleration frame during a confirmed diversion.
+          node tests/contracts-browser.cjs --shots
           node tests/contracts-browser.cjs --cover-only --shots
       - name: Save authentic browser captures
         if: always()
