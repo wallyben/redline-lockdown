@@ -139,9 +139,14 @@ async function play(browser,idx,name){
       await driveTo(430,650,90,140);
     }else{
       // Payday: first travel to the cash depot, then the southern freight courier.
+      // Force police to chase a false radio report while we cut southeast.
+      if(await read(()=>pursuit.decoyCharges>0&&!!pursuit.sighting))await page.keyboard.press('f');
       await driveTo(690,450,90,130);
       await driveTo(690,650,185,180);
-      const reachedDepot = await driveTo(1010,650,160,240,8);
+      await driveTo(875,650,155,150,18);
+      // The second smoke charge shields the exposed final depot approach.
+      await page.keyboard.press('q');
+      const reachedDepot = await driveTo(1010,650,95,170,8);
       const beforeDepot = await report('BEFORE DEPOT');
       assert.equal(reachedDepot,true,'Depot approach did not complete: '+JSON.stringify(beforeDepot));
       await drill();
