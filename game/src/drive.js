@@ -21,11 +21,12 @@ const Drive = ((city, jobs) => {
     c.angle += input.turn * steering * (input.drift ? 2.8 : 2.25) * dt * reverse;
     const cos = Math.cos(c.angle);
     const sin = Math.sin(c.angle);
-    const throttle = input.gas > 0 ? 420 : input.gas < 0 ? (forward > 8 ? -780 : -230) : 0;
+    const boosted = state.momentum?.active > 0 && input.gas > 0;
+    const throttle = input.gas > 0 ? (boosted ? 660 : 420) : input.gas < 0 ? (forward > 8 ? -780 : -230) : 0;
     const grip = state.jobs?.modifiers.grip || 1;
     let along = c.vx * cos + c.vy * sin;
     let lateral = -c.vx * sin + c.vy * cos;
-    along = Math.max(-90, Math.min(360, (along + throttle * dt) * Math.exp(-dt * (input.drift ? 2.6 : 0.62))));
+    along = Math.max(-90, Math.min(boosted ? 465 : 360, (along + throttle * dt) * Math.exp(-dt * (input.drift ? 2.6 : 0.62))));
     lateral *= Math.exp(-dt * (input.drift ? 2.4 : 7.5 * grip));
     c.vx = along * cos - lateral * sin;
     c.vy = along * sin + lateral * cos;
