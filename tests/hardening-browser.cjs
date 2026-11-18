@@ -21,6 +21,24 @@ const {chromium}=require(process.env.REDLINE_PLAYWRIGHT||'playwright-core');
     await p.locator('#start').focus();
     await p.keyboard.press('Enter');
     assert.equal(await p.evaluate(()=>mode),'playing','Native keyboard activation on Drive must start');
+    // Paused controls must never leak into the resumed simulation.
+    await p.keyboard.press('Escape');
+    assert.equal(await p.evaluate(()=>mode),'paused');
+    await p.keyboard.down('w');
+    await p.keyboard.down('e');
+    await p.keyboard.press('Escape');
+    assert.equal(await p.evaluate(()=>mode),'playing');
+    await p.waitForTimeout(280);
+    assert.ok(await p.evaluate(()=>Math.abs(state.car.x-130)<1 && state.sweep<0),
+      'W and E pressed in a menu must not accelerate or interact on resume');
+    await p.keyboard.up('w');await p.keyboard.up('e');
+    // A restart must also clear an already-held throttle key.
+    await p.keyboard.down('w');
+    await p.keyboard.press('r');
+    await p.waitForTimeout(280);
+    assert.ok(await p.evaluate(()=>Math.abs(state.car.x-130)<1),
+      'Held driving input must not bleed into a fresh run');
+    await p.keyboard.up('w');
     assert.deepEqual(errors,[]);
     await p.close();
     const silent=await browser.newPage({offline:true});
@@ -37,6 +55,7 @@ const {chromium}=require(process.env.REDLINE_PLAYWRIGHT||'playwright-core');
     await silent.waitForTimeout(500);
     await silent.keyboard.up('w');
     assert.ok(await silent.evaluate(()=>state.time>0),'Silent gameplay must advance');
+    await silent.evaluate(()=>{Siren.signal('job');Siren.signal('grid');Siren.signal('escape');});
     assert.deepEqual(silentErrors,[]);
     await silent.close();
     console.log('Offline focus, native keyboard and missing-audio smoke tests passed');
