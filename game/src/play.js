@@ -36,6 +36,12 @@ function start() {
   state = Drive.reset();
   state.smoke = Smoke.reset();
   state.jobs = Jobs.reset(Contracts[Number(layoutInput.value)].seed);
+  state.civilians = CivilianTraffic.reset(Contracts[Number(layoutInput.value)].seed);
+  // Contract identities alter resources and initial threat, not only the briefing.
+  const contractId = Contracts[Number(layoutInput.value)].id;
+  if (contractId === "iris") state.smoke.charges = 3;
+  if (contractId === "switch") state.traffic.charges = 5;
+  if (contractId === "cash-depot") state.jobs.heat = 1;
   pursuit = Pursuit.reset(Contracts[Number(layoutInput.value)].layout);
   state.seed = Contracts[Number(layoutInput.value)].seed;
   pursuit.pressure = Contracts[Number(layoutInput.value)].pressure;
@@ -250,6 +256,7 @@ function render() {
   ctx.scale(zoom, zoom);
   ctx.drawImage(cityArt, 0, 0);
   Cinematic.streets(ctx,time);
+  if (!title) CivilianTraffic.draw(ctx, state.civilians);
   if (!title) drawTraffic();
   Art.weather(ctx, c, time, w / zoom, h / zoom);
   if (!title) marker(targetForRun(), targetLabel(), state.jobs?.stage===2?'#6be7ff':'#f4c468');
@@ -325,6 +332,7 @@ function frame(now) {
       } else state.gateKeyDown = false;
       interact = false;
       Traffic.tick(state.traffic, state, pursuit);
+      CivilianTraffic.tick(state.civilians, state, 1/60);
       Smoke.tick(state,1/60);
       Cinematic.tick(state);
       Pursuit.tick(pursuit, state);
