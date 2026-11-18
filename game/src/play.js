@@ -121,7 +121,18 @@ function showContract() {
   const best = Records.table(c.id)[0];
   brief.querySelector('h1').innerHTML = 'REDLINE <span>LOCKDOWN</span>';
   brief.querySelector('p').innerHTML = '<strong>ROB THE BANK. CUT THE GRID. VANISH.</strong><br>Close roads behind you. Smoke the tail. Risk one more job — or escape with what you have.';
-  document.querySelector('#run-cards').innerHTML = `<div class="mission-grid">${c.beats.map((beat,i)=>`<div><b>0${i+1} / ${beat[0]}</b><span>${beat[1]}</span></div>`).join('')}</div><div class="contract-goal">${c.goal}<br>GOLD ${c.gold.toLocaleString()} · BEST ${best?best.total.toLocaleString():'—'} · ${Contracts.filter(c=>(Records.table(c.id)[0]?.total||0)>=c.gold).length}/3 contracts mastered</div>`;
+  const cards=Contracts.map((contract,index) =>
+    `<button type="button" class="contract-card ${index===Number(layoutInput.value)?'selected':''}" data-contract="${index}">
+      <b>0${index+1} / ${contract.name}</b><span>${contract.beats.map(beat=>beat[0]).join(' · ')}</span>
+    </button>`).join('');
+  document.querySelector('#run-cards').innerHTML =
+    `<div class="contract-picker">${cards}</div><div class="contract-goal"><b>MISSION OBJECTIVES</b><br>
+     ${c.beats.map((beat,i)=>`0${i+1} / ${beat[1]}`).join(' · ')}<br>
+     ${c.goal}<br>GOLD ${c.gold.toLocaleString()} · PERSONAL BEST ${best?best.total.toLocaleString():'—'} ·
+     ${Contracts.filter(item=>(Records.table(item.id)[0]?.total||0)>=item.gold).length}/3 MASTERED</div>`;
+  for(const card of document.querySelectorAll('#run-cards [data-contract]'))
+    card.onclick=()=>{layoutInput.value=card.dataset.contract;showContract();};
+
   const rows=Records.table(c.id);
   if(rows.length) brief.querySelector('p').textContent += rows.length ? '\n\nPERSONAL RECORDS\n' +
     rows.map(r=>r.total+' pts · '+r.time.toFixed(1)+' s · '+r.integrity.toFixed(0)+'%').join('\n') : '';
