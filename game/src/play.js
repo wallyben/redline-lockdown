@@ -164,8 +164,19 @@ function pickUpgrade(index){const button=upgradeChoices.children[index];if(butto
 function targetForRun(){
   if(!state.jobs)return state.collected?Pursuit.exit:Drive.pickup;
   if(state.jobs.stage===0)return Jobs.pickup(state.jobs,state.time);
-  if(state.jobs.stage===1)return Drive.pickup;
-  if(state.jobs.stage===2)return {x:state.jobs.courier.x,y:state.jobs.courier.y};
+  if(state.jobs.stage===1){
+    if(state.contractId==='switch' && !ContractRules.required(state,1).ready){
+      return Traffic.gates.reduce((best,g)=>City.distance(g.console,state.car)<City.distance(best.console,state.car)?g:best,Traffic.gates[0]).console;
+    }
+    return Drive.pickup;
+  }
+  if(state.jobs.stage===2){
+    if(!ContractRules.required(state,2).ready){
+      if(state.contractId==='iris')return {x:690,y:595};
+      if(state.contractId==='cash-depot')return {x:1010,y:650};
+    }
+    return {x:state.jobs.courier.x,y:state.jobs.courier.y};
+  }
   if(state.jobs.stage===3 && !ContractRules.escapeReady(state,pursuit)) {
     if(state.contractId==='iris')return {x:690,y:595};
     if(state.contractId==='switch') {
@@ -179,6 +190,11 @@ function targetForRun(){
 function targetLabel(){
   if(!state.jobs)return state.collected?'DOCK EXIT':'BANK VAULT';
   if(state.jobs.stage===3 && state.lockdown?.active) return Lockdown.exits[state.lockdown.choice].name;
+  if(!ContractRules.required(state,state.jobs.stage).ready){
+    if(state.jobs.stage===1 && state.contractId==='switch')return 'RELAY SABOTAGE · SHIFT TO SEAL';
+    if(state.jobs.stage===2 && state.contractId==='cash-depot')return 'HIGH-VALUE DEPOT CASH';
+    if(state.jobs.stage===2 && state.contractId==='iris')return 'GHOST · SMOKE & COVER';
+  }
   return ['ROLLING PICKUP','PORT MERIDIAN VAULT','COURIER TRANSFER','DOCK EXTRACTION'][state.jobs.stage];
 }
 window.addEventListener('keydown', e => {
