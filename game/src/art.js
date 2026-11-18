@@ -215,6 +215,23 @@ const Art = (() => {
       fill(ctx,x,y,4,4,i%2?'#ffdc92':'#6cebd8');
     }
 
+    // Original municipal switch-house beside Grid's separately playable raid.
+    const hub = City.blocks.find(b => b.row===0 && b.col===1);
+    const hx=hub.x+13,hy=hub.y+12;
+    atmosphere(ctx,hx+65,hy+69,70,'#39e8bc4c');
+    fill(ctx,hx,hy,137,138,'#081a2b');
+    fill(ctx,hx+5,hy+5,127,128,'#163a46');
+    for(let i=0;i<3;i++){
+      fill(ctx,hx+10+i*41,hy+15,33,72,'#0b1b30');
+      fill(ctx,hx+13+i*41,hy+18,27,10,'#54eac3');
+      for(let q=0;q<5;q++)fill(ctx,hx+14+i*41,hy+36+q*9,25,3,q===2?'#f6a95a':'#68bdb1');
+      fill(ctx,hx+21+i*41,hy+84,12,5,'#ffae6d');
+    }
+    fill(ctx,hx+6,hy+100,125,26,'#06131c');
+    ctx.fillStyle='#9dffe0';ctx.font='900 12px system-ui';
+    ctx.fillText('GRID SWITCH',hx+13,hy+117);
+    fill(ctx,hx+7,hy+126,122,3,'#42e4bd');
+
     const yard = City.blocks.find(b => b.row === 2 && b.col === 0);
     const yx=yard.x+15,yy=yard.y+18;
     fill(ctx,yx-4,yy-4,157,123,'#192630');
