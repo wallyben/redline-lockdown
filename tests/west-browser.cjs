@@ -149,12 +149,16 @@ async function play(browser, viewport, takeShots) {
   assert.equal(await state(() => state.lockdown.choice),1);
   
   // The west route is physically farther, across the southern boulevard.
-  await driveTo(1010,910,160,180);
-  await driveTo(690,910,185,220);
-  await driveTo(430,910,170,220);
-  await driveTo(130,910,110,240,14);
-  await brakeToStop();
+  await driveTo(1010,910,180,180);
+  await driveTo(690,910,220,220);
+  // High-risk West Quay requires actually using the tactical tools to break
+  // the interceptor's line of sight before crossing the open southern road.
   await page.keyboard.press('q');
+  const decoyReady=await state(()=>pursuit.decoyCharges>0&&!!pursuit.sighting);
+  if(decoyReady)await page.keyboard.press('f');
+  await driveTo(430,910,220,220);
+  await driveTo(130,910,180,240,14);
+  await brakeToStop();
   await advance(12000);
   const result = await state(() => ({
     outcome: pursuit.result,
