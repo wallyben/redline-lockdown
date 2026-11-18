@@ -5,7 +5,7 @@ const Traffic = ((city) => {
     { id: 'dock-cut', name: 'Dock Approach', edge: [13, 18], console: { x: 971, y: 780 } },
   ];
   const reset = () => ({ closedEdges: new Set(), barrier: null, selected: null,
-    phase: 'ready', timer: 0, cooldown: 0, charges: 3, successfulClosures: 0, message: 'Relay gates ready' });
+    phase: 'ready', timer: 0, waiting: 0, cooldown: 0, charges: 3, successfulClosures: 0, message: 'Relay gates ready' });
   function segmentDistance(point, a, b) {
     const dx = b.x - a.x, dy = b.y - a.y;
     const t = Math.max(0, Math.min(1, ((point.x-a.x)*dx + (point.y-a.y)*dy)/(dx*dx+dy*dy)));
@@ -39,13 +39,14 @@ const Traffic = ((city) => {
       state.message = state.charges <= 0 ? 'Relay charges depleted' : `Relay unavailable · ${Math.max(state.timer,state.cooldown).toFixed(1)}s`;
       return false;
     }
-    if (occupied(gate, run, pursuit)) { state.message = 'Gate held open · vehicle in the barrier lane'; return false; }
+    // A gate request is queued if a vehicle is crossing the barrier. Never snap it shut on traffic.
     if (!connected(run, gate.edge)) { state.message = 'Gate rejected · keep an escape road open'; return false; }
     state.selected = gate;
     state.phase = 'warning';
     state.timer = .8;
+    state.waiting = 0;
     state.charges--;
-    state.message = `${gate.name} closing · clear the lane`;
+    state.message = occupied(gate,run,pursuit) ? `${gate.name} staged · waiting for clear lane` : `${gate.name} closing · clear the lane`;
     return true;
   }
   function tick(state, run, pursuit, dt=1/60) {
@@ -54,13 +55,20 @@ const Traffic = ((city) => {
       state.timer -= dt;
       if (state.timer <= 0) {
         const gate = state.selected;
-        if (occupied(gate,run,pursuit) || !connected(run,gate.edge)) {
-          state.phase='ready'; state.timer=0; state.selected=null; state.charges++;
-          state.message = occupied(gate,run,pursuit) ? 'Gate aborted · lane occupied, charge restored' : 'Gate aborted · escape route blocked, charge restored';
+        const blocked = occupied(gate,run,pursuit);
+        const viable = connected(run,gate.edge);
+        state.waiting += dt;
+        if (!viable || (blocked && state.waiting >= 3.0)) {
+          state.phase='ready';state.timer=0;state.waiting=0;state.selected=null;state.charges++;
+          state.message = !viable ? 'Gate aborted · escape route blocked, charge restored' :
+            'Gate aborted · lane occupied too long, charge restored';
+        } else if (blocked) {
+          state.timer = 0;
+          state.message = `${gate.name} queued · waiting for lane to clear`;
         } else {
           state.closedEdges = new Set([city.edgeKey(...gate.edge)]);
           state.barrier = barrierFor(gate);
-          state.phase='closed'; state.successfulClosures++; state.timer=run.jobs?.modifiers.gateDuration||5;
+          state.phase='closed'; state.waiting=0;state.successfulClosures++; state.timer=run.jobs?.modifiers.gateDuration||5;
           state.cooldown=run.jobs?.modifiers.cooldown||8;
           state.message=`${gate.name} sealed · ${state.timer.toFixed(1)}s`;
         }
