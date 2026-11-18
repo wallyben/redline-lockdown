@@ -78,8 +78,9 @@ const Momentum = (() => {
   function screen(ctx, w, h, run) {
     const m = run?.momentum;
     if (!m) return;
-    const width = Math.min(285, Math.max(160, w * .23));
-    const x = w - width - 24, y = h - 58;
+    const width = Math.min(205, Math.max(170, w * .16));
+    // Keep the meter beside the speedometer, clear of the bottom-right navigation map.
+    const x = w - width - 25, y = h < 350 ? h - 58 : 182;
     ctx.save();
     ctx.fillStyle = '#081924e8'; ctx.fillRect(x, y, width, 41);
     ctx.fillStyle = '#273d4a'; ctx.fillRect(x + 10, y + 24, width - 20, 8);
