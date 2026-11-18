@@ -313,7 +313,8 @@ const Art = (() => {
     for (const x of [-14, 10]) for (const y of [-11, 7]) fill(ctx, x, y, 9, 4, '#0b0e16');
     // Functional silhouettes: tail white, interceptor violet, reinforcement amber.
     const role=c.role||'tail';
-    const emergency=police && role==='interceptor' ? ['#f9deff','#a78fe8','#5f5ba5','#c2abff'] :
+    const emergency=police && role==='roadblock' ? ['#ffdd92','#bd603a','#78322a','#ffe4ba'] :
+      police && role==='interceptor' ? ['#f9deff','#a78fe8','#5f5ba5','#c2abff'] :
       police && role==='reinforcement' ? ['#fff0c4','#d8b66b','#896c3e','#ffe1a6'] :
       ['#f7ffff','#bfdae2','#718e9e','#d6eaf0'];
     const paint=ctx.createLinearGradient(0,-10,0,10);
@@ -338,6 +339,7 @@ const Art = (() => {
       fill(ctx, -2, 0, 4, 7, '#56a2ff');
       if (role === 'interceptor') { fill(ctx,-16,-8,6,16,'#7a5ec2'); fill(ctx,9,-8,5,16,'#7a5ec2'); }
       if (role === 'reinforcement') { fill(ctx,-18,-9,6,18,'#e4b45c'); fill(ctx,11,-9,6,18,'#e4b45c'); }
+      if (role === 'roadblock') { fill(ctx,-24,-13,11,26,'#c77c42'); fill(ctx,15,-13,11,26,'#c77c42');fill(ctx,8,-3,14,6,'#ffd484'); }
     }
     if(courier){fill(ctx,-3,-15,8,5,'#fff1b0');fill(ctx,-5,10,11,3,'#ffdb69');}
     ctx.restore();
@@ -369,7 +371,7 @@ const Art = (() => {
     const dot = (q, color) => fill(ctx, q.x - 15, q.y - 15, 30, 30, color);
     dot(run.collected ? Pursuit.exit : Drive.pickup, run.collected ? '#6affc0' : '#ffc978');
     if (p.intercept) dot(City.nodes[p.intercept.node], '#ff5c76');
-    for(const unit of p.units)dot(unit,unit.role==='interceptor'?'#b995ff':unit.role==='reinforcement'?'#ffd083':'#ff617f');
+    for(const unit of p.units)dot(unit,unit.role==='interceptor'?'#b995ff':unit.role==='reinforcement'?'#ffd083':unit.role==='roadblock'?'#ffad66':'#ff617f');
     const destination=run.jobs?.stage===0?Jobs.pickup(run.jobs,run.time):run.jobs?.stage===1?Drive.pickup:run.jobs?.stage===2?run.jobs.courier:Pursuit.exit;
     dot(destination,'#ffdf84');
     dot(run.car, '#ffffff');
