@@ -76,7 +76,7 @@ function finish() {
   brief.querySelector('h1').innerHTML = 'RUN <span>REPORT</span>';
   brief.querySelector('p').textContent = pursuit.result + '  /  ' + s.total.toLocaleString() + ' pts\n' +
     'Job haul +' + s.recorder + '  ·  Escape +' + s.extraction +
-    '  ·  Optional cash +' + s.bonus + '  ·  Time +' + s.pace + '\nCar condition +' + s.condition + '  ·  Interceptor feint +' + s.feint + '\n' + (record ? 'Personal best ' + Records.table(Contracts[Number(layoutInput.value)].id)[0].total + ' · ' + (record.delta === null ? 'First record' : (record.delta >= 0 ? '+' : '') + record.delta + ' vs best') : 'No score banked');
+    '  ·  Optional cash +' + s.bonus + '  ·  Time +' + s.pace + '\nCar condition +' + s.condition + '  ·  Interceptor feint +' + s.feint + '\nContract mastery +' + s.styleBonus + '\n' + (record ? 'Personal best ' + Records.table(Contracts[Number(layoutInput.value)].id)[0].total + ' · ' + (record.delta === null ? 'First record' : (record.delta >= 0 ? '+' : '') + record.delta + ' vs best') : 'No score banked');
   const contract = Contracts[Number(layoutInput.value)];
   const medal = s.total >= contract.gold ? 'GOLD' : s.total >= contract.gold*.85 ? 'SILVER' : s.total ? 'BRONZE' : 'NO SCORE BANKED';
   brief.querySelector('p').textContent += '\nPoints bank only on escape. Capture or wreck: 0 points.\n' + (state.jobs.completed.map((done,i)=>done?'JOB '+(i+1)+' ✓':null).filter(Boolean).join(' · ')||'No job completed') + '\n' + (s.total > 0 && state.car.damage <= 5 ? 'CLEAN ESCAPE · ' : s.total > 0 ? 'ESCAPED · ' : '') + medal + (s.total ? ' · ' + Math.abs(s.total-contract.gold) + (s.total >= contract.gold ? ' above Gold target' : ' to Gold target') : '') +
