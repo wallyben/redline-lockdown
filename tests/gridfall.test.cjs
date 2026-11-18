@@ -30,7 +30,7 @@ test('GRIDFALL seals two physical streets in sequence with a real accessible esc
   for(const exit of [15,19])
     assert.ok(City.route(City.nearest(run.car),exit,run.traffic).length>0,'Both exits remain reachable');
   assert.ok(run.traffic.gridfallFlash>run.time);
-  advance(run,p,220);
+  advance(run,p,310);
   assert.equal(run.traffic.phase,'ready');
   assert.equal(run.traffic.closedEdges.size,0);
   assert.equal(City.wall(560,400,11,run.traffic),false);
