@@ -128,7 +128,7 @@ async function play(browser, viewport, takeShots) {
   await advance(80);
   assert.equal(await state(() => state.jobs.completed[1]), true, 'Vault interaction failed: ' + JSON.stringify({drillMid,after:await state(() => ({ car: state.car, sweep: state.sweep, jobs: state.jobs.stage }))}));
   assert.equal(await page.locator('#upgrade-choices button').count(), 3);
-  await shot('03-risk.jpg');
+  // The Grid tactical overlay is the more distinctive risk/decision capture.
   await chooseUpgrade();
 
   // Alley, moving courier and controlled transfer.
