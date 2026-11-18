@@ -1,7 +1,7 @@
 const Pursuit = ((city) => {
   const exit = city.nodes[19];
   const clearTime = 3.8;
-  const clearDuration = run => clearTime + Math.min(run.jobs?.heat||0,4)*.4;
+  const clearDuration = run => clearTime + Math.min(run.jobs?.heat||0,4)*.4 + (run.lockdown?.choice===1?1.2:0);
   const tailStart = { x: 452, y: 400, angle: 0, edge: [6, 7], path: [] };
   const patrol = node => ({ ...city.nodes[node], angle: -Math.PI / 2, edge: [node, node], path: [] });
   const layouts = [
@@ -13,7 +13,8 @@ const Pursuit = ((city) => {
     units: [{ ...tailStart, role: 'tail', x: layouts[layout].tailX, path: [] }, { ...patrol(layouts[layout].interceptor), role: 'interceptor', angle: layout === 1 ? Math.PI/2 : -Math.PI/2 }],
     sighting: null, seen: false, lost: 0, elapsed: 0, refresh: 0,
     intercept: null, block: null, contact: 0, result: null, nextInterceptId:1,
-    bonusAlarm: false, feint: false, reacquired: 0, hadContact: false, tailRange: Infinity, nearestRange: Infinity,
+    bonusAlarm: false, feint: false, reacquired: 0, hadContact: false, hadIntercept:false, tailRange: Infinity, nearestRange: Infinity,
+    decoyCharges:2,decoyCooldown:0,decoyTime:0,decoyTarget:null,decoyUsed:0,
   });
 
   function canSee(unit, car, road = null) {
@@ -139,6 +140,19 @@ const Pursuit = ((city) => {
     return search.goal;
   }
 
+  function deployDecoy(p,run) {
+    if(!run.collected || !p.sighting || p.decoyCharges<=0 || p.decoyCooldown>0)return false;
+    // Fakes a pursuit radio packet on a genuinely reachable street.
+    const anchor=city.nearest(run.car), choices=city.nodes.map((n,i)=>({n,i,d:city.distance(n,run.car)}))
+      .filter(q=>q.d>190 && q.d<900 && city.route(anchor,q.i,run.traffic).length>0);
+    if(!choices.length)return false;
+    choices.sort((a,b)=>b.d-a.d);
+    const chosen=choices[(p.decoyUsed*7+run.seed)%Math.min(choices.length,4)].n;
+    p.decoyCharges--;p.decoyCooldown=12;p.decoyTime=3.5;p.decoyUsed++;
+    p.decoyTarget={x:chosen.x,y:chosen.y,dx:1,dy:0};
+    p.sighting={...p.decoyTarget};p.seen=false;p.refresh=0;p.intercept=null;p.block=null;
+    return true;
+  }
   function tick(p, run, dt = 1 / 60) {
     const car = run.car;
     if (p.result) return;
@@ -160,8 +174,11 @@ const Pursuit = ((city) => {
       dispatch(p.units[1], junction(13), run.traffic);
     }
     p.refresh -= dt;
+    p.decoyCooldown=Math.max(0,p.decoyCooldown-dt);
+    p.decoyTime=Math.max(0,p.decoyTime-dt);
     const wasSeen = p.seen;
     p.seen = p.units.some(u => canSee(u, car, run.traffic) && !(run.smoke && Smoke.obscures(run.smoke.clouds,u,car)));
+    if(p.decoyTime>0) {p.seen=false;p.sighting={...p.decoyTarget};}
     if (p.seen) {
       if (!wasSeen && p.hadContact && p.lost > .25) p.reacquired++;
       if (!wasSeen) p.refresh = 0;
@@ -202,6 +219,7 @@ const Pursuit = ((city) => {
         const from = city.nearest(p.sighting);
         if (node !== from) {
           p.intercept = { id:p.nextInterceptId++,node, from, expires: p.elapsed + 9,diverted:false,rewarded:false };
+          p.hadIntercept=true;
           dispatch(interceptor, junction(node), run.traffic);
         }
       } else if (!p.intercept && !p.seen) {
@@ -240,9 +258,12 @@ const Pursuit = ((city) => {
       car.vx *= contactBlockade ? .81 : speedNow > 60 ? .99 : .93;
       car.vy *= contactBlockade ? .81 : speedNow > 60 ? .99 : .93;
     } else p.contact = Math.max(0, p.contact - dt * (speedNow > 60 ? .65 : 1));
+    const escape = run.lockdown?.active ? (run.lockdown.choice===1?city.nodes[15]:exit) : exit;
     if (p.contact > .87) p.result = 'Intercepted';
-    else if (run.jobs?.stage < 3 && city.distance(car, exit) < 44) p.result = null;
-    else if (city.distance(car, exit) < 44 && p.lost >= clearDuration(run)) p.result = run.jobs?.earlyCashout ? 'Partial cashout' : run.car.damage <= 5 ? 'Clean getaway' : 'Escaped';
+    else if (run.jobs?.stage < 3 && city.distance(car, escape) < 44) p.result = null;
+    else if (run.jobs?.stage >= 3 && city.distance(car, escape) < 44 && p.lost >= clearDuration(run) &&
+      (typeof ContractRules==='undefined' || ContractRules.escapeReady(run,p)))
+      p.result = run.jobs?.earlyCashout ? 'Partial cashout' : run.car.damage <= 5 ? 'Clean getaway' : 'Escaped';
   }
 
   function score(run, pursuit) {
@@ -257,9 +278,10 @@ const Pursuit = ((city) => {
     const styleBonus = !success ? 0 : run.contractId === 'iris' && !pursuit.reacquired && run.car.damage < 20 ? 1200 :
       run.contractId === 'switch' && (run.traffic?.successfulClosures || 0) >= 1 ? 1200 :
       run.contractId === 'cash-depot' && run.bonus ? 1400 : 0;
-    return { extraction, recorder, bonus, pace, condition, feint, styleBonus,
-      total: extraction+recorder+bonus+pace+condition+feint+styleBonus };
+    const routeBonus=success && !run.jobs?.earlyCashout && run.lockdown?.choice===1 ? 1750 : 0;
+    return { extraction, recorder, bonus, pace, condition, feint, styleBonus, routeBonus,
+      total: extraction+recorder+bonus+pace+condition+feint+styleBonus+routeBonus };
   }
-  return { reset, tick, canSee, predict, score, exit, clearTime, clearDuration, layouts };
+  return { reset, tick, deployDecoy, canSee, predict, score, exit, clearTime, clearDuration, layouts };
 })(typeof module === 'undefined' ? City : require('./city.js'));
 if (typeof module !== 'undefined') module.exports = Pursuit;
