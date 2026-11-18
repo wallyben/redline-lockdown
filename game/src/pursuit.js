@@ -275,9 +275,12 @@ const Pursuit = ((city) => {
       car.vy *= contactBlockade ? .81 : speedNow > 60 ? .99 : .93;
     } else p.contact = Math.max(0, p.contact - dt * (speedNow > 60 ? .65 : 1));
     const escape = run.lockdown?.active ? (run.lockdown.choice===1?city.nodes[15]:exit) : exit;
+    // East Dock includes the physically accessible loading-bay apron; the
+    // cargo containers make a 44-unit centre-only trigger unreliable.
+    const escapeRadius=run.lockdown?.active&&run.lockdown.choice===0?56:44;
     if (p.contact > .87) p.result = 'Intercepted';
-    else if (run.jobs?.stage < 3 && city.distance(car, escape) < 44) p.result = null;
-    else if (run.jobs?.stage >= 3 && city.distance(car, escape) < 44 && p.lost >= clearDuration(run) &&
+    else if (run.jobs?.stage < 3 && city.distance(car, escape) < escapeRadius) p.result = null;
+    else if (run.jobs?.stage >= 3 && city.distance(car, escape) < escapeRadius && p.lost >= clearDuration(run) &&
       (typeof ContractRules==='undefined' || ContractRules.escapeReady(run,p)))
       p.result = run.jobs?.earlyCashout ? 'Partial cashout' : run.car.damage <= 5 ? 'Clean getaway' : 'Escaped';
   }
