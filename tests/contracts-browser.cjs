@@ -127,7 +127,7 @@ async function play(browser,idx,name){
       await driveTo(430,530,45,230,8);
     }else{
       await page.keyboard.press('q');
-      await driveTo(690,400,45,230,8);
+      await driveTo(520,400,45,230,8);
     }
 
     await drill();

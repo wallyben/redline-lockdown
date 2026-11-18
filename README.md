@@ -4,7 +4,7 @@
 [![rank](https://make.fun/badge/best-game-01/wallyben/redline-lockdown/rank.svg)](https://make.fun/bounty/best-game-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=best-game-01)
 [![reward](https://make.fun/badge/best-game-01/wallyben/redline-lockdown/reward.svg)](https://make.fun/bounty/best-game-01?utm_source=github&utm_medium=readme&utm_campaign=best-game-01)
 
-Rob the Port Meridian bank, hijack the city's street controls, lure police into the wrong intersection, and get out before lockdown. A real-time tactical map reveals interceptor routes, closures and both final exits.
+Raid Port Meridian's bank or specialized cash targets, hijack the city's street controls, lure police into the wrong intersection, and get out before lockdown. A real-time tactical map reveals interceptor routes, closures and both final exits.
 
 ## Three contracts, three different challenges
 
@@ -12,7 +12,7 @@ Rob the Port Meridian bank, hijack the city's street controls, lure police into 
 
 **Break the Grid:** lure an interceptor into committing to a junction, seal a service-yard relay, then raid the distinct Grid Switch cache before an inner-city courier transfer.
 
-**High-Risk Payday:** take the optional cash depot and attempt the dangerous West Quay extraction for a 1,750-point premium. Abandoning the job allows safer early cashout.
+**High-Risk Payday:** crack an armored transfer lockbox, take the mandatory cash-depot haul, intercept the freight courier and escape through the dangerous West Quay for a 1,750-point premium. Abandoning the job allows safer early cashout.
 
 ## Run it
 

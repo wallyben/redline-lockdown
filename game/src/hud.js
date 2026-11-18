@@ -7,6 +7,7 @@ const ChaseHUD = (() => {
     const prerequisite=ContractRules.required(state,stage);
     const objective = !prerequisite.ready ? prerequisite.task :
       stage===1&&state.contractId==='switch' ? 'Extract the Signal Cache · E to crack' :
+      stage===1&&state.contractId==='cash-depot' ? 'Crack the Armored Lockbox · E to drill' :
       stage===3&&state.lockdown?.active ? Lockdown.exits[state.lockdown.choice].name : objectives[stage];
     const threat = state.lockdown?.active ? 'CITY LOCKDOWN ACTIVE' :
       !state.collected?'THE JOB IS ON':pursuit.seen?'POLICE HAVE SIGHT':

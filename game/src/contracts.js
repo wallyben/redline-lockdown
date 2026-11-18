@@ -6,6 +6,6 @@ const Contracts = [
     beats:[['LURE','Intercept the pickup under police sight'],['SABOTAGE','Close a relay, then crack the nearby Grid Switch cache'],['ESCAPE','Transfer from the inner-city courier and evade the interceptor']],
     goal:'Grid mission: seal a real service-yard street, RAID the nearby Grid Switch cache (not the bank), then outmaneuver the committed interceptor.'},
   {id:'cash-depot',name:'HIGH-RISK PAYDAY',seed:1703,layout:2,pressure:1.17,gold:12000,
-    beats:[['VAULT','Hit the pickup and drill the bank'],['CASH','Collect optional depot cash before extraction'],['QUAY','Transfer the courier haul and escape via WEST QUAY']],
-    goal:'Payday mission: RAID the cash depot BEFORE the courier transfer; the full haul only banks at risky WEST QUAY (+1,750).'},
+    beats:[['LOCKBOX','Intercept the pickup and crack the armored lockbox'],['CASH','Steal the cash-depot haul before the freight courier'],['QUAY','Escape via high-risk WEST QUAY']],
+    goal:'Payday mission: open the armored transfer lockbox, RAID the high-value depot, then transfer freight cash and escape via risky WEST QUAY (+1,750).'},
 ];

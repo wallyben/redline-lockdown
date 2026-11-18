@@ -196,7 +196,7 @@ function targetLabel(){
     if(state.jobs.stage===2 && state.contractId==='cash-depot')return 'HIGH-VALUE DEPOT CASH';
     if(state.jobs.stage===2 && state.contractId==='iris')return 'GHOST · SMOKE & COVER';
   }
-  return ['ROLLING PICKUP',state.contractId==='switch'?'SIGNAL CACHE RAID':'PORT MERIDIAN VAULT','COURIER TRANSFER','DOCK EXTRACTION'][state.jobs.stage];
+  return ['ROLLING PICKUP',state.contractId==='switch'?'SIGNAL CACHE RAID':state.contractId==='cash-depot'?'ARMORED LOCKBOX':'PORT MERIDIAN VAULT','COURIER TRANSFER','DOCK EXTRACTION'][state.jobs.stage];
 }
 window.addEventListener('keydown', e => {
   if (e.target === layoutInput) return;

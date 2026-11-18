@@ -2,7 +2,8 @@ const Drive = ((city, jobs) => {
   const start = { x: 130, y: 400, angle: 0, vx: 0, vy: 0, damage: 0, hits: 0 };
   const pickup = { x: 690, y: 400 }; // Port Meridian bank vault
   const signalCache = { x: 430, y: 530 }; // Grid contract field-side relay vault.
-  const vaultFor = run => run?.contractId==='switch' ? signalCache : pickup;
+  const armoredLockbox = { x: 520, y: 400 }; // Payday: armored transfer safe, ahead of the junction blockade.
+  const vaultFor = run => run?.contractId==='switch' ? signalCache : run?.contractId==='cash-depot' ? armoredLockbox : pickup;
   function reset() {
     return { car: { ...start }, collected: false, bonus: false, banked: false, time: 0, sweep: -1, impact: 0,
       traffic: typeof Traffic === 'undefined' ? null : Traffic.reset(),
@@ -74,6 +75,6 @@ const Drive = ((city, jobs) => {
       if(prior===0&&state.jobs.stage===0&&state.jobs.pending)state.collected=true;
     }
   }
-  return { reset, tick, pickup, signalCache, vaultFor };
+  return { reset, tick, pickup, signalCache, armoredLockbox, vaultFor };
 })(typeof module === 'undefined' ? City : require('./city.js'), typeof module === 'undefined' ? Jobs : require('./jobs.js'));
 if (typeof module !== 'undefined') module.exports = Drive;
