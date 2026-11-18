@@ -294,7 +294,7 @@ const Pursuit = ((city) => {
     const condition = success ? Math.round(Math.max(0,100-run.car.damage)*5) : 0;
     const feint = success && pursuit.feint ? 500+(run.jobs?.modifiers.feint||0) : 0;
     // Skill mastery is specific to the contract, not just its patrol arrangement.
-    const styleBonus = !success ? 0 : run.contractId === 'iris' && !pursuit.reacquired && run.car.damage < 20 ? 1200 :
+    const styleBonus = !success ? 0 : run.contractId === 'iris' && run.smoke?.used>0 && run.ghostAlley && run.car.damage < 35 ? Math.max(400,1200-Math.min(4,pursuit.reacquired)*200) :
       run.contractId === 'switch' && (run.traffic?.successfulClosures || 0) >= 1 ? 1200 :
       run.contractId === 'cash-depot' && run.bonus ? 1400 : 0;
     const routeBonus=success && !run.jobs?.earlyCashout && run.lockdown?.choice===1 ? 1750 : 0;
