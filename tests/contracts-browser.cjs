@@ -115,7 +115,7 @@ async function play(browser,idx,name){
       await advance(1000);
       let status=await report('AFTER GRID RELAY');
       assert.ok(status.closures>=1,'Grid relay never sealed: '+JSON.stringify(status));
-      await driveTo(430,400,45,230,8);
+      await driveTo(430,530,45,230,8);
     }else{
       await page.keyboard.press('q');
       await driveTo(690,400,45,230,8);
