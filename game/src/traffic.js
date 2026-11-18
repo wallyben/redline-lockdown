@@ -32,11 +32,8 @@ const Traffic = ((city) => {
     const destinations=extra?[15,19]:[run.lockdown?.active&&run.lockdown.choice===1?15:19];
     return destinations.every(destination=>city.route(city.nearest(run.car),destination,road).length>0);
   }
-  function activate(state, run, pursuit) {
-    const range=90*(run.jobs?.modifiers.relayRange||1);
-    const gate = gates.filter(g => city.distance(run.car, g.console) < range)
-      .sort((a,b) => city.distance(run.car,a.console)-city.distance(run.car,b.console))[0];
-    if (!gate) { state.message = 'Move beside a relay console to close a gate'; return false; }
+  // Every local or remote request goes through the SAME physical-road safety checks.
+  function request(state, run, pursuit, gate) {
     if (state.phase !== 'ready' || state.cooldown > 0 || state.charges <= 0) {
       state.message = state.charges <= 0 ? 'Relay charges depleted' : `Relay unavailable · ${Math.max(state.timer,state.cooldown).toFixed(1)}s`;
       return false;
@@ -49,6 +46,34 @@ const Traffic = ((city) => {
     state.waiting = 0;
     state.charges--;
     state.message = occupied(gate,run,pursuit) ? `${gate.name} staged · waiting for clear lane` : `${gate.name} closing · clear the lane`;
+    return true;
+  }
+  function activate(state, run, pursuit) {
+    const range=90*(run.jobs?.modifiers.relayRange||1);
+    const gate=gates.filter(g=>city.distance(run.car,g.console)<range)
+      .sort((a,b)=>city.distance(run.car,a.console)-city.distance(run.car,b.console))[0];
+    if(!gate){state.message='Move beside a relay console to close a gate';return false;}
+    return request(state,run,pursuit,gate);
+  }
+  // A one-use remote road hack costs the SAME charge the player can spend on B/Overdrive.
+  // No free activation: charge is earned in actual visible, dangerous police pursuits.
+  function override(state, run, pursuit, gateId) {
+    const meter=run?.momentum,gate=gates.find(g=>g.id===gateId);
+    if(!gate){state.message='Select one of the three marked relay nodes';return false;}
+    if(!run?.collected||!run.jobs||run.jobs.stage<1||pursuit?.result){
+      state.message='Secure the first pickup to unlock tactical overrides';return false;
+    }
+    if(!meter||meter.remoteUsed||meter.active>0||meter.cooldown>0||meter.charge<.7){
+      state.message=meter?.remoteUsed?'Remote grid override already spent':
+        'Need 70% earned charge and no Overdrive cooldown for remote override';
+      return false;
+    }
+    if(!request(state,run,pursuit,gate))return false;
+    meter.charge=Math.max(0,meter.charge-.7);
+    meter.remoteUsed=1;
+    meter.message='GRID OVERRIDE / '+gate.name.toUpperCase();
+    meter.messageTime=2.9;
+    state.message=gate.name+' / REMOTE CLOSURE ARMED · POLICE MUST REROUTE';
     return true;
   }
   function tick(state, run, pursuit, dt=1/60) {
@@ -127,6 +152,6 @@ const Traffic = ((city) => {
     return gates.map(g=>({ ...g, distance:city.distance(run.car,g.console) }))
       .filter(g=>g.distance<range).sort((a,b)=>a.distance-b.distance)[0] || null;
   }
-  return { gates, reset, activate, tick, near, occupied, segmentDistance };
+  return { gates, reset, activate, override, tick, near, occupied, segmentDistance };
 })(typeof module === 'undefined' ? City : require('./city.js'));
 if (typeof module !== 'undefined') module.exports = Traffic;
