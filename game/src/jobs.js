@@ -23,7 +23,12 @@ const Jobs = ((city) => {
   }
   function updateCourier(jobs,dt,traffic,player) {
     const route=courierRoute(jobs), from=route[jobs.courier.leg], to=route[jobs.courier.leg+1];
-    if (!city.edgeOpen(from,to,traffic)) { jobs.courier.progress=0; jobs.courier.leg=(jobs.courier.leg+1)%6; }
+    // A sealed road is a physical obstacle. Stop on the current segment and
+    // continue once the relay reopens; never teleport to the next street.
+    if (!city.edgeOpen(from,to,traffic)) {
+      Object.assign(jobs.courier,courierPoint(jobs));
+      return;
+    }
     const pressure=player&&city.distance(player,jobs.courier)<180?.045:.1;
     jobs.courier.progress += dt*pressure;
     if(jobs.courier.progress>=1){jobs.courier.progress-=1;jobs.courier.leg=(jobs.courier.leg+1)%6;}
