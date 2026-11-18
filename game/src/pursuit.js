@@ -197,11 +197,11 @@ const Pursuit = ((city) => {
     if(run.lockdown?.active && !p.lockdownUnit) {
       const west=run.lockdown.choice===1;
       p.lockdownUnit={...patrol(west?5:9),role:'roadblock',speed:0};
-      p.units.push(p.lockdownUnit);p.lockdownTarget=west?10:14;
+      p.units.push(p.lockdownUnit);p.lockdownTarget=west?11:13;
       dispatch(p.lockdownUnit,junction(p.lockdownTarget),run.traffic);
     }
     if(run.lockdown?.active && p.lockdownUnit) {
-      const target=run.lockdown.choice===1?10:14;
+      const target=run.lockdown.choice===1?11:13;
       if(target!==p.lockdownTarget) {
         p.lockdownTarget=target;
         dispatch(p.lockdownUnit,junction(target),run.traffic);
